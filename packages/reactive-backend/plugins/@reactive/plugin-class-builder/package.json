@@ -1,0 +1,6 @@
+{
+  "name": "@reactive/plugin-class-builder",
+  "version": "0.0.1",
+  "type": "commonjs",
+  "main": "src/index.ts"
+}

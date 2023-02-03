@@ -1,0 +1,7 @@
+{
+  "name": "@reactive/server-cli",
+  "version": "0.0.1",
+  "bin": {
+    "rxcli": "./src/cli/index.js"
+  }
+}

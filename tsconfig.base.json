@@ -3,6 +3,7 @@
   "compilerOptions": {
     "rootDir": ".",
     "sourceMap": true,
+    "resolveJsonModule": true,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
@@ -14,7 +15,23 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "esModuleInterop": true,
+    "paths": {
+      "@reactive/adapter-typeorm": [
+        "packages/reactive-adapter-typeorm/src/index.ts"
+      ],
+      "@reactive/client": ["packages/client/src/index.ts"],
+      "@reactive/commons": ["packages/commons/src/index.ts"],
+      "@reactive/icons": ["packages/icons/src/index.ts"],
+      "@reactive/plugin-class-builder": [
+        "packages/plugins/class-builder/src/index.ts"
+      ],
+      "@reactive/server": ["packages/server/src/index.ts"],
+      "@reactive/server-cli": ["packages/cli/src/index.ts"],
+      "@reactive/server-dashboard": ["packages/plugins/dashboard/src/index.ts"],
+      "@reactive/server-helpers": ["packages/server-helpers/src/index.ts"],
+      "@reactive/ui": ["packages/ui/src/index.ts"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
