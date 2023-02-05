@@ -6,7 +6,7 @@ export default {
             name: "@reactive/server-dashboard",
         },
         {
-            name: "@reactive/plugin-class-builder",
+            name: "@reactive/plugin-data-types",
         }
     ]
 }

@@ -16,7 +16,8 @@ export const buildAdmin = async ({ watch, mode = "development" }: Partial<BuildA
         pluginsDir: relativePath,
         adminRoot: resolve(pwd, "../plugins/dashboard"),
         mode,
-        webpackConfigPath: resolve(pwd, "../plugins/dashboard", "admin", "webpack.config.js")
+        webpackConfigPath: resolve(pwd, "../plugins/dashboard", "admin", "webpack.config.js"),
+        webpackAliasConfigPath: resolve(pwd, "../plugins/dashboard", "admin", "webpack.alias.config.js"),
     })
 }
 

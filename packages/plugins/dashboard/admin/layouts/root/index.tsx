@@ -1,5 +1,4 @@
-import React from "react"
-import { Stack, StackProps } from "@chakra-ui/react"
+import { Stack, StackProps } from "@reactive/ui"
 
 export interface RootLayoutProps extends StackProps {
     children?: any
@@ -7,7 +6,7 @@ export interface RootLayoutProps extends StackProps {
 
 export function RootLayout({ children, ...props }: RootLayoutProps) {
     return (
-        <Stack spacing={0} {...props}>
+        <Stack bg="gray.50" spacing={0} {...props}>
             {children}
         </Stack>
     )

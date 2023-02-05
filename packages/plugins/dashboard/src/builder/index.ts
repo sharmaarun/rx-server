@@ -9,6 +9,7 @@ export type BuildAdminOptions = {
     cwd?: string
     outputDir?: string
     webpackConfigPath?: string
+    webpackAliasConfigPath?: string
     watch?: boolean
     pluginsDir?: string
     plugins?: string[]
@@ -26,6 +27,7 @@ export const compile = async ({
     outputPath = ".cache",
     outputDir = "admin",
     webpackConfigPath = "../../admin/webpack.config",
+    webpackAliasConfigPath = "../../admin/webpack.alias.config",
     watch = false,
     plugins = [],
     adminDirName = "admin",
@@ -68,6 +70,7 @@ export const compile = async ({
 
     // load the local webpack config
     const webpackConfigBuilder = require(webpackConfigPath)
+    const webpackAlias = require(webpackAliasConfigPath)
 
 
 
@@ -80,13 +83,14 @@ export const compile = async ({
             dependOn: "react-vendors"
         }
     }
-    console.log(pluginEntries)
+
+    console.log(webpackAlias)
     const config = webpackConfigBuilder({
         outputPath: finalOutputPath,
         entries: {
             index: { import: rootDir + "/index", dependOn: 'react-vendors' },
             ...pluginEntries,
-            "react-vendors": ['react', 'react-dom'],
+            "react-vendors": webpackAlias?.filter((a: any) => a?.length > 0),
         },
         rootDir,
         mode,

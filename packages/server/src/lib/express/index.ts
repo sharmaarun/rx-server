@@ -2,6 +2,7 @@ import { injectable } from "inversify";
 import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
 import Express from "express"
+import cors, { CorsOptions } from "cors"
 import { Logger } from "../logger";
 import { resolve } from "path";
 import { ContextNotFoundError } from "@reactive/commons";
@@ -29,6 +30,7 @@ export type CreateRouteOpts = {
 export type AppConfig = {
     host: string
     port: number
+    cors: CorsOptions
 }
 
 
@@ -38,7 +40,7 @@ export type ExpressRoutes = {
 
 @injectable()
 export class ExpressManager implements PluginClass {
-    private app: Express.Express
+    app: Express.Express
     private ctx?: ServerContext
     private routes!: ExpressRoutes
 
@@ -48,6 +50,7 @@ export class ExpressManager implements PluginClass {
     }
     public async init(ctx: ServerContext) {
         this.ctx = ctx
+        this.app.use(cors(ctx?.config?.app?.cors))
     }
 
     public start = async () => {

@@ -4,6 +4,7 @@ import { bootstrap } from "@reactive/client";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./pages/_app";
+
 bootstrap()
 
 ReactDOM.render(

@@ -7,6 +7,7 @@ import { Endpoint, EndpointManager } from "./endpoints"
 import { AppRoute, AppRouteHandlersMap, ExpressManager } from "./express"
 import { Logger } from "./logger"
 import { PluginsManager } from "./plugin"
+import SettingsManager from "./settings"
 
 export type BootstrapOpts = {
   appDir: string
@@ -42,6 +43,7 @@ export async function bootstrap(opts?: BootstrapOpts) {
   const db = container.get<DBManager>(DBManager)
   const plugins = container.get<PluginsManager>(PluginsManager)
   const app = container.get<ExpressManager>(ExpressManager)
+  const settings = container.get<SettingsManager>(SettingsManager)
 
   // Create Server Context
   const serverContext: ServerContext = {
@@ -65,8 +67,10 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await endpoints.init(serverContext)
   // Load Plugins
   await plugins.init(serverContext)
+  // Load settings
+  await settings.init(serverContext)
 
-  await new Promise(res => setTimeout(res, 2000))
+  await new Promise(res => setTimeout(res, 200))
 
   // Starting
   await endpoints.start()
@@ -75,14 +79,14 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await app.start()
 }
 
-export const registerEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'isCore'>) => {
+export const registerPluginEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
   const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.register(cb)
+  return () => endpoints?.register(cb, { type: "plugin" })
 }
 
-export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Endpoint) => {
+export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
   const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.register(cb, { isCore: true })
+  return () => endpoints?.register(cb)
 }
 
 export const createRouter = (name: string, cb?: (ctx: ServerContext) => AppRoute[]) => {

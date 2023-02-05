@@ -6,12 +6,17 @@
   "targets": {
     "build": {
       "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
+        "clean": false,
         "outputPath": "dist/packages/client",
         "main": "packages/client/src/index.ts",
         "tsConfig": "packages/client/tsconfig.lib.json",
-        "assets": ["packages/client/*.md"]
+        "assets": [
+          "packages/client/*.md"
+        ]
       }
     },
     "publish": {
@@ -19,18 +24,26 @@
       "options": {
         "command": "node tools/scripts/publish.mjs client {args.ver} {args.tag}"
       },
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
-        "lintFilePatterns": ["packages/client/**/*.ts"]
+        "lintFilePatterns": [
+          "packages/client/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
       "options": {
         "jestConfig": "packages/client/jest.config.ts",
         "passWithNoTests": true

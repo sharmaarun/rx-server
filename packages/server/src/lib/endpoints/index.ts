@@ -12,6 +12,7 @@ export type APIConfig = {
     webRoot: string
 }
 
+export type EndpointType = "core" | "plugin"
 
 export type Endpoint = {
     name: string;
@@ -19,11 +20,11 @@ export type Endpoint = {
     routes?: AppRoute[]
     services?: any[]
     schema?: EntitySchema
-    isCore?: boolean
+    type?: EndpointType
 }
 
 export type RegisterOpts = {
-    isCore?: boolean
+    type?: EndpointType
 }
 
 @injectable()
@@ -47,30 +48,29 @@ export class EndpointManager implements PluginClass {
         const { path } = config?.api || {}
         const API_PATH = appDir + "/" + path
         const eps = await this.loadAllFromDir(API_PATH)
-        this.registerAll(eps, { isCore: true })
+        this.registerAll(eps, { type: "core" })
 
         this.createServerEndpoints(this.endpoints)
 
     }
 
     public registerAll = (endpoints: Endpoint[], opts?: RegisterOpts) => {
-        const { isCore = false } = opts || {}
+        const { type = "core" } = opts || {}
         for (let e of endpoints) {
-            console.log(isCore)
-            this.register(ctx => ({ ...e, isCore }))
+            this.register(ctx => ({ ...e, type }))
         }
     }
 
     public register = (cb?: (ctx: ServerContext) => Endpoint, opts?: RegisterOpts) => {
-        let { isCore = false } = opts || {}
+        let { type = "core" } = opts || {}
         if (!this.ctx) throw new ContextNotFoundError();
         if (!cb) throw new Error("Callback not provided!")
         const endpoint: Endpoint = cb?.(this.ctx)
-        isCore = endpoint.isCore ?? isCore
+        type = endpoint.type ?? type
         if (endpoint) {
             this.endpoints.push({
                 ...endpoint,
-                isCore
+                type
             })
         }
         return this.endpoints
@@ -111,7 +111,6 @@ export class EndpointManager implements PluginClass {
 
         // load controller
         const controllerFilePath = resolve(path + "/controller/index.ts")
-        console.log(controllerFilePath)
         if (existsSync(controllerFilePath)) {
             const controllers = await loadModule(controllerFilePath)
             endpoint.controllers = controllers?.()
@@ -140,7 +139,7 @@ export class EndpointManager implements PluginClass {
             console.log(ep)
             ep.routes?.forEach(route => {
                 let path = resolve("/" + ep.name + "/" + route.path)
-                if (!ep.isCore!) {
+                if (ep.type === "plugin") {
                     path = "/" + PLUGINS_WEB_ROOT + path
                 }
                 if (route.staticPath?.length) {
@@ -151,6 +150,7 @@ export class EndpointManager implements PluginClass {
                     route,
                     handler: (req, res) => {
                         if (route.handler) {
+                            res.header("content-type", "application/json")
                             console.log(path, route.method, route.handler)
                             ep.controllers?.[route.handler]?.(req, res)
                         }

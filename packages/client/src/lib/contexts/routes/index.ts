@@ -1,16 +1,25 @@
-import { proxy } from "valtio"
+import { proxy, useSnapshot } from "valtio"
 
 export type Route = {
+    id?: string
     title: string,
     path: string,
     icon: any,
-    element: any
+    element: any,
+    children?: Route[]
+    isCore?: boolean
 }
 
 export type RoutesContext = {
-    routes: Route[]
+    coreRoutes: Route[]
+    pluginRoutes: Route[]
+    raw: Route[]
 }
 
 export const Routes = proxy<RoutesContext>({
-    routes: []
+    coreRoutes: [],
+    pluginRoutes: [],
+    raw: []
 })
+
+export const useRoutes = () => useSnapshot(Routes)
