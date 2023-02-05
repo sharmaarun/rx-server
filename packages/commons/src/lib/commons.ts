@@ -3,6 +3,6 @@ export function isClass(v: any) {
 }
 
 export async function loadModule(name: string) {
-  const module = await import(name)
+  const module = await import(/* webpackIgnore: true */name)
   return module?.default || module
 }

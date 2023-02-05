@@ -9,9 +9,11 @@ import { buildAdmin, dev } from "../scripts"
 const program = new Command()
 
 const build = (args: any) => {
-    const { watch } = program.opts()
+    const { watch, prod } = program.opts()
+    if(prod) console.info("| Production Mode |")
     buildAdmin({
-        watch
+        watch,
+        mode: prod ? "production" : "development"
     })
 }
 
@@ -36,6 +38,7 @@ program.command("dev")
     .description("Start the  server in development mode. (builds admin panel in watch mode with -w flag)")
     .action(dev_)
 
+program.option("-p --prod", "Run in production mode")
 program.option("-w --watch", "Run in watch mode")
 
 program.parse(process.argv)

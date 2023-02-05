@@ -1,4 +1,4 @@
-import { ContextNotFoundError, loadModule } from "@reactive/commons";
+import { ContextNotFoundError, loadModule, PLUGINS_WEB_ROOT } from "@reactive/commons";
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { inject, injectable } from "inversify";
 import { resolve } from "path";
@@ -9,6 +9,7 @@ import { PluginClass } from "../plugin";
 
 export type APIConfig = {
     path: string
+    webRoot: string
 }
 
 
@@ -18,10 +19,11 @@ export type Endpoint = {
     routes?: AppRoute[]
     services?: any[]
     schema?: EntitySchema
+    isCore?: boolean
 }
 
 export type RegisterOpts = {
-    core?: boolean
+    isCore?: boolean
 }
 
 @injectable()
@@ -45,25 +47,31 @@ export class EndpointManager implements PluginClass {
         const { path } = config?.api || {}
         const API_PATH = appDir + "/" + path
         const eps = await this.loadAllFromDir(API_PATH)
-        this.registerAll(eps)
+        this.registerAll(eps, { isCore: true })
 
         this.createServerEndpoints(this.endpoints)
 
     }
 
-    public registerAll = (endpoints: Endpoint[]) => {
+    public registerAll = (endpoints: Endpoint[], opts?: RegisterOpts) => {
+        const { isCore = false } = opts || {}
         for (let e of endpoints) {
-            this.register(ctx => e)
+            console.log(isCore)
+            this.register(ctx => ({ ...e, isCore }))
         }
     }
 
     public register = (cb?: (ctx: ServerContext) => Endpoint, opts?: RegisterOpts) => {
-        const { core = false } = opts || {}
+        let { isCore = false } = opts || {}
         if (!this.ctx) throw new ContextNotFoundError();
         if (!cb) throw new Error("Callback not provided!")
         const endpoint: Endpoint = cb?.(this.ctx)
+        isCore = endpoint.isCore ?? isCore
         if (endpoint) {
-            this.endpoints.push(endpoint)
+            this.endpoints.push({
+                ...endpoint,
+                isCore
+            })
         }
         return this.endpoints
     }
@@ -95,14 +103,15 @@ export class EndpointManager implements PluginClass {
         }
 
         // load route
-        const routeFilePath = resolve(path + "/routes/index")
+        const routeFilePath = resolve(path + "/routes/index.ts")
         if (existsSync(routeFilePath)) {
             const routes = await loadModule(routeFilePath)
             endpoint.routes = routes?.();
         }
 
         // load controller
-        const controllerFilePath = resolve(path + "/controller/index")
+        const controllerFilePath = resolve(path + "/controller/index.ts")
+        console.log(controllerFilePath)
         if (existsSync(controllerFilePath)) {
             const controllers = await loadModule(controllerFilePath)
             endpoint.controllers = controllers?.()
@@ -125,14 +134,16 @@ export class EndpointManager implements PluginClass {
     }
 
 
-    private createServerEndpoints = (endpoints: Endpoint[]) => {
+    public createServerEndpoints = (endpoints: Endpoint[]) => {
         // create server endpoints
         for (let ep of endpoints) {
             console.log(ep)
             ep.routes?.forEach(route => {
-                const path = resolve("/" + ep.name + "/" + route.path)
+                let path = resolve("/" + ep.name + "/" + route.path)
+                if (!ep.isCore!) {
+                    path = "/" + PLUGINS_WEB_ROOT + path
+                }
                 if (route.staticPath?.length) {
-                    console.log(path, route.staticPath)
                     this.express.static(path, route.staticPath)
                     return;
                 }

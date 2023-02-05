@@ -31,39 +31,59 @@ export type AppConfig = {
     port: number
 }
 
+
+export type ExpressRoutes = {
+    [key: string]: CreateRouteOpts
+}
+
 @injectable()
 export class ExpressManager implements PluginClass {
     private app: Express.Express
     private ctx?: ServerContext
+    private routes!: ExpressRoutes
 
     constructor() {
         this.app = Express()
+        this.routes = {}
     }
-    async init(ctx: ServerContext) {
+    public async init(ctx: ServerContext) {
         this.ctx = ctx
     }
 
-    async start() {
+    public start = async () => {
         const { host = "0.0.0.0", port = 6969 } = this.ctx?.config?.app || {}
+
+        this.app.use("/" + this.ctx?.config.api.webRoot, this.createRouter(this.routes))
         this.app?.listen(port, host, () => {
             this.ctx?.logger?.log(`Listening on http://${host}:${port}`)
         })
     }
 
-    route(path: string, opts: CreateRouteOpts) {
-        const { method } = opts.route
-        if (opts.handler)
-            this.app?.[method]?.(path, opts.handler)
+    public createRouter = (routes: ExpressRoutes) => {
+        const router_ = Express.Router()
+        for (let path in routes) {
+            const opts = this.routes[path]
+            const { route, handler } = opts || {}
+            const { method } = route || {}
+            if (method && handler)
+                router_?.[method]?.(path, handler)
+        }
+        return router_
     }
 
-    static(path: string = "/public", dirPath: string = "public") {
+    public route(path: string, opts: CreateRouteOpts) {
+        if (opts.handler)
+            this.routes[path] = opts
+    }
+
+    public static(path: string = "/public", dirPath: string = "public") {
         if (!this.ctx) throw new ContextNotFoundError()
         const fullPath = dirPath ?? resolve(this.ctx?.appDir, dirPath)
         console.info("Opening dir", fullPath)
         return this.app.use(path, Express.static(fullPath))
     }
 
-    getApp() {
+    public getApp() {
         return this.app
     }
 }

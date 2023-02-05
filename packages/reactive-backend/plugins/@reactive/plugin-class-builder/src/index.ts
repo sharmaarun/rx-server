@@ -13,7 +13,7 @@ export default class ClassBuilder implements PluginClass {
         this.ctx = ctx
         registerEndpoint(ctx => ({
             name: "class-builder",
-            constrollers: controllers(),
+            controllers: controllers(),
             routes: routes(),
             schema
         }))()

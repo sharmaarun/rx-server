@@ -1,9 +1,0 @@
-.item:hover .dragHandle{
-    display: initial;
-}
-.item:hover .itemActions{
-    visibility: visible;
-}
-.item:hover .rowIcon{
-    display: none;
-}

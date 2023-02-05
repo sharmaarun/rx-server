@@ -1,0 +1,1 @@
+export const PLUGINS_WEB_ROOT = "plugins:plugins"

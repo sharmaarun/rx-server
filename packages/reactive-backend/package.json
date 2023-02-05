@@ -3,7 +3,12 @@
     "version": "0.0.1",
     "scripts": {
         "build": "rxcli build",
+        "build:prod": "rxcli build --prod",
         "build:watch": "rxcli build -w",
         "dev": "rxcli dev"
+    },
+    "peerDependencies": {
+        "react": ">=18.2.0",
+        "react-dom": ">=18.2.0"
     }
 }

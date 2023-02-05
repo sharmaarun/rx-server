@@ -65,7 +65,7 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await endpoints.init(serverContext)
   // Load Plugins
   await plugins.init(serverContext)
-  
+
   await new Promise(res => setTimeout(res, 2000))
 
   // Starting
@@ -75,14 +75,14 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await app.start()
 }
 
-export const registerEndpoint = (cb?: (ctx: ServerContext) => Endpoint) => {
+export const registerEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'isCore'>) => {
   const endpoints = container.get<EndpointManager>(EndpointManager)
   return () => endpoints?.register(cb)
 }
 
 export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Endpoint) => {
   const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.register(cb)
+  return () => endpoints?.register(cb, { isCore: true })
 }
 
 export const createRouter = (name: string, cb?: (ctx: ServerContext) => AppRoute[]) => {

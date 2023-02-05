@@ -1,7 +1,8 @@
-import { registerRoute, useClientContext } from "@reactive/client"
-import React from "react"
-import { BrowserRouter, Route, Routes, Link } from "react-router-dom"
-import { HomePage } from "./index"
+import { useClientContext } from "@reactive/client";
+import { Box, ChakraProvider } from "@reactive/ui";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import RootLayout from "../layouts/root";
+import { HomePage } from "./index";
 
 // registerRoute(ctx => ({
 //     title: "Admin",
@@ -19,26 +20,30 @@ function App() {
         element: r.element
     }))
     console.log(routes_)
-    return <div>
-        <BrowserRouter>
-
-            <Routes>
-                {/* {routes_.map((r, ind) => */}
-                {routes_?.length && <>
-                    <Route path={"/admin"} element={<HomePage />} >
-                        {
-                            routes_.map((r, ind) => {
-                                const Ele = r.element || (() => <></>)
-                                return <Route key={ind} path={"/admin" + (r.path)} element={<Ele />} />
-                            })
-                        }
-                    </Route>
-                </>
-                }
-                {/* )} */}
-            </Routes>
-        </BrowserRouter>
-    </div>
+    return <ChakraProvider>
+        <Box>ola</Box>
+        <RootLayout>
+            <BrowserRouter>
+                <Routes>
+                    {routes_?.length && <>
+                        <Route path={"/admin"} element={<HomePage />} >
+                            {
+                                routes_.map((r, ind) => {
+                                    const Ele = r.element || (() => <></>)
+                                    return <Route key={ind} path={"/admin" + (r.path)} element={<Ele />} />
+                                })
+                            }
+                        </Route>
+                    </>
+                    }
+                </Routes>
+            </BrowserRouter>
+            {/* {routes_.map((r, ind) => {
+                const Ele = r.element || (() => <></>)
+                return <Ele key={ind} />
+            })} */}
+        </RootLayout>
+    </ChakraProvider>
 }
 export default App
 

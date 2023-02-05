@@ -12,7 +12,9 @@ export type BuildAdminOptions = {
     watch?: boolean
     pluginsDir?: string
     plugins?: string[]
-    root?: string
+    adminDirName?: string
+    adminRoot?: string
+    mode?: "development" | "production"
 }
 
 export const build = (conf: BuildAdminOptions) => {
@@ -26,8 +28,10 @@ export const compile = async ({
     webpackConfigPath = "../../admin/webpack.config",
     watch = false,
     plugins = [],
-    root = "admin",
-    pluginsDir = "plugins"
+    adminDirName = "admin",
+    pluginsDir = "plugins",
+    adminRoot = resolve(__dirname + "../../"),
+    mode = "development"
 }: BuildAdminOptions) => {
     const pwd = cwd || process.cwd()
     console.log("Project dir:", pwd)
@@ -45,12 +49,12 @@ export const compile = async ({
         // if found
         if (exists) {
             // add `pluginsDir`/plugin/`rootDir`/index.jsx
-            let entryPath = resolve(pluginDir, plugin, root, "index.tsx")
+            let entryPath = resolve(pluginDir, plugin, adminDirName, "index.tsx")
             if (existsSync(entryPath)) {
                 console.log("Found plugin", plugin, "injecting now.")
                 pluginEntries[plugin] = entryPath
             } else {
-                entryPath = resolve(pluginDir, plugin, root, "index.jsx")
+                entryPath = resolve(pluginDir, plugin, adminDirName, "index.jsx")
                 if (existsSync(entryPath)) {
                     console.log("Found plugin", plugin, "injecting now.")
                     pluginEntries[plugin] = entryPath
@@ -68,16 +72,24 @@ export const compile = async ({
 
 
     // prepare webpack config
-    const rootDir = resolve(__dirname, `../../admin`)
+    const rootDir = resolve(adminRoot, adminDirName)
+    const node_modules = resolve(pwd, "../..", "node_modules")
+    for (let plugin in pluginEntries) {
+        pluginEntries[plugin] = {
+            import: pluginEntries[plugin],
+            dependOn: "react-vendors"
+        }
+    }
+    console.log(pluginEntries)
     const config = webpackConfigBuilder({
         outputPath: finalOutputPath,
         entries: {
-            // "webpackdev": 'webpack-dev-server/client?http://0.0.0.0:3000', // WebpackDevServer host and port
-            // "webpackdev-only-server": 'webpack/hot/only-dev-server', // "only" prevents reload on syntax errors
-            index: rootDir + "/index",
-            ...pluginEntries
+            index: { import: rootDir + "/index", dependOn: 'react-vendors' },
+            ...pluginEntries,
+            "react-vendors": ['react', 'react-dom'],
         },
-        rootDir
+        rootDir,
+        mode,
     })
 
     // return;
