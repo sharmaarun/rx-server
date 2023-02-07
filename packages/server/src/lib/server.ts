@@ -1,14 +1,17 @@
 import * as dotenv from "dotenv"
 import { existsSync } from "fs"
-import container from "../container"
 import { ServerContext } from "./context"
-import { DBManager } from "./db"
-import { Endpoint, EndpointManager } from "./endpoints"
-import { AppRoute, AppRouteHandlersMap, ExpressManager } from "./express"
-import { Logger } from "./logger"
-import { PluginsManager } from "./plugin"
-import SettingsManager from "./settings"
-
+import {
+  apiGen,
+  app,
+  db,
+  endpoints,
+  fs,
+  logger,
+  plugins,
+  settings
+} from "../container"
+import { query } from "./utils"
 export type BootstrapOpts = {
   appDir: string
 }
@@ -32,18 +35,11 @@ export async function bootstrap(opts?: BootstrapOpts) {
   // Load configurations
   const config = {
     api: (await import(opts?.appDir + "/config/api"))?.default,
-    app: (await import(opts?.appDir + "/config/app"))?.default,
+    server: (await import(opts?.appDir + "/config/app"))?.default,
     db: (await import(opts?.appDir + "/config/db"))?.default,
     plugins: (await import(opts?.appDir + "/config/plugins"))?.default,
   }
 
-  // Extract main services
-  const logger = container.get<Logger>(Logger)
-  const endpoints = container.get<EndpointManager>(EndpointManager)
-  const db = container.get<DBManager>(DBManager)
-  const plugins = container.get<PluginsManager>(PluginsManager)
-  const app = container.get<ExpressManager>(ExpressManager)
-  const settings = container.get<SettingsManager>(SettingsManager)
 
   // Create Server Context
   const serverContext: ServerContext = {
@@ -51,7 +47,10 @@ export async function bootstrap(opts?: BootstrapOpts) {
     config,
     logger,
     endpoints,
-    app
+    app,
+    fs,
+    apiGen,
+    query
   }
 
 
@@ -65,36 +64,24 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await app.init(serverContext)
   // Load APIs
   await endpoints.init(serverContext)
-  // Load Plugins
-  await plugins.init(serverContext)
   // Load settings
   await settings.init(serverContext)
+  // Initialize generators
+  await apiGen.init(serverContext)
+  // Load Plugins
+  await plugins.init(serverContext)
+
 
   await new Promise(res => setTimeout(res, 200))
+
+
 
   // Starting
   await endpoints.start()
 
+  // start db
+  await db.start()
+
   // Start App
   await app.start()
-}
-
-export const registerPluginEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
-  const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.register(cb, { type: "plugin" })
-}
-
-export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
-  const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.register(cb)
-}
-
-export const createRouter = (name: string, cb?: (ctx: ServerContext) => AppRoute[]) => {
-  const endpoints = container.get<EndpointManager>(EndpointManager)
-  return () => endpoints?.createRouter(name, cb)
-}
-
-export const createControllers = (name: string, cb?: (ctx: ServerContext) => AppRouteHandlersMap) => {
-  const endpoints = container.get(EndpointManager)
-  return () => endpoints?.createController(name, cb)
 }

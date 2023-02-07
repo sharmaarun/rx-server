@@ -1,6 +1,6 @@
 export default {
     v: "0.0.1",
-    relativePath: "plugins",
+    relativePaths: ["plugins", "../plugins"],
     plugins: [
         {
             name: "@reactive/server-dashboard",

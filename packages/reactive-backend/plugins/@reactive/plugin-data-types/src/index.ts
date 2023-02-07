@@ -1,15 +1,12 @@
-import { ServerContext, PluginClass, Endpoint, registerPluginEndpoint } from "@reactive/server";
-import controllers from "./apis/controller"
-import routes from "./apis/routes"
-import * as schema from "./apis/schema.json"
-export default class ClassBuilder implements PluginClass {
+// import { PluginClass } from "@reactive/commons";
+import { registerPluginEndpoint, ServerContext, PluginClass } from "@reactive/server";
+import controllers from "./apis/controller";
+import routes from "./apis/routes";
+import * as schema from "./apis/schema.json";
 
-    constructor(
-        private ctx: ServerContext
-    ) {
-    }
+export default class ClassBuilder extends PluginClass {
 
-    async init(ctx: ServerContext) {
+    override async init(ctx: ServerContext) {
         this.ctx = ctx
         registerPluginEndpoint(ctx => ({
             name: "data-types",

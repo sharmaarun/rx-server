@@ -7,7 +7,7 @@ export interface ButtonProps extends _ButtonProps {
 
 export const Button = forwardRef((props: ButtonProps, ref: any) => {
     return (
-        <_Button iconSpacing={1} ref={ref} colorScheme="brand"
+        <_Button iconSpacing={1} ref={ref}
         {...props} />
     )
 })

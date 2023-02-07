@@ -1,5 +1,5 @@
-import { CACHE_PATH } from "@reactive/commons"
-import { build, BuildAdminOptions } from "@reactive/server-dashboard"
+import { CACHE_PATH, loadModule } from "@reactive/commons"
+import { BuildAdminOptions } from "@reactive/server-dashboard"
 import { getPlugins } from "@reactive/server-helpers"
 import { resolve } from "path"
 
@@ -7,17 +7,19 @@ import { resolve } from "path"
 export const buildAdmin = async ({ watch, mode = "development" }: Partial<BuildAdminOptions>) => {
     const pwd = process.cwd()
     const pluginsPath = resolve(pwd, "config", "plugins.ts")
-    const { plugins, relativePath } = await getPlugins(pluginsPath)
+    const { plugins, relativePaths } = await getPlugins(pluginsPath)
+    const mod = await await loadModule("@reactive/server-dashboard/src/builder")
+    const { build, BuildAdminOptions } = mod?.default || mod
     build({
         outputPath: resolve(pwd, CACHE_PATH),
         cwd: pwd,
         plugins: plugins?.map(p => p.name),
         watch,
-        pluginsDir: relativePath,
-        adminRoot: resolve(pwd, "../plugins/dashboard"),
+        pluginDirs: relativePaths,
+        adminRoot: resolve(pwd, "../plugins/@reactive/server-dashboard"),
         mode,
-        webpackConfigPath: resolve(pwd, "../plugins/dashboard", "admin", "webpack.config.js"),
-        webpackAliasConfigPath: resolve(pwd, "../plugins/dashboard", "admin", "webpack.alias.config.js"),
+        webpackConfigPath: resolve(pwd, "../plugins/@reactive/server-dashboard", "admin", "webpack.config.js"),
+        webpackAliasConfigPath: resolve(pwd, "../plugins/@reactive/server-dashboard", "admin", "webpack.alias.config.js"),
     })
 }
 

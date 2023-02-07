@@ -1,6 +1,5 @@
 {
-  "name": "@reactive/plugin-data-types",
-  "version": "0.0.1",
-  "type": "commonjs",
-  "main": "src/index.ts"
+    "name": "@reactive/plugin-data-types",
+    "version": "0.0.1",
+    "main": "src/index"
 }

@@ -1,7 +1,6 @@
 import { registerCoreRoute } from "@reactive/client"
 import { RXICO_DASHBOARD } from "@reactive/icons"
-import React from "react"
-import ListEndpoints from "./pages"
+import { EditorPage, ListEndpoints } from "./pages"
 
 registerCoreRoute(ctx => ({
     title: "Data Types",
@@ -10,9 +9,9 @@ registerCoreRoute(ctx => ({
     ,
     icon: () => <RXICO_DASHBOARD />,
     children: [{
-        title: "ola",
-        path: "test",
-        element: () => <>inner</>,
+        title: "Data Type Display Outlet",
+        path: ":name",
+        element: () => <EditorPage />,
         icon: <></>
     }]
 }))

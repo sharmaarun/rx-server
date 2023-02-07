@@ -1,9 +1,9 @@
 
-import "reflect-metadata"
+import "reflect-metadata";
 //---
 export { ServerContext } from "./lib/context";
-export { DBAdapter } from './lib/db';
-export { APIConfig, Endpoint } from "./lib/endpoints";
-export { Plugin, PluginClass, PluginOpts } from "./lib/plugin";
+export * from './lib/db';
+export { PluginClass } from './lib/plugin';
 export * from './lib/server';
+export * from './lib/utils';
 

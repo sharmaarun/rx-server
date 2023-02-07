@@ -3,12 +3,12 @@ import { injectable } from "inversify";
 import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
 
+
 @injectable()
-export default class SettingsManager implements PluginClass {
-    private ctx!: ServerContext
+export default class SettingsManager extends PluginClass {
     private settings!: Settings
 
-    public init = async (ctx: ServerContext) => {
+    public override init = async (ctx: ServerContext) => {
         this.ctx = ctx;
 
         // prepare settings
@@ -22,8 +22,8 @@ export default class SettingsManager implements PluginClass {
                 handler: "config",
             }],
             controllers: ctx.endpoints.createController("settings", ctx => ({
-                config: async (req, res) => {
-                    res.send(this.settings)
+                config: async (req) => {
+                    req.send(this.settings)
                 }
             })),
             type: "core"

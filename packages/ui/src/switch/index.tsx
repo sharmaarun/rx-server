@@ -14,7 +14,7 @@ export function Switch(props: SwitchProps) {
             <Box flex={1} pl={1}>
                 <FormLabel fontWeight={"normal"}>{label}</FormLabel>
             </Box>
-            <_Switch colorScheme="brand" {...props} />
+            <_Switch {...props} />
         </HStack> : <_Switch {...props} />
     )
 }

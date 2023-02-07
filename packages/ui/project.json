@@ -6,12 +6,22 @@
   "targets": {
     "build": {
       "executor": "@nrwl/js:tsc",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/packages/ui",
         "main": "packages/ui/src/index.ts",
         "tsConfig": "packages/ui/tsconfig.lib.json",
-        "assets": ["packages/ui/*.md"]
+        "assets": [
+          "packages/ui/*.md"
+        ]
+      },
+      "configurations": {
+        "watch": {
+          "watch": true,
+          "clean": false
+        }
       }
     },
     "publish": {
@@ -19,18 +29,26 @@
       "options": {
         "command": "node tools/scripts/publish.mjs ui {args.ver} {args.tag}"
       },
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "lint": {
       "executor": "@nrwl/linter:eslint",
-      "outputs": ["{options.outputFile}"],
+      "outputs": [
+        "{options.outputFile}"
+      ],
       "options": {
-        "lintFilePatterns": ["packages/ui/**/*.ts"]
+        "lintFilePatterns": [
+          "packages/ui/**/*.ts"
+        ]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "outputs": [
+        "{workspaceRoot}/coverage/{projectRoot}"
+      ],
       "options": {
         "jestConfig": "packages/ui/jest.config.ts",
         "passWithNoTests": true

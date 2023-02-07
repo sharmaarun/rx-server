@@ -5,5 +5,10 @@ export default createRouter("dummy", (ctx) => ([
         path: "/",
         method: "get",
         handler: "list",
+    },
+    {
+        path: "/",
+        method: "post",
+        handler: "create",
     }
 ]))

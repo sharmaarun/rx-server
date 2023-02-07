@@ -1,57 +1,54 @@
-import { ContextNotFoundError, loadModule, PLUGINS_WEB_ROOT } from "@reactive/commons";
+import { APIRoute, APIRouteHandlersMap, ContextNotFoundError, Endpoint, EndpointType, loadModule, PLUGINS_WEB_ROOT } from "@reactive/commons";
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { inject, injectable } from "inversify";
 import { resolve } from "path";
 import { ServerContext } from "../context";
-import { EntitySchema } from "../db";
-import { AppRoute, AppRouteHandlersMap, ExpressManager } from "../express";
+import { DBManager } from "../db";
+import { ExpressManager } from "../express";
 import { PluginClass } from "../plugin";
 
-export type APIConfig = {
-    path: string
-    webRoot: string
-}
 
-export type EndpointType = "core" | "plugin"
 
-export type Endpoint = {
-    name: string;
-    controllers?: AppRouteHandlersMap
-    routes?: AppRoute[]
-    services?: any[]
-    schema?: EntitySchema
-    type?: EndpointType
-}
 
 export type RegisterOpts = {
     type?: EndpointType
 }
 
 @injectable()
-export class EndpointManager implements PluginClass {
+export class EndpointManager extends PluginClass {
 
     public endpoints: Endpoint[] = []
-    public ctx?: ServerContext
 
-    constructor(@inject(ExpressManager) private express: ExpressManager) {
-
+    constructor(
+        @inject(ExpressManager) private express: ExpressManager,
+        @inject(DBManager) private db: DBManager
+    ) {
+        super()
     }
 
-    init = async (ctx: ServerContext) => {
+    override init = async (ctx: ServerContext) => {
         this.ctx = ctx;
         console.info("Initializing endpoints...")
-    }
-
-    start = async () => {
         // load APIs
         const { appDir, config, logger } = this.ctx || {}
         const { path } = config?.api || {}
         const API_PATH = appDir + "/" + path
         const eps = await this.loadAllFromDir(API_PATH)
-        this.registerAll(eps, { type: "core" })
+        this.registerAll(eps, { type: "basic" })
+    }
 
-        this.createServerEndpoints(this.endpoints)
+    override start = async () => {
+        await this.initializeDBEntities()
+        await this.createServerEndpoints(this.endpoints)
 
+    }
+
+    public initializeDBEntities = async () => {
+        for (let ep of this.endpoints) {
+            if (ep.schema?.name?.length) {
+                await this.db?.registerEntity(ep.schema)
+            }
+        }
     }
 
     public registerAll = (endpoints: Endpoint[], opts?: RegisterOpts) => {
@@ -62,7 +59,7 @@ export class EndpointManager implements PluginClass {
     }
 
     public register = (cb?: (ctx: ServerContext) => Endpoint, opts?: RegisterOpts) => {
-        let { type = "core" } = opts || {}
+        let { type = "basic" } = opts || {}
         if (!this.ctx) throw new ContextNotFoundError();
         if (!cb) throw new Error("Callback not provided!")
         const endpoint: Endpoint = cb?.(this.ctx)
@@ -120,23 +117,22 @@ export class EndpointManager implements PluginClass {
 
     }
 
-    public createRouter = (name: string, cb?: (ctx: ServerContext) => AppRoute[]) => {
+    public createRouter = (name: string, cb?: (ctx: ServerContext) => APIRoute[]) => {
         if (!this.ctx) throw new ContextNotFoundError();
         const routes = cb?.(this.ctx) || []
         return routes
     }
 
-    public createController = (name: string, cb?: (ctx: ServerContext) => AppRouteHandlersMap) => {
+    public createController = (name: string, cb?: (ctx: ServerContext) => APIRouteHandlersMap) => {
         if (!this.ctx) throw new ContextNotFoundError();
         const handlers = cb?.(this.ctx) || {}
         return handlers
     }
 
 
-    public createServerEndpoints = (endpoints: Endpoint[]) => {
+    public createServerEndpoints = async (endpoints: Endpoint[]) => {
         // create server endpoints
         for (let ep of endpoints) {
-            console.log(ep)
             ep.routes?.forEach(route => {
                 let path = resolve("/" + ep.name + "/" + route.path)
                 if (ep.type === "plugin") {
@@ -148,11 +144,11 @@ export class EndpointManager implements PluginClass {
                 }
                 this.express?.route(path, {
                     route,
-                    handler: (req, res) => {
+                    handler: async (req) => {
                         if (route.handler) {
-                            res.header("content-type", "application/json")
+                            req.header("content-type", "application/json")
                             console.log(path, route.method, route.handler)
-                            ep.controllers?.[route.handler]?.(req, res)
+                            await ep.controllers?.[route.handler]?.(req)
                         }
                     }
                 })

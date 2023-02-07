@@ -8,7 +8,7 @@ export interface SelectProps extends _SelectProps {
 
 export function Select(props: SelectProps) {
     return (
-        <_Select colorScheme="brand" {...props} />
+        <_Select {...props} />
     )
 }
 

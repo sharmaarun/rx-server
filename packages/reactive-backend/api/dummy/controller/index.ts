@@ -1,14 +1,14 @@
 import { createControllers } from "@reactive/server";
 
 export default createControllers("dummy", (ctx) => ({
-    list(req, res) {
-        return res.status(200)
-            .header("content-type", "text/html")
-            .send("<html><body><b>list</b></body></html>")
+    async list(req) {
+        const data = await ctx.query("dummy").findAll()
+        return req.send(data)
     },
-    ola(req, res) {
-        return res.status(200)
-            .header("content-type", "text/html")
-            .send(`<html><body><b>${req.params.id}</b></body></html>`)
+    async create(req) {
+        const created = await ctx.query("dummy").create({
+            name: "first name"
+        })
+        return req.send(created)
     }
 }))

@@ -3,21 +3,10 @@ import { forwardRef, useEffect, useState } from "react";
 export interface InputProps extends _InputProps {
 
 }
-let itid: any = -1;
 export const Input = forwardRef((props: InputProps, ref: any) => {
-    const [val, setVal] = useState(props?.value || props?.defaultValue || "")
-    useEffect(() => {
-        if (val !== props?.value) {
-            setVal(props?.value ? props.value + "" : "");
-        }
-    }, [props.value])
-    const _onChange = (e: any) => {
-        setVal(e.target.value);
-        clearTimeout(itid)
-        itid = setTimeout(() => props?.onChange?.(e), 60)
-    }
+
     return (
-        <_Input {...props} ref={ref} colorScheme="brand" value={val} onChange={_onChange} />
+        <_Input {...props} ref={ref} />
     )
 })
 

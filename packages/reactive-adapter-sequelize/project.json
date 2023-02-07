@@ -1,0 +1,52 @@
+{
+  "name": "reactive-adapter-sequelize",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/reactive-adapter-sequelize/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/reactive-adapter-sequelize",
+        "main": "packages/reactive-adapter-sequelize/src/index.ts",
+        "tsConfig": "packages/reactive-adapter-sequelize/tsconfig.lib.json",
+        "assets": ["packages/reactive-adapter-sequelize/*.md"]
+      },
+      "configurations": {
+        "watch":{
+          "watch": true
+        }
+      }
+    },
+    "publish": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/scripts/publish.mjs reactive-adapter-sequelize {args.ver} {args.tag}"
+      },
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "outputs": ["{options.outputFile}"],
+      "options": {
+        "lintFilePatterns": ["packages/reactive-adapter-sequelize/**/*.ts"]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/reactive-adapter-sequelize/jest.config.ts",
+        "passWithNoTests": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "codeCoverage": true
+        }
+      }
+    }
+  },
+  "tags": []
+}

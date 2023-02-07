@@ -1,12 +1,13 @@
 import { injectable } from "inversify";
 import { PluginClass } from "../plugin";
 
+
 export type LoggerOpts = {
 }
 
 @injectable()
-export class Logger implements PluginClass<LoggerOpts> {
-    async init(opts?: LoggerOpts) {
+export class Logger extends PluginClass {
+    override async init(opts?: LoggerOpts) {
 
     }
     info(str: any) {

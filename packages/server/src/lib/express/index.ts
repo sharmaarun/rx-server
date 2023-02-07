@@ -1,82 +1,86 @@
+import { APIRequestContext, APIRoute, APIRouteHandler, ContextNotFoundError } from "@reactive/commons";
+import cors from "cors";
+import Express from "express";
 import { injectable } from "inversify";
+import { resolve } from "path";
 import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
-import Express from "express"
-import cors, { CorsOptions } from "cors"
-import { Logger } from "../logger";
-import { resolve } from "path";
-import { ContextNotFoundError } from "@reactive/commons";
-
-export type AppRouteMethod = "post" | "get" | "put" | "delete"
-
-export type AppRoute = {
-    path: string,
-    method: AppRouteMethod
-    handler?: string,
-    staticPath?: string
-}
-
-export type AppRouteHandler = (req: Express.Request, res: Express.Response) => any | Promise<any>
-
-export type AppRouteHandlersMap = {
-    [key: string]: AppRouteHandler
-}
 
 export type CreateRouteOpts = {
-    route: AppRoute,
-    handler?: AppRouteHandler
+    route: APIRoute,
+    handler?: APIRouteHandler
 }
 
-export type AppConfig = {
-    host: string
-    port: number
-    cors: CorsOptions
-}
-
-
-export type ExpressRoutes = {
-    [key: string]: CreateRouteOpts
+export type ExpressRoutes = CreateRouteOpts & {
+    path: string
 }
 
 @injectable()
-export class ExpressManager implements PluginClass {
+export class ExpressManager extends PluginClass {
     app: Express.Express
-    private ctx?: ServerContext
-    private routes!: ExpressRoutes
+    private routes!: ExpressRoutes[]
 
     constructor() {
+        super()
         this.app = Express()
-        this.routes = {}
+        this.routes = []
     }
-    public async init(ctx: ServerContext) {
+    public override async init(ctx: ServerContext) {
         this.ctx = ctx
-        this.app.use(cors(ctx?.config?.app?.cors))
+        this.app.use(cors(ctx?.config?.server?.cors))
+
     }
 
-    public start = async () => {
-        const { host = "0.0.0.0", port = 6969 } = this.ctx?.config?.app || {}
+    public override start = async () => {
+        const { host = "0.0.0.0", port = 6969 } = this.ctx?.config?.server || {}
 
         this.app.use("/" + this.ctx?.config.api.webRoot, this.createRouter(this.routes))
+        this.app.use((err: any, req: any, res: any, next: any) => {
+            console.error("eror occured", err)
+            res.json(err.message)
+            next(err)
+        })
         this.app?.listen(port, host, () => {
             this.ctx?.logger?.log(`Listening on http://${host}:${port}`)
         })
     }
 
-    public createRouter = (routes: ExpressRoutes) => {
+    public createRouter = (routes: ExpressRoutes[]) => {
         const router_ = Express.Router()
-        for (let path in routes) {
-            const opts = this.routes[path]
-            const { route, handler } = opts || {}
+
+        for (let ind in routes) {
+            const opts = this.routes[ind]
+            const { path, route, handler } = opts || {}
             const { method } = route || {}
             if (method && handler)
-                router_?.[method]?.(path, handler)
+                router_?.[method]?.(path, async (req, res) => {
+                    try {
+                        const ctx: APIRequestContext = {
+                            params: req.params,
+                            query: req.query,
+                            body: req.body,
+                            header: res.header.bind(res),
+                            send: res.send.bind(res)
+                        }
+                        return await handler(ctx)
+                    } catch (e: any) {
+                        console.log(e)
+                        res.status(e.statusCode || 500).send({
+                            message: e.message,
+                            statusCode: e.statusCode
+                        })
+                    }
+                })
         }
         return router_
     }
 
     public route(path: string, opts: CreateRouteOpts) {
         if (opts.handler)
-            this.routes[path] = opts
+            this.routes.push({
+                ...opts,
+                path
+            })
     }
 
     public static(path: string = "/public", dirPath: string = "public") {

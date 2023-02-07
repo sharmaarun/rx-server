@@ -1,5 +1,9 @@
 export function isClass(v: any) {
-  return typeof v === 'function' && /^\s*class\s+/.test(v.toString());
+  return typeof v === 'function' && (
+    /^\s*class\s+/.test(v.toString()) ||
+    /^\s*_super\s+/g.test(v.toString()) ||
+    /^\s*super\s+/g.test(v.toString())
+  );
 }
 
 export async function loadModule(name: string) {

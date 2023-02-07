@@ -1,5 +1,4 @@
 {
-  "extends": "@reactive/server/tsconfig.base.json",
   "compilerOptions": {
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -7,7 +6,10 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "target": "ES6",
+    "module": "CommonJS",
   },
   "files": [],
   "include": [],
