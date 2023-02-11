@@ -71,7 +71,8 @@ export class SequelizeAdapter extends DBAdapter {
             define: {
                 freezeTableName: true
             },
-            logging: db.options.logging
+            logging: db.options.logging,
+
         })
         await this.connect()
         console.info("Connected to DB!")
@@ -90,17 +91,26 @@ export class SequelizeAdapter extends DBAdapter {
     }
 
     async entity(schema: EntitySchema) {
-        const columns: { [key: string]: ModelAttributes } = {}
-        for (let col in schema.columns) {
-            const field = schema.columns[col]
+        const columns: ModelAttributes = {}
+        const { columns: cols = [] } = schema || {}
+        //TODO: validate the field before mapping
+        for (let field of cols) {
             if (field.type.length) {
-                columns[col] = {
-                    type: TypeMap[field.type]
+                columns[field.name] = {
+                    type: TypeMap[field.type],
+                    allowNull: field.allowNull || true,
+                    primaryKey: field.isPrimary,
+                    unique: field.isUnique,
+                    validate: field.validations?.reduceRight((ac, cv) => { ac[cv.type] = cv.value }, {} as any),
+                    autoIncrement: field.autoIncrement,
                 }
             }
         }
 
-        const model = this.dataSource.define(schema.name, columns as any)
+        const model = this.dataSource.define(schema.name, columns, {
+            freezeTableName: this.ctx.config.db.options.freezeTableName,
+            timestamps: this.ctx.config.db.options.timestamps,
+        })
         const entity = new SQLEntity(
             model,
             this.ctx,

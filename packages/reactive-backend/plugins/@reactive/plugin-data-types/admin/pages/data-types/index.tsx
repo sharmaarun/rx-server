@@ -1,18 +1,37 @@
-import { PluginEndpoint } from "@reactive/client"
+import { PluginObj } from "@reactive/client"
 import { Endpoint, toPascalCase } from "@reactive/commons"
-import { RXICO_SEARCH } from "@reactive/icons"
-import { Box, Button, Heading, HStack, Icon, IconButton, List, ListItem, Page, PageBody, PageHeader, PageToolbar, Stack, StackProps, TwoColumns } from "@reactive/ui"
+import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
+import { Heading, Icon, IconButton, List, ListItem, Page, PageBody, PageHeader, PageToolbar, NameInputModal, Stack, StackProps, TwoColumns, useFormModal } from "@reactive/ui"
 import { useEffect, useState } from "react"
-import { Link, Outlet, useLocation } from "react-router-dom"
+import { Link, Outlet, useLocation, useNavigate, useNavigation, useRoutes } from "react-router-dom"
 
 export interface ListEndpointsProps extends StackProps {
     children?: any
 }
 
+export type EndpointEditorOutletContext = {
+    endpoints: Endpoint[]
+    newEndpoint: Endpoint
+}
+
 export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
-    const [endpoint] = useState(new PluginEndpoint("data-types"))
+    const [endpoint] = useState(new PluginObj("data-types"))
     const { pathname } = useLocation()
+    const navigate = useNavigate()
     const [eps, setEps] = useState<Endpoint[]>([])
+    const [newEndpoint, setNewEndpoint] = useState<Endpoint>()
+    const nameModal = useFormModal({
+        onSubmit({ name }) {
+            setNewEndpoint({
+                name,
+                type: "basic",
+                schema: {
+                    name
+                }
+            })
+            navigate(name)
+        }
+    })
     useEffect(() => {
         endpoint.get().then(d => setEps(JSON.parse(d.data)))
     }, [])
@@ -20,6 +39,8 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
     const create = () => {
         endpoint.call("create/temps")
     }
+
+    const basicTypes = newEndpoint?.name ? [...eps, newEndpoint] : eps
     return (
         <TwoColumns>
             <Page>
@@ -27,17 +48,25 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                     <Heading size="md" >{"Data Types"}</Heading>
                 </PageHeader>
                 <PageToolbar>
-                    <IconButton>
+                    <IconButton variant="outline">
                         <Icon>
                             <RXICO_SEARCH />
                         </Icon>
                     </IconButton>
+                    {newEndpoint?.name ? "" : <IconButton onClick={(e: any) => nameModal.onOpen()}>
+                        <Icon>
+                            <RXICO_PLUS />
+                        </Icon>
+                    </IconButton>
+                    }
                 </PageToolbar>
                 <PageBody>
+                    <NameInputModal {...nameModal}>
+                    </NameInputModal >
                     <Stack spacing={4}>
-                        {eps?.length && <List minW="200px" spacing={2}>
+                        {basicTypes?.length && <List minW="200px" spacing={2}>
                             {
-                                eps?.map((ep, ind) => {
+                                basicTypes?.map((ep, ind) => {
                                     const path = "/admin/data-types/" + ep.name
                                     const isActive = path === pathname
                                     return <ListItem
@@ -65,7 +94,7 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                     </Stack>
                 </PageBody>
             </Page>
-            <Outlet context={{ endpoints: eps }} />
+            <Outlet context={{ endpoints: eps, newEndpoint }} />
         </TwoColumns >
     )
 }

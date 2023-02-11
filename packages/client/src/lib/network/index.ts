@@ -10,13 +10,11 @@ export type NetworkManagerRequestOpts = AxiosRequestConfig & {
 }
 
 @injectable()
-export class NetworkManager implements PluginClass {
+export class NetworkManager extends PluginClass {
     private axios!: Axios
 
-    private ctx!: ClientContext
-
-    async init(ctx: ClientContext) {
-        this.ctx = ctx;
+    override async init(ctx: ClientContext) {
+        super.init(ctx)
 
         this.axios = new Axios({
             baseURL: "http://localhost:1338/api",

@@ -39,6 +39,17 @@
         ]
       }
     },
+    "link-libs": {
+      "executor": "@nrwl/workspace:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          {
+            "command": "node tools/scripts/link-deps.js"
+          }
+        ]
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": [

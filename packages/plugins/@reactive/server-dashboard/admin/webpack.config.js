@@ -32,7 +32,35 @@ module.exports = ({
                 {
                     test: /\.tsx?$/,
                     exclude: /node_modules/,
-                    loader: 'swc-loader'
+                    use: {
+                        loader: 'swc-loader',
+                        options: {
+                            "jsc": {
+                                "parser": {
+                                    "syntax": "typescript",
+                                    "jsx": true,
+                                    "dynamicImport": false,
+                                    "privateMethod": false,
+                                    "functionBind": false,
+                                    "exportDefaultFrom": false,
+                                    "exportNamespaceFrom": false,
+                                    "decorators": true,
+                                    "decoratorsBeforeExport": true,
+                                    "topLevelAwait": false,
+                                    "importMeta": true,
+                                    "preserveAllComments": false
+                                },
+                                "transform": null,
+                                "target": "es2016",
+                                "loose": false,
+                                "externalHelpers": false,
+                                // Requires v1.2.50 or upper and requires target to be es2016 or upper.
+                                "keepClassNames": true
+                            },
+                            "isModule": true
+                        }
+                    }
+
                 },
                 {
                     test: /\.jsx?$/,

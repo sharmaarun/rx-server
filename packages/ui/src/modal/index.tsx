@@ -1,4 +1,3 @@
-import React from "react"
 import { Modal as _Modal, ModalProps as _ModalProps } from "@chakra-ui/react"
 export interface ModalProps extends _ModalProps {
 
@@ -50,7 +49,7 @@ export interface ModalFooterProps extends _ModalFooterProps {
 
 export function ModalFooter(props: ModalFooterProps) {
     return (
-        <_ModalFooter {...props} />
+        <_ModalFooter bgColor="gray.50" {...props} />
     )
 }
 
@@ -61,11 +60,12 @@ export interface ModalBodyProps extends _ModalBodyProps {
 
 export function ModalBody(props: ModalBodyProps) {
     return (
-        <_ModalBody {...props} />
+        <_ModalBody pb={4} {...props} />
     )
 }
 
-import { ModalCloseButton as _ModalCloseButton, CloseButtonProps } from "@chakra-ui/react"
+import { CloseButtonProps, ModalCloseButton as _ModalCloseButton } from "@chakra-ui/react"
+import Text, { TextProps } from "../text"
 export interface ModalCloseButtonProps extends CloseButtonProps {
 
 }
@@ -75,6 +75,18 @@ export function ModalCloseButton(props: ModalCloseButtonProps) {
         <_ModalCloseButton {...props} />
     )
 }
+
+export interface ModalSubHeaderProps extends TextProps {
+
+}
+
+export function ModalSubHeader(props: ModalSubHeaderProps) {
+    return (
+        <Text fontSize="xs">{props.children}</Text>
+    )
+}
+
+
 
 
 export default {

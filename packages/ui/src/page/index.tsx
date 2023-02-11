@@ -13,16 +13,19 @@ export function Page({ children, ...props }: PageProps) {
     const [ctx, setCtx] = useState<PageProps>({ ...(props || {}) })
 
 
-    let header, toolbar, body;
+    let header, toolbar, footer, body;
     React.Children.forEach(children, ele => {
-        if (ele.type.name === PageHeader.name) {
+        if (ele?.type?.name === PageHeader.name) {
             header = ele
         }
-        if (ele.type.name === PageToolbar.name) {
+        if (ele?.type?.name === PageToolbar.name) {
             toolbar = ele
         }
-        if (ele.type.name === PageBody.name) {
+        if (ele?.type?.name === PageBody.name) {
             body = ele
+        }
+        if (ele?.type?.name === PageFooter.name) {
+            footer = ele
         }
     })
 
@@ -37,6 +40,7 @@ export function Page({ children, ...props }: PageProps) {
                 </HStack>
             }
             {body}
+            {footer}
         </PageContext.Provider >
     )
 }
@@ -48,6 +52,17 @@ export function PageHeader({ children, ...props }: PageHeaderProps) {
     return (<Stack p={2} pl={4}>
         {children}
     </Stack>
+    )
+}
+
+export interface PageFooterProps extends StackProps {
+    children?: any
+}
+
+export function PageFooter({ children, ...props }: PageFooterProps) {
+    return (<HStack bg="gray.50" justifyContent="flex-end" p={2}>
+        {children}
+    </HStack>
     )
 }
 

@@ -3,10 +3,10 @@ import { PluginClass } from "..";
 import { ClientContext } from "../../contexts";
 
 @injectable()
-export class PluginsManager implements PluginClass {
-    private ctx!: ClientContext
-    init = (ctx: ClientContext) => {
+export class PluginsManager extends PluginClass {
+
+    public override async init(ctx: ClientContext) {
+        super.init(ctx)
         console.log("initialized plugins manager", ctx)
-        this.ctx = ctx
     };
 }

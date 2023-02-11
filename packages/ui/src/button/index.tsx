@@ -7,8 +7,15 @@ export interface ButtonProps extends _ButtonProps {
 
 export const Button = forwardRef((props: ButtonProps, ref: any) => {
     return (
-        <_Button iconSpacing={1} ref={ref}
-        {...props} />
+        <_Button  iconSpacing={1} ref={ref}
+            {...props} />
+    )
+})
+
+export const ActionButton = forwardRef((props: ButtonProps, ref: any) => {
+    return (
+        <Button variant="solid" ref={ref}
+            {...props} />
     )
 })
 
@@ -22,8 +29,3 @@ export const ButtonGroup = forwardRef((props: ButtonGroupProps, ref: any) => {
         <_ButtonGroup ref={ref} {...props} />
     )
 })
-
-export default {
-    Button,
-    ButtonGroup
-}

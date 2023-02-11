@@ -16,10 +16,10 @@ export type RoutesContext = {
     raw: Route[]
 }
 
-export const Routes = proxy<RoutesContext>({
+export const RoutesContext = proxy<RoutesContext>({
     coreRoutes: [],
     pluginRoutes: [],
     raw: []
 })
 
-export const useRoutes = () => useSnapshot(Routes)
+export const useRoutes = () => useSnapshot(RoutesContext)

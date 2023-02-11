@@ -10,6 +10,8 @@
     "baseUrl": ".",
     "target": "ES6",
     "module": "CommonJS",
+    "esModuleInterop": true,
+    "experimentalDecorators": true
   },
   "files": [],
   "include": [],

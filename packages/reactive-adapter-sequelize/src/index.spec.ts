@@ -31,12 +31,12 @@ describe('TypeORM DB Adapter', () => {
 
     const dummySchema: EntitySchema = {
         name: "test",
-        columns: {
-            name: {
-                type: BaseFieldType.string,
-                name: "string",
-            }
+        columns: [{
+            type: BaseFieldType.string,
+            customType: "string",
+            name: "name"
         }
+        ]
     }
 
     beforeEach(async () => {
@@ -45,7 +45,7 @@ describe('TypeORM DB Adapter', () => {
 
     it("should create entity", async () => {
         expect(model.schema.name).toEqual(dummySchema.name)
-        expect(model.schema?.columns?.["name"]).toBeDefined()
+        expect(model.schema?.columns?.find(c => c.name === "name")).toBeDefined()
         expect(await model.findOne()).toBeNull()
     })
 

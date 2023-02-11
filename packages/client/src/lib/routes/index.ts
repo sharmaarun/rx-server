@@ -5,11 +5,7 @@ import { Route } from "../contexts/routes";
 import { PluginClass } from "../plugins";
 
 @injectable()
-export class RoutesManager implements PluginClass {
-    private ctx!: ClientContext
-    init(ctx: ClientContext) {
-        this.ctx = ctx
-    };
+export class RoutesManager extends PluginClass {
 
     public createRoute = (cb: (ctx: ClientContext) => Route) => {
         return cb(this.ctx)

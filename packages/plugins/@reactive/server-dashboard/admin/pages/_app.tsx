@@ -1,10 +1,20 @@
-import { ChakraProvider } from "@reactive/ui";
+import { ChakraProvider, withDefaultColorScheme, extendTheme, withDefaultProps } from "@reactive/ui";
 import RootLayout from "../layouts/root";
 import RouterLayout from "../layouts/router";
 
 function App() {
     return (
-        <ChakraProvider>
+        <ChakraProvider theme={extendTheme(
+            withDefaultColorScheme({
+                colorScheme: "purple"
+            }),
+            withDefaultProps({
+                defaultProps: {
+                    "variant":"outline"
+                },
+                components:["Button"]
+            })
+        )}>
             <RootLayout>
                 <RouterLayout />
             </RootLayout>

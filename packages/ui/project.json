@@ -15,7 +15,8 @@
         "tsConfig": "packages/ui/tsconfig.lib.json",
         "assets": [
           "packages/ui/*.md"
-        ]
+        ],
+        "clean": false
       },
       "configurations": {
         "watch": {

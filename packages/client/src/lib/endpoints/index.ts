@@ -2,7 +2,7 @@ import { PLUGINS_WEB_ROOT } from "@reactive/commons";
 import { container } from "../../container";
 import NetworkManager, { Method } from "../network";
 
-export class Endpoint {
+export class Obj {
     private net!: NetworkManager
 
     constructor(private name: string) {
@@ -20,7 +20,7 @@ export class Endpoint {
     }
 }
 
-export class PluginEndpoint extends Endpoint {
+export class PluginObj extends Obj {
     constructor(name: string) {
         super(PLUGINS_WEB_ROOT + "/" + name)
     }

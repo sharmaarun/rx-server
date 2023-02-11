@@ -17,7 +17,7 @@ export interface IconButtonProps extends _IconButtonProps {
 
 export const IconButton = forwardRef((props: IconButtonProps, ref: any) => {
     return (
-        <_IconButton variant="ghost" ref={ref} {...props} />
+        <_IconButton variant="outline" ref={ref} {...props} />
     )
 })
 

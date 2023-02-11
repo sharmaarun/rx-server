@@ -1,9 +1,15 @@
 {
     "name": "dummy",
-    "columns": {
-        "name": {
+    "columns": [
+        {
             "type": "string",
+            "customType": "string",
             "name": "name"
+        },
+        {
+            "type": "string",
+            "customType": "string",
+            "name": "version"
         }
-    }
+    ]
 }

@@ -2,6 +2,7 @@
 import { Container } from "inversify"
 import { ClientContext } from "../contexts"
 import { Route } from "../contexts/routes"
+import { FieldsManager, RegisteredField } from "../fields"
 import { NetworkManager } from "../network"
 import { PluginsManager } from "../plugins/manager"
 import { RoutesManager } from "../routes"
@@ -11,6 +12,7 @@ const { container }: { container: Container } = (global as any)
 const plugins = container.get<PluginsManager>("PluginsManager")
 const routes = container.get<RoutesManager>("RoutesManager")
 const network = container.get<NetworkManager>("NetworkManager")
+const fields = container.get<FieldsManager>("FieldsManager")
 
 export type BootstrapOptions = {
     serverUrl?: string
@@ -25,6 +27,9 @@ export const bootstrap = async (opts?: BootstrapOptions) => {
     //create main context
     const clientContext = ClientContext
 
+    // fields
+    fields.init(ClientContext)
+
     // initialize all modules
     // Plugins
     plugins.init(ClientContext)
@@ -34,6 +39,7 @@ export const bootstrap = async (opts?: BootstrapOptions) => {
 
     // Network
     network.init(ClientContext)
+
 }
 
 /**
@@ -60,5 +66,11 @@ export const registerCoreRoute = (cb?: (ctx: ClientContext) => Route) => {
             ...(routes.createRoute(cb)),
             isCore: true
         })
+    }, 0)
+}
+
+export const registerFieldType = (cb: (ctx: ClientContext) => RegisteredField) => {
+    setTimeout(() => {
+        fields?.register(cb)
     }, 0)
 }
