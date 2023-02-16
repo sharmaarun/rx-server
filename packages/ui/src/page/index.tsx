@@ -56,7 +56,7 @@ export function Page({ children, ...props }: PageProps & PageContext) {
                     {ctx.searchEnabled ?
                         <Box flex={1} p={2}>
                             <InputGroup onKeyUp={e => e.key === "Esc" && setSearchEnabled(false)}>
-                                <Input onChange={e => setSearch(e.target.value)} placeholder="Search" />
+                                <Input autoFocus onChange={e => setSearch(e.target.value)} placeholder="Search" />
                                 <InputRightElement onClick={e => setSearchEnabled(false)} >
                                     <IconButton aria-label="">
                                         <Icon transform="rotate(45deg)">
