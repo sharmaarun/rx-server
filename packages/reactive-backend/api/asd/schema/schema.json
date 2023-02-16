@@ -6,6 +6,14 @@
       "customType": "string",
       "name": "name",
       "isRequired": true
+    },
+    "asdasd": {
+      "type": "relation",
+      "ref": "dummy",
+      "name": "asdasd",
+      "relationType": "1:m",
+      "customType": "relation",
+      "foreignKey": "asda"
     }
   }
 }

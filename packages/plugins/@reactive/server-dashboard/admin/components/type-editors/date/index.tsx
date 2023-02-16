@@ -1,23 +1,24 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
-import { NumberAttributeSubType, toPascalCase } from "@reactive/commons"
+import { DateAttributeSubType, toPascalCase } from "@reactive/commons"
 import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
-export interface NumberTypeEditorProps extends StackProps, AttributeEditorContext {
+export interface DateTypeEditorProps extends StackProps, AttributeEditorContext {
     children?: any
 }
 
 
-class NumberValidation extends DefaultAttributesValidationClass {
-    @IsNotEmpty({ message: "Please choose a number type" })
+class DateValidation extends DefaultAttributesValidationClass {
+
+    @IsNotEmpty({ message: "Please choose a date type" })
     subType!: string
 }
 
-export function NumberTypeEditor({ children, attribute, ...props }: NumberTypeEditorProps) {
-    const subTypes = Object.values(NumberAttributeSubType)
+export function DateTypeEditor({ children, attribute, ...props }: DateTypeEditorProps) {
+    const subTypes = Object.values(DateAttributeSubType)
     return (
         <Stack {...props}>
-            <FormStage validationClass={NumberValidation}>
+            <FormStage validationClass={DateValidation}>
                 <HStack alignItems="flex-start">
                     <FieldControl>
                         <FieldLabel>Name</FieldLabel>
@@ -45,4 +46,4 @@ export function NumberTypeEditor({ children, attribute, ...props }: NumberTypeEd
     )
 }
 
-export default NumberTypeEditor
+export default DateTypeEditor

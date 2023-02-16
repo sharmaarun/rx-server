@@ -50,6 +50,24 @@ export enum BaseAttributeType {
     "relation" = "relation"
 }
 
+export enum StringAttributeSubType {
+    "varchar" = "varchar",
+    "text" = "text",
+    "tiny" = "tiny"
+}
+
+export enum NumberAttributeSubType {
+    "integer" = "integer",
+    "float" = "float",
+    "double" = "double",
+    "decimal" = "decimal",
+}
+
+export enum DateAttributeSubType {
+    "date" = "date",
+    "datetime" = "datetime"
+}
+
 export enum RelationType {
     ONE_TO_ONE = "1:1",
     ONE_TO_MANY = "1:m",
@@ -106,6 +124,7 @@ export class Attribute {
     }
     public name!: string
     public type!: BaseAttributeType
+    public subType?: StringAttributeSubType | NumberAttributeSubType | DateAttributeSubType
     public customType?: string
     public defaultValue?: string
     public isUnique?: boolean

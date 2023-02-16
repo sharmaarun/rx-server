@@ -1,4 +1,4 @@
-import { AttributeEditorContext, useServerContext } from "@reactive/client"
+import { AttributeEditorContext, DefaultAttributesValidationClass, useServerContext } from "@reactive/client"
 import { Attribute, pluralize, RelationType } from "@reactive/commons"
 import { Field, FieldControl, FieldDescription, FieldLabel, FormContext, FormStage, HStack, Icon, Input, Select, SelectOption, SpreadSelect, SpreadSelectOption, SpreadSelectProps, Stack, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
@@ -8,15 +8,12 @@ export interface RelationsTypeEditorProps extends SpreadSelectProps, AttributeEd
     children?: any
 }
 
-export class RelationTypeValidationClass extends Attribute {
+export class RelationTypeValidationClass extends DefaultAttributesValidationClass {
     @IsNotEmpty({ message: "Should not be empty" })
-    override relationType!: RelationType
+    relationType!: RelationType
 
     @IsNotEmpty({ message: "Should not be empty" })
-    override ref!: string
-
-    // @IsNotEmpty({ message: "Should not be empty" })
-    // override foreignKey!: string
+    ref!: string
 
 }
 const tid: any = {}
@@ -34,7 +31,7 @@ export function RelationsTypeEditor({ children, attribute, schema, ...props }: R
         return foreignKey
     }
 
-    const onSubmit = ({foreignKey}: any) => {
+    const onSubmit = ({ foreignKey }: any) => {
         console.log(foreignKey)
         if (!foreignKey || foreignKey.length <= 0) {
             onChange?.("foreignKey", generateForeignKeyName(schema?.name))
@@ -43,16 +40,18 @@ export function RelationsTypeEditor({ children, attribute, schema, ...props }: R
 
     return (
         <FormStage onSubmit={onSubmit} validationClass={RelationTypeValidationClass}>
-            <HStack>
+            <HStack alignItems="flex-start">
                 <Stack w="25%">
                     <FieldLabel>
-                        Data Type
+                        Current Data Type
                     </FieldLabel>
                     <Input value={schema?.name} />
                     <FieldLabel>
-                        Attribute
+                        Attribute Name
                     </FieldLabel>
-                    <Input isDisabled value={value?.name} />
+                    <Field name="name">
+                        <Input isDisabled={defaultValue?.name} />
+                    </Field>
                 </Stack>
                 <FieldControl w="50%">
                     <FieldLabel textAlign="center">Choose type of relation...</FieldLabel>
@@ -79,7 +78,7 @@ export function RelationsTypeEditor({ children, attribute, schema, ...props }: R
                 </FieldControl>
                 <Stack w="25%">
                     <FieldLabel>
-                        Data Type
+                        Related Data Type
                     </FieldLabel>
                     <Field name="ref" defaultValue={endpoints?.[0]?.schema?.name}>
                         <Select>
@@ -89,7 +88,7 @@ export function RelationsTypeEditor({ children, attribute, schema, ...props }: R
                         </Select>
                     </Field>
                     <FieldLabel>
-                        Attribute
+                        Attribute Name
                     </FieldLabel>
                     <Field name="foreignKey" display={value?.ref?.length ? "block" : "none"}>
                         <Input isDisabled={defaultValue?.foreignKey?.length} placeholder={generateForeignKeyName(value)} />

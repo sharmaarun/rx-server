@@ -11,13 +11,14 @@
       "type": "string",
       "customType": "string",
       "name": "version",
-      "required": true
+      "required": true,
+      "subType": "tiny"
     },
     "asda": {
       "type": "relation",
       "ref": "asd",
       "name": "asda",
-      "relationType": "m:m",
+      "relationType": "m:1",
       "customType": "relation",
       "foreignKey": "asdasd"
     }

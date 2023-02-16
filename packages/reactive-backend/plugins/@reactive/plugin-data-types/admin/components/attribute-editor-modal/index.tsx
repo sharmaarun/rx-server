@@ -1,6 +1,6 @@
 import "reflect-metadata"
 //
-import { AttributeEditorContext, useAttributes } from "@reactive/client"
+import { AttributeEditorContext, DefaultAttributesValidationClass, useAttributes } from "@reactive/client"
 import { BasicAttributeValidation, EntitySchema, Attribute, toPascalCase } from "@reactive/commons"
 import { Box, Button, Card, Checkbox, Field, FieldControl, FieldDescription, FieldLabel, Form, FormBackButton, FormModal, FormModalProps, FormProps, FormStage, FormSubmitButton, HStack, Icon, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, SelectOption, Stack, StackProps, Text, Tooltip, useDisclosure, useFormModal } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
@@ -13,9 +13,7 @@ export interface AttributeEditorModalProps extends Omit<FormModalProps, "childre
     onSubmit?: (field: Attribute) => void
 }
 
-export class NameValidationDTO {
-    @IsNotEmpty({ message: "Name is required" })
-    name!: string
+export class NameValidationDTO extends DefaultAttributesValidationClass {
 }
 
 export interface ArryOfInputProps extends Omit<FormProps, "defaultValue" | "onChange"> {
@@ -154,30 +152,31 @@ export function AttributeEditorModal({ attribute, onSubmit, schema, middlewares,
                             {toPascalCase(regAttr?.attribute?.customType || "")}
                         </ModalHeader>
                         <ModalBody>
+                            <Field hidden name="type" defaultValue={regAttr?.attribute.type}>
+                                <Input value={regAttr?.attribute.type} />
+                            </Field>
+                            <Field hidden name="customType" defaultValue={regAttr?.attribute.type}>
+                                <Input value={regAttr?.attribute.type} />
+                            </Field>
+                            {CustomTypeEditor ? <CustomTypeEditor attribute={attribute} schema={schema} /> :
+                                <FormStage validationClass={NameValidationDTO}>
+                                    <HStack alignItems="flex-start">
 
-                            <FormStage validationClass={NameValidationDTO}>
-                                <HStack alignItems="flex-start">
-                                    <Field hidden name="type" defaultValue={regAttr?.attribute.type}>
-                                        <Input value={regAttr?.attribute.type} />
-                                    </Field>
-                                    <Field hidden name="customType" defaultValue={regAttr?.attribute.type}>
-                                        <Input value={regAttr?.attribute.type} />
-                                    </Field>
-                                    <FieldControl flex={1}>
-                                        <FieldLabel >
-                                            Attribute Name
-                                        </FieldLabel>
-                                        <Field name="name">
-                                            <Input isDisabled={attribute?.name?.length! >= 0} />
-                                        </Field>
+                                        <FieldControl flex={1}>
+                                            <FieldLabel >
+                                                Attribute Name
+                                            </FieldLabel>
+                                            <Field name="name">
+                                                <Input isDisabled={attribute?.name?.length! >= 0} />
+                                            </Field>
 
-                                        <FieldDescription>
-                                            Enter a unique name for this attribute
-                                        </FieldDescription>
-                                    </FieldControl>
-                                </HStack>
-                            </FormStage>
-                            {CustomTypeEditor && <CustomTypeEditor attribute={attribute} schema={schema} />}
+                                            <FieldDescription>
+                                                Enter a unique name
+                                            </FieldDescription>
+                                        </FieldControl>
+                                    </HStack>
+                                </FormStage>
+                            }
                             <FormStage>
                                 <HStack pb={4} spacing={0} flexWrap="wrap">
                                     <FieldControl w={["100%", "100%", "50%"]}>
@@ -193,8 +192,6 @@ export function AttributeEditorModal({ attribute, onSubmit, schema, middlewares,
                                             </FieldDescription>
                                         </HStack>
                                     </FieldControl>
-                                </HStack>
-                                <HStack pb={4} spacing={0} flexWrap="wrap">
                                     <FieldControl w={["100%", "100%", "50%"]}>
                                         <FieldLabel>
                                             Unique
@@ -209,7 +206,7 @@ export function AttributeEditorModal({ attribute, onSubmit, schema, middlewares,
                                         </HStack>
                                     </FieldControl>
                                 </HStack>
-                                <HStack pb={4} spacing={0} flexWrap="wrap">
+                                {/* <HStack pb={4} spacing={0} flexWrap="wrap">
                                     <FieldControl w={["100%", "100%", "50%"]}>
                                         <FieldLabel>
                                             Auto Increment
@@ -223,7 +220,7 @@ export function AttributeEditorModal({ attribute, onSubmit, schema, middlewares,
                                             </FieldDescription>
                                         </HStack>
                                     </FieldControl>
-                                </HStack>
+                                </HStack> */}
                                 <Stack>
                                     <FieldLabel>
                                         Validations

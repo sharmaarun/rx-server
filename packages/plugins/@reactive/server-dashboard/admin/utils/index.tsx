@@ -1,9 +1,9 @@
 import { registerAttributeType, RegisteredAttribute, Route as IRoute } from "@reactive/client"
-import { BaseAttributeType, RelationType } from "@reactive/commons"
+import { BaseAttributeType, RelationType, StringAttributeSubType } from "@reactive/commons"
 import { RXICO_CALENDAR, RXICO_FIELD_BOOLEAN, RXICO_FIELD_ENUM, RXICO_FIELD_JSON, RXICO_FIELD_NUMBER, RXICO_FIELD_RELATION, RXICO_FIELD_RICH_TEXT, RXICO_FIELD_STRING, RXICO_FIELD_UUID, RXICO_RELATION_HAS_MANY, RXICO_RELATION_HAS_ONE, RXICO_RELATION_MANY_TO_MANY, RXICO_RELATION_MANY_TO_ONE, RXICO_RELATION_ONE_TO_MANY, RXICO_RELATION_ONE_TO_ONE } from "@reactive/icons"
 import { Input } from "@reactive/ui"
 import { Route } from "react-router-dom"
-import { EnumTypeEditor, NumberTypeEditor, RelationsTypeEditor, StringTypeEditor } from "../components/type-editors"
+import { DateTypeEditor, EnumTypeEditor, NumberTypeEditor, RelationsTypeEditor, StringTypeEditor } from "../components/type-editors"
 export const buildRouter = (routes?: IRoute[]) => {
     return routes?.map((r, ind) => {
         const Ele = r.element || (() => <></>)
@@ -50,6 +50,7 @@ const attributeTypes: RegisteredAttribute[] = [
         attribute: {
             type: BaseAttributeType.string,
             customType: "rich-text",
+            subType: StringAttributeSubType.text
         },
         metadata: {
             components: {
@@ -81,6 +82,7 @@ const attributeTypes: RegisteredAttribute[] = [
             components: {
                 valueEditor: Input,
                 valueRenderer: Input,
+                typeEditor: DateTypeEditor
             },
             icon: () => <RXICO_CALENDAR />
         }

@@ -25,10 +25,10 @@
     },
     "category": {
       "type": "relation",
-      "customType": "relation",
+      "ref": "category",
       "name": "category",
       "relationType": "m:1",
-      "ref": "category",
+      "customType": "relation",
       "foreignKey": "product"
     }
   }

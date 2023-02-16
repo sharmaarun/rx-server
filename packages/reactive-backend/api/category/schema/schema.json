@@ -14,6 +14,11 @@
       "relationType": "1:m",
       "customType": "relation",
       "foreignKey": "category"
+    },
+    "pola": {
+      "type": "boolean",
+      "customType": "boolean",
+      "name": "pola"
     }
   }
 }

@@ -1,5 +1,6 @@
-import { BaseAttributeType, BasicAttributeValidation, EntitySchema } from "@reactive/commons";
 import "reflect-metadata";
+//
+import { BaseAttributeType, BasicAttributeValidation, EntitySchema, NumberAttributeSubType, StringAttributeSubType } from "@reactive/commons";
 import { SequelizeAdapter, SQLEntity } from "./index";
 process.on('unhandledRejection', (reason) => {
     console.log(reason); // log the reason including the stack trace
@@ -14,6 +15,7 @@ describe('TypeORM DB Adapter', () => {
         attributes: {
             name: {
                 type: BaseAttributeType.string,
+                subType: StringAttributeSubType.varchar,
                 customType: "string",
                 name: "name",
             }
@@ -106,6 +108,7 @@ describe('TypeORM DB Adapter', () => {
             attributes: {
                 name: {
                     type: BaseAttributeType.number,
+                    subType: NumberAttributeSubType.double,
                     customType: "number",
                     name: "name",
                 },
@@ -127,6 +130,19 @@ describe('TypeORM DB Adapter', () => {
             model2 = await adapter.entity(oldSchema)
             await adapter.dataSource.sync()
         })
+
+        it("should prepare db column from schema", () => {
+
+            const col = adapter.getQueryInterface().prepareColumn({
+                type: BaseAttributeType.number,
+                subType: NumberAttributeSubType.double,
+                customType: "number",
+                name: "name",
+            })
+            expect(typeof col.type).toBe("function")
+            expect((col.type as any).name).toBe("DOUBLE")
+        })
+
         it("should add new attribute to an existing table", async () => {
             const desc: any = await adapter.dataSource.getQueryInterface().describeTable(dummySchema.name)
             expect(desc.isNew).toBeDefined()

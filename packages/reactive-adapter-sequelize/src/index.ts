@@ -1,4 +1,4 @@
-import { Attribute, BaseAttributeType, BasicAttributeValidation, EntitySchema, Query } from "@reactive/commons";
+import { Attribute, BaseAttributeType, BasicAttributeValidation, DateAttributeSubType, EntitySchema, NumberAttributeSubType, Query, StringAttributeSubType } from "@reactive/commons";
 import { DBAdapter, DropDatabaseOptions, Entity, PluginClass, QueryInterface, ServerContext, SyncDatabaseOptions, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { DataType, DataTypes, Model, ModelAttributes, ModelStatic, Sequelize } from "sequelize";
 
@@ -45,16 +45,35 @@ export class SQLEntity<T = any> extends Entity<T> {
 type TypeMap = {
     [key in BaseAttributeType]: DataType;
 };
+type SubTypeMap = {
+    [key in
+    keyof TypeMap |
+    StringAttributeSubType |
+    NumberAttributeSubType |
+    DateAttributeSubType
+    ]: DataType;
+};
 
 const TypeMap: TypeMap = {
     [BaseAttributeType.string]: DataTypes.STRING,
     [BaseAttributeType.boolean]: DataTypes.BOOLEAN,
-    [BaseAttributeType.date]: DataTypes.DATE,
+    [BaseAttributeType.date]: DataTypes.DATEONLY,
     [BaseAttributeType.enum]: DataTypes.ENUM,
     [BaseAttributeType.json]: DataTypes.JSON,
-    [BaseAttributeType.number]: DataTypes.NUMBER,
+    [BaseAttributeType.number]: DataTypes.INTEGER,
     [BaseAttributeType.relation]: DataTypes.STRING,
     [BaseAttributeType.uuid]: DataTypes.UUID,
+}
+const SubTypeMap: SubTypeMap = {
+    ...TypeMap,
+    [StringAttributeSubType.varchar]: DataTypes.STRING,
+    [StringAttributeSubType.text]: DataTypes.TEXT,
+    [StringAttributeSubType.tiny]: DataTypes.TEXT('tiny'),
+    [NumberAttributeSubType.decimal]: DataTypes.DECIMAL,
+    [NumberAttributeSubType.double]: DataTypes.DOUBLE,
+    [NumberAttributeSubType.float]: DataTypes.FLOAT,
+    [NumberAttributeSubType.integer]: DataTypes.INTEGER,
+    [DateAttributeSubType.datetime]: DataTypes.DATE,
 }
 
 export class SequelizeQueryInterfaceAdapter extends QueryInterface {
@@ -93,7 +112,7 @@ export class SequelizeQueryInterfaceAdapter extends QueryInterface {
             validate[BasicAttributeValidation.notNull] = true
         }
         const col = {
-            type: TypeMap[attribute.type],
+            type: attribute?.subType ? SubTypeMap[attribute.subType] : TypeMap[attribute.type],
             validate,
             allowNull: !attribute.isRequired ?? false,
             autoIncrement: attribute.autoIncrement,

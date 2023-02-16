@@ -1,5 +1,6 @@
-import { AttributeEditorContext } from "@reactive/client"
-import { Field, FieldControl, FieldLabel, FormStage, HStack, Stack, StackProps, Textarea, TextareaProps } from "@reactive/ui"
+import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps } from "@reactive/ui"
+import { ArrayMinSize, IsNotEmpty } from "class-validator"
 import { ChangeEvent, useEffect, useState } from "react"
 
 export interface EnumValueInputProps extends Omit<TextareaProps, "onChange"> {
@@ -20,6 +21,9 @@ export const EnumValueInput = ({ defaultValue, onChange, value: _, ...props }: E
     )
 }
 
+class EnumValidation extends DefaultAttributesValidationClass {
+}
+
 export interface EnumTypeEditorProps extends StackProps, AttributeEditorContext {
     children?: any
 }
@@ -27,19 +31,25 @@ export interface EnumTypeEditorProps extends StackProps, AttributeEditorContext 
 export function EnumTypeEditor({ children, ...props }: EnumTypeEditorProps) {
 
     return (
-        <FormStage >
+        <FormStage validationClass={EnumValidation}>
             <Stack {...props}>
-                <HStack alignItems="flex-start">
-                    <FieldControl flex={1}>
-                        <FieldLabel>
-                            Values
-                        </FieldLabel>
-                        <Field name="values">
-                            {/* <Textarea placeholder={"Enter one value per line"} /> */}
-                            <EnumValueInput placeholder={"Enter one value per line"} />
-                        </Field>
-                    </FieldControl>
-                </HStack>
+
+                <FieldControl>
+                    <FieldLabel>Name</FieldLabel>
+                    <Field name="name">
+                        <Input />
+                    </Field>
+                    <FieldDescription>Enter a unique name</FieldDescription>
+                </FieldControl>
+                <FieldControl flex={1}>
+                    <FieldLabel>
+                        Values
+                    </FieldLabel>
+                    <Field name="values">
+                        {/* <Textarea placeholder={"Enter one value per line"} /> */}
+                        <EnumValueInput placeholder={"Enter one value per line"} />
+                    </Field>
+                </FieldControl>
             </Stack>
         </FormStage>
     )

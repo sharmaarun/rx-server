@@ -1,4 +1,5 @@
 import { Attribute, EntitySchema } from "@reactive/commons";
+import { IsNotEmpty } from "class-validator";
 import { injectable } from "inversify";
 import { createContext, useContext } from "react";
 import { ClientContext } from "../contexts";
@@ -29,6 +30,11 @@ export class RegisteredAttribute {
     }
     attribute!: Omit<Attribute, "name">
     metadata!: AttributeMetaData
+}
+
+export class DefaultAttributesValidationClass {
+    @IsNotEmpty({ message: "Name should not be empty" })
+    name!: string
 }
 
 @injectable()
