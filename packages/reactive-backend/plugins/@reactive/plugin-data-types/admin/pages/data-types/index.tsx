@@ -2,6 +2,7 @@ import { PluginObj } from "@reactive/client"
 import { EntitySchema, toPascalCase } from "@reactive/commons"
 import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
 import { Heading, Icon, IconButton, List, ListItem, NameInputModal, Page, PageBody, PageHeader, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
+import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 
@@ -12,7 +13,8 @@ export interface ListSchemasProps extends StackProps {
 export type SchemaEditorOutletContext = {
     schemas: EntitySchema[]
     newSchema: EntitySchema
-    onSave: any
+    onSave: (obj: EntitySchema) => void | Promise<void>
+    onDelete: (obj: EntitySchema) => void | Promise<void>
 }
 
 export function ListSchemas({ children, ...props }: ListSchemasProps) {
@@ -24,12 +26,21 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
     const navigate = useNavigate()
     const [eps, setEps] = useState<EntitySchema[]>([])
     const [newSchema, setNewSchema] = useState<EntitySchema>()
+    const [nameModalErrors, setNameModalErrors] = useState<any[]>([])
     const nameModal = useFormModal({
         onSubmit({ name }) {
+            const lcName = name?.toLowerCase?.()
+            if (eps?.find(ep => ep.name?.toLowerCase() === lcName)) {
+                setNameModalErrors([{
+                    property: "name",
+                    constraints: { "exists": "Already exists" }
+                }])
+                throw new Error("Already exists")
+            }
             setNewSchema({
-                name
+                name: lcName
             })
-            navigate(name)
+            navigate(lcName)
         }
     })
     useEffect(() => {
@@ -46,7 +57,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                 position: "top",
                 status: "error"
             })
-            return 
+            return
         }
         schema.set(obj)
         await schema.save({}, { mode: newSchema?.name ? "create" : "update" })
@@ -56,12 +67,29 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
             status: "success",
             position: "top"
         })
+
+        reload()
+        // fetchSchemas()
+    }
+
+    const reload = () => {
         if (typeof window !== "undefined") {
             setTimeout(() => {
-                window.location.reload()
+                window.location.href = "."
             }, 3000)
         }
-        // fetchSchemas()
+    }
+
+    const onDelete = async (obj: EntitySchema) => {
+        schema.set(obj)
+        await schema.delete(schema?.attributes.name)
+        toast({
+            title: "Success",
+            description: "The endpoint was deleted. Server will now restart for the changes to take effect...",
+            position: "top",
+            status: "success"
+        })
+        reload()
     }
 
     const basicTypes = newSchema?.name ? [...eps, newSchema] : eps
@@ -85,7 +113,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                     }
                 </PageToolbar>
                 <PageBody>
-                    <NameInputModal {...nameModal}>
+                    <NameInputModal {...nameModal} errors={nameModalErrors}>
                     </NameInputModal >
                     <Stack spacing={4}>
                         {basicTypes?.length && <List minW="200px" spacing={2}>
@@ -118,7 +146,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                     </Stack>
                 </PageBody>
             </Page>
-            <Outlet context={{ schemas: eps, newSchema, onSave: save }} />
+            <Outlet context={{ schemas: eps, newSchema, onSave: save, onDelete }} />
         </TwoColumns >
     )
 }

@@ -1,3 +1,3 @@
 import { createControllers } from "@reactive/server";
 
-export default createControllers("asd")
+export default createControllers("user")

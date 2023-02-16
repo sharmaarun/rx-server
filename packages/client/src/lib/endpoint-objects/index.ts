@@ -47,6 +47,13 @@ export class Obj<T = any> implements ObjInitOpts {
             return res as T
         }
     }
+
+    public async delete(id?: string) {
+        // create new if no id present
+        const res = await this.net.delete(this.name + "/" + (id || this.id))
+        return res as T
+
+    }
     public async call(path: string, data?: any, method: Method = "get") {
         return this.net?.[method]?.(this.name + "/" + path, data)
     }

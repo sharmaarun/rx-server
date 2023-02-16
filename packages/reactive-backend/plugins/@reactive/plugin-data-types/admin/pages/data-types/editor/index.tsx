@@ -16,7 +16,7 @@ export interface EditorPageProps extends StackProps {
 export function EditorPage({ children, ...props }: EditorPageProps) {
     const { name } = useParams() || {}
     const { attributes } = useAttributes()
-    const { schemas = [], newSchema, onSave } = useOutletContext<SchemaEditorOutletContext>() || {}
+    const { schemas = [], newSchema, onSave, onDelete } = useOutletContext<SchemaEditorOutletContext>() || {}
     const attributeSelectionModal = useDisclosure()
 
     const [errors, setErrors] = useState<ValidationError[]>([])
@@ -82,7 +82,8 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
     }
 
     const saveSchema = () => {
-        onSave?.(schema)
+        if (schema)
+            onSave?.(schema)
     }
 
     const deleteAllAttributes = () => {
@@ -113,7 +114,15 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                 <Heading size="md">
                                     Data Type : {toPascalCase(epName || "")}
                                 </Heading>
-                                <IconButton aria-label="" variant="ghost" colorScheme="red" onClick={e => confirmDelete(() => { })} >
+                                <IconButton
+                                    aria-label=""
+                                    variant="ghost"
+                                    colorScheme="red"
+                                    onClick={e => confirmDelete(() => {
+                                        if (schema)
+                                            onDelete?.(schema)
+                                    })}
+                                >
                                     <Icon>
                                         <RXICO_TRASH />
                                     </Icon>

@@ -1,7 +1,7 @@
 import "reflect-metadata"
 //
 import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons"
-import { readFileSync, rmdirSync } from "fs"
+import { existsSync, readFileSync, rmdirSync } from "fs"
 import { resolve } from "path"
 import { LocalFS } from "../../fs"
 import { APIGenerator } from "./index"
@@ -50,31 +50,34 @@ describe('Simple API Generator extends basic generator', () => {
     } as any
     )
 
+    const testapi = {
+        name: "testapi",
+        attributes: {
+            name:
+            {
+                name: "name",
+                type: BaseAttributeType.string,
+                customType: "string"
+            }
+        }
+    }
+    const testapi2: EntitySchema = {
+        name: "testapi2",
+        attributes: {
+            "testapi":
+            {
+                name: "testapi",
+                type: BaseAttributeType.relation,
+                ref: "testapi",
+                relationType: RelationType.ONE_TO_MANY,
+                customType: "relation",
+                foreignKey: "testapi2"
+            }
+        }
+    }
     beforeEach(async () => {
-        await apiGen.generateAPI({
-            name: "testapi",
-            attributes: {
-                name:
-                {
-                    name: "name",
-                    type: BaseAttributeType.string,
-                    customType: "string"
-                }
-            }
-        })
-        await apiGen.generateAPI({
-            name: "testapi2",
-            attributes: {
-                "testapi":
-                {
-                    name: "testapi",
-                    type: BaseAttributeType.relation,
-                    ref: "testapi",
-                    relationType: RelationType.ONE_TO_MANY,
-                    customType: "relation"
-                }
-            }
-        })
+        await apiGen.generateAPI(testapi)
+        await apiGen.generateAPI(testapi2)
     })
     it("Should generate a basic API template", async () => {
         const schemaStr = readFileSync(resolve(__dirname, "tmp", "testapi", "schema", "schema.json")).toString()
@@ -108,7 +111,8 @@ describe('Simple API Generator extends basic generator', () => {
                     type: BaseAttributeType.relation,
                     ref: "testapi",
                     relationType: RelationType.MANY_TO_ONE,
-                    customType: "relation"
+                    customType: "relation",
+                    foreignKey: "testapi2"
                 }
             }
         }, { updateRefs: true })
@@ -131,6 +135,7 @@ describe('Simple API Generator extends basic generator', () => {
                     customType: "relation",
                     ref: "schema2",
                     relationType: RelationType.ONE_TO_ONE,
+                    foreignKey: "schema1"
                 }
             }
         }
@@ -142,6 +147,11 @@ describe('Simple API Generator extends basic generator', () => {
         const refSchemas = await apiGen.prepareRelatedSchemas(schema1, [schema1, schema2])
         expect(refSchemas?.length).toEqual(1)
         expect(refSchemas?.[0]?.attributes?.["schema2"]?.name).toBeDefined
+    })
+
+    it("should remove/destroy the endpoint completly", async () => {
+        await apiGen.removeEndpointSchema(testapi)
+        expect(existsSync(resolve(__dirname, "tmp", testapi.name))).toBeFalsy()
     })
 
     afterEach(async () => {

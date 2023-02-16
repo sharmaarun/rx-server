@@ -4,9 +4,22 @@ import { injectable } from "inversify";
 import { resolve } from "path";
 import { pluralize } from "@reactive/commons";
 import { Generator } from "../index";
+import { existsSync } from "fs";
 
 export type SaveEndpointOpts = {
     updateRefs?: boolean
+}
+/**
+ * Remove endpoint schema options
+ */
+export type RemoveEndpointSchemaOpts = {
+    /**
+     * Indicates if should remove all or just the schema component of the endpoint\
+     * if true, all the controllers, routes and services (not the data) are cleared along with the schema component\
+     * 
+     * @default default true
+     */
+    all?: boolean
 }
 
 export const ReverseRelationsMap = {
@@ -20,6 +33,11 @@ export const ReverseRelationsMap = {
 
 @injectable()
 export class APIGenerator extends Generator {
+    /**
+     * Generates endpoint schema in the api path configured
+     * @param schema 
+     * @returns 
+     */
     public async generateAPI(schema: EntitySchema) {
         const dest = resolve(this.ctx.appDir, this.ctx.config.api.path, schema.name)
         if (this.ctx.fs.exists(dest)) throw new Error("API with this name already exists")
@@ -38,6 +56,12 @@ export class APIGenerator extends Generator {
         return await this.saveEndpointSchema(schema)
     }
 
+    /**
+     * Save the endpoint schemas to the file system
+     * @param schema 
+     * @param opts 
+     * @returns 
+     */
     public async saveEndpointSchema(schema: EntitySchema, opts?: SaveEndpointOpts) {
         const { updateRefs = true } = opts || {}
         if (!schema || !schema.attributes || !schema.name) throw new Error("Invalid schema provided")
@@ -63,6 +87,12 @@ export class APIGenerator extends Generator {
         return schema
     }
 
+    /**
+     * Prepares the relational schemas (having attribut type `relation`)
+     * @param schema 
+     * @param allSchemas 
+     * @returns 
+     */
     public async prepareRelatedSchemas(schema: EntitySchema, allSchemas: EntitySchema[]) {
         const refAttributes = Object.values(schema?.attributes || {}).filter(attr => attr.type === BaseAttributeType.relation)
 
@@ -92,5 +122,20 @@ export class APIGenerator extends Generator {
         }
         return refSchemas
     }
+
+    /**
+     * Remove endpoint schema
+     * @param opts 
+     */
+    public async removeEndpointSchema(schema: EntitySchema, opts?: RemoveEndpointSchemaOpts) {
+        const { all = true } = opts || {}
+        let path = resolve(this.ctx.appDir, this.ctx.config.api.path, schema.name)
+        if (!all) {
+            path = resolve(path, "schema", "schema.json")
+        }
+        if (!existsSync(path)) throw new Error("No such endpoint schema exists")
+        await this.ctx.fs.rmDir(path)
+    }
+
 
 }

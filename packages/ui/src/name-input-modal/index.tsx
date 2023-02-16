@@ -1,24 +1,30 @@
-import React, { useRef, useState } from "react"
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, ModalProps } from "../modal"
-import Heading, { } from "../heading"
-import { Field, Form, FormProps } from "../form"
+import { DefaultAttributesValidationClass } from "@reactive/client"
+import { Field, FieldControl, FieldDescription } from "../form"
+import { FormModal, FormModalProps } from "../form-modal"
+import { } from "../heading"
 import { Input } from "../input"
-import { FormModal, FormModalProps, useFormModal } from "../form-modal"
-import { useDisclosure } from "../utils"
-import { Button } from "../button"
-import { HStack } from "../stack"
+import { ModalBody, ModalHeader } from "../modal"
 export interface NameInputModalProps extends FormModalProps { }
+
+export class NameInputModalValidation extends DefaultAttributesValidationClass {
+
+}
 
 export function NameInputModal(props: NameInputModalProps) {
     return (
-        <FormModal {...props}>
+        <FormModal validationClass={NameInputModalValidation} {...props}>
             <ModalHeader>
                 Enter name
             </ModalHeader>
             <ModalBody>
-                <Field name="name" >
-                    <Input placeholder="name" />
-                </Field>
+                <FieldControl>
+                    <Field name="name" >
+                        <Input placeholder="name" />
+                    </Field>
+                    <FieldDescription>
+                        Enter a unique name
+                    </FieldDescription>
+                </FieldControl>
             </ModalBody>
 
         </FormModal>

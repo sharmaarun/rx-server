@@ -24,9 +24,19 @@ export default createControllers("data-types", ctx => ({
         }
         await new Promise(res => setTimeout(res, 200))
         const res = await ctx.apiGen.saveEndpointSchema(req.body, { updateRefs: true })
-        // exit so server can auto restart and pickup the new changes
+        // restart the server
         restartServer(ctx.utils.restartServer)
         return req.send(res)
+    },
+    async delete(req) {
+        const { name } = req.params || {}
+        if (!name) throw new Error("Invalid schema name provided")
+        const schema = ctx.endpoints.endpoints.find(ep => ep.schema?.name === name)
+        if (!schema || !schema?.name?.length!) throw new Error("No such schema exists")
+        await ctx.apiGen.removeEndpointSchema(schema)
+        // restart the server
+        restartServer(ctx.utils.restartServer)
+        return req.send(schema)
     }
 }))
 

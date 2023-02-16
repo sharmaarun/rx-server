@@ -49,7 +49,8 @@ describe('Simple File System Wrapper', () => {
         if (existsSync(__dirname + "/tmp"))
             rmdirSync(__dirname + "/tmp", { recursive: true })
 
-        unlinkSync(__dirname + "/.tmp")
+        if (existsSync(__dirname + "/.tmp"))
+            unlinkSync(__dirname + "/.tmp")
     })
 
 })

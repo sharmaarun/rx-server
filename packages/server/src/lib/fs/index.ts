@@ -1,6 +1,6 @@
-import { existsSync, MakeDirectoryOptions, mkdirSync, readdirSync, readFileSync, RmDirOptions as RmDirOptions_, rmdirSync, statSync, unlinkSync, writeFileSync } from "fs";
+import { existsSync, MakeDirectoryOptions, mkdirSync, readdirSync, readFileSync, RmDirOptions as RmDirOptions_, RmOptions, statSync, unlinkSync, writeFileSync } from "fs";
+import { rm } from "fs/promises";
 import { resolve } from "path";
-import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
 
 export type MakeDirOptions = MakeDirectoryOptions & {}
@@ -51,8 +51,8 @@ export class LocalFS extends PluginClass {
         return mkdirSync(path, options)
     }
 
-    public rmDir(path: string, options?: RmDirOptions) {
-        return rmdirSync(path, options)
+    public rmDir(path: string, options?: RmOptions) {
+        return rm(path, { force: true, recursive: true, ...(options || {}) })
     }
     public unlink(path: string) {
         return unlinkSync(path)

@@ -16,4 +16,9 @@ export default createRouter("data-types", ctx => ([
         method: "put",
         handler: "update"
     },
+    {
+        path: "/:name",
+        method: "delete",
+        handler: "delete"
+    },
 ]))

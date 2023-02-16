@@ -1,0 +1,13 @@
+{
+  "name": "user",
+  "attributes": {
+    "pola": {
+      "type": "string",
+      "customType": "string",
+      "name": "pola",
+      "subType": "varchar",
+      "isRequired": true,
+      "isUnique": true
+    }
+  }
+}

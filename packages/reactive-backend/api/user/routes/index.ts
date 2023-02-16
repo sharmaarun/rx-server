@@ -1,3 +1,3 @@
 import { createRouter } from "@reactive/server";
 
-export default createRouter("test")
+export default createRouter("user")
