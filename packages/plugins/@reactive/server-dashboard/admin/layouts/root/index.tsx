@@ -1,5 +1,5 @@
-import { ClientContext, Obj, ServerContext } from "@reactive/client"
-import { Stack, StackProps } from "@reactive/ui"
+import { ClientContext, Obj, ServerContext, useUtilitiesContext } from "@reactive/client"
+import { DeleteAlertModal, Stack, StackProps } from "@reactive/ui"
 import { useEffect } from "react"
 
 export interface RootLayoutProps extends StackProps {
@@ -9,6 +9,7 @@ export interface RootLayoutProps extends StackProps {
 const serverObj = new Obj("__server")
 
 export function RootLayout({ children, ...props }: RootLayoutProps) {
+    const { deleteAlertModal } = useUtilitiesContext()
     useEffect(() => {
         init()
     }, [])
@@ -20,9 +21,14 @@ export function RootLayout({ children, ...props }: RootLayoutProps) {
         }
     }
     return (
-        <Stack bg="gray.50" spacing={0} {...props}>
-            {children}
-        </Stack>
+        <>
+            <DeleteAlertModal
+                {...deleteAlertModal}
+            />
+            <Stack bg="gray.50" spacing={0} {...props}>
+                {children}
+            </Stack>
+        </>
     )
 }
 

@@ -50,7 +50,7 @@ export function RelationsTypeEditor({ children, attribute, schema, ...props }: R
                         Attribute Name
                     </FieldLabel>
                     <Field name="name">
-                        <Input isDisabled={defaultValue?.name} />
+                        <Input isDisabled={defaultValue?.name?.length} />
                     </Field>
                 </Stack>
                 <FieldControl w="50%">

@@ -1,6 +1,6 @@
 
 import { Container } from "inversify"
-import { ClientContext } from "../contexts"
+import { ClientContext, UtilitiesContext } from "../contexts"
 import { Route } from "../contexts/routes"
 import { AttributesManager, RegisteredAttribute } from "../attributes"
 import { NetworkManager } from "../network"
@@ -73,4 +73,18 @@ export const registerAttributeType = (cb: (ctx: ClientContext) => RegisteredAttr
     setTimeout(() => {
         attributes?.register(cb)
     }, 0)
+}
+
+
+
+// Delete alert modal related
+// ==============================
+
+export const confirmDelete = (fn?: (() => void | Promise<void>)) => {
+    UtilitiesContext.deleteAlertModal.isOpen = true
+    UtilitiesContext.deleteAlertModal.onSubmit = async () => {
+        await fn?.()
+        UtilitiesContext.deleteAlertModal.onClose()
+    }
+
 }

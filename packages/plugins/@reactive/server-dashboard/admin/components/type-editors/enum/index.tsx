@@ -1,5 +1,5 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps } from "@reactive/ui"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps, useFormContext } from "@reactive/ui"
 import { ArrayMinSize, IsNotEmpty } from "class-validator"
 import { ChangeEvent, useEffect, useState } from "react"
 
@@ -29,7 +29,7 @@ export interface EnumTypeEditorProps extends StackProps, AttributeEditorContext 
 }
 
 export function EnumTypeEditor({ children, ...props }: EnumTypeEditorProps) {
-
+    const { defaultValue } = useFormContext()
     return (
         <FormStage validationClass={EnumValidation}>
             <Stack {...props}>
@@ -37,7 +37,7 @@ export function EnumTypeEditor({ children, ...props }: EnumTypeEditorProps) {
                 <FieldControl>
                     <FieldLabel>Name</FieldLabel>
                     <Field name="name">
-                        <Input />
+                        <Input isDisabled={defaultValue?.name?.length} />
                     </Field>
                     <FieldDescription>Enter a unique name</FieldDescription>
                 </FieldControl>

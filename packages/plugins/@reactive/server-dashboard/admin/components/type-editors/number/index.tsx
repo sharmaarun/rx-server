@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
 import { NumberAttributeSubType, toPascalCase } from "@reactive/commons"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps } from "@reactive/ui"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface NumberTypeEditorProps extends StackProps, AttributeEditorContext {
@@ -14,6 +14,7 @@ class NumberValidation extends DefaultAttributesValidationClass {
 }
 
 export function NumberTypeEditor({ children, attribute, ...props }: NumberTypeEditorProps) {
+    const { defaultValue } = useFormContext()
     const subTypes = Object.values(NumberAttributeSubType)
     return (
         <Stack {...props}>
@@ -22,7 +23,7 @@ export function NumberTypeEditor({ children, attribute, ...props }: NumberTypeEd
                     <FieldControl>
                         <FieldLabel>Name</FieldLabel>
                         <Field name="name">
-                            <Input />
+                            <Input isDisabled={defaultValue?.name?.length} />
                         </Field>
                         <FieldDescription>Enter a unique name</FieldDescription>
                     </FieldControl>

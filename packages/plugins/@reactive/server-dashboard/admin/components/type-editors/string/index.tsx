@@ -1,6 +1,6 @@
 import { AttributeEditorContext } from "@reactive/client"
 import { StringAttributeSubType, toPascalCase } from "@reactive/commons"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps } from "@reactive/ui"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface StringTypeEditorProps extends StackProps, AttributeEditorContext {
@@ -17,6 +17,7 @@ class StringValidation {
 }
 
 export function StringTypeEditor({ children, attribute, ...props }: StringTypeEditorProps) {
+    const { defaultValue } = useFormContext()
     const subTypes = Object.values(StringAttributeSubType)
     return (
         <Stack {...props}>
@@ -25,7 +26,7 @@ export function StringTypeEditor({ children, attribute, ...props }: StringTypeEd
                     <FieldControl>
                         <FieldLabel>Name</FieldLabel>
                         <Field name="name">
-                            <Input />
+                            <Input isDisabled={defaultValue?.name?.length} />
                         </Field>
                         <FieldDescription>Enter a unique name</FieldDescription>
                     </FieldControl>

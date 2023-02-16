@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
 import { DateAttributeSubType, toPascalCase } from "@reactive/commons"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps } from "@reactive/ui"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface DateTypeEditorProps extends StackProps, AttributeEditorContext {
@@ -15,6 +15,7 @@ class DateValidation extends DefaultAttributesValidationClass {
 }
 
 export function DateTypeEditor({ children, attribute, ...props }: DateTypeEditorProps) {
+    const { defaultValue } = useFormContext()
     const subTypes = Object.values(DateAttributeSubType)
     return (
         <Stack {...props}>
@@ -23,7 +24,7 @@ export function DateTypeEditor({ children, attribute, ...props }: DateTypeEditor
                     <FieldControl>
                         <FieldLabel>Name</FieldLabel>
                         <Field name="name">
-                            <Input />
+                            <Input isDisabled={defaultValue?.name?.length} />
                         </Field>
                         <FieldDescription>Enter a unique name</FieldDescription>
                     </FieldControl>

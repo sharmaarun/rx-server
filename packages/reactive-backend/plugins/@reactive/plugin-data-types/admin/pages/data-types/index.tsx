@@ -39,14 +39,22 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
     const fetchSchemas = async () => setEps(await schema.list())
 
     const save = async (obj: EntitySchema) => {
-        if (!obj?.name) return
+        if (!obj?.name || Object.keys(obj?.attributes || {}).length <= 0) {
+            toast({
+                title: "Error",
+                description: "Please add at least one attribute!",
+                position: "top",
+                status: "error"
+            })
+            return 
+        }
         schema.set(obj)
         await schema.save({}, { mode: newSchema?.name ? "create" : "update" })
         toast({
             title: "Success",
             description: "All changes were applied correctly. Server will now restart for the changes to take effect...",
             status: "success",
-            position:"top"
+            position: "top"
         })
         if (typeof window !== "undefined") {
             setTimeout(() => {

@@ -5,20 +5,15 @@
       "type": "string",
       "customType": "string",
       "name": "name",
-      "isRequired": true
+      "subType": "varchar"
     },
-    "product": {
+    "products": {
       "type": "relation",
-      "ref": "product",
-      "name": "product",
-      "relationType": "1:m",
       "customType": "relation",
+      "name": "products",
+      "relationType": "1:m",
+      "ref": "product",
       "foreignKey": "category"
-    },
-    "pola": {
-      "type": "boolean",
-      "customType": "boolean",
-      "name": "pola"
     }
   }
 }

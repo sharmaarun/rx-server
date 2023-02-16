@@ -1,7 +1,7 @@
-import { RegisteredAttribute, useAttributes } from "@reactive/client"
+import { confirmDelete, RegisteredAttribute, useAttributes } from "@reactive/client"
 import { EntitySchema, Attribute, toPascalCase } from "@reactive/commons"
 import { RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
-import { ActionButton, Box, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, StackProps, Text, useDisclosure } from "@reactive/ui"
+import { ActionButton, Box, Button, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, Stack, StackProps, Text, useDisclosure } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { useOutletContext, useParams } from "react-router-dom"
@@ -18,7 +18,6 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
     const { attributes } = useAttributes()
     const { schemas = [], newSchema, onSave } = useOutletContext<SchemaEditorOutletContext>() || {}
     const attributeSelectionModal = useDisclosure()
-    const deleteModal = useDisclosure()
 
     const [errors, setErrors] = useState<ValidationError[]>([])
     const [toDelete, setToDelete] = useState<Attribute>()
@@ -86,6 +85,20 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
         onSave?.(schema)
     }
 
+    const deleteAllAttributes = () => {
+        if (schema && schema.attributes) {
+            schema.attributes = undefined
+            delete schema.attributes
+            setSchema({ ...schema })
+        }
+    }
+
+    const deleteAttribute = (attr: any) => {
+        if (attr?.name) {
+            removeAttribute(attr)
+        }
+    }
+
     const attributes_ = [...attributes]
     const schema_ = getSchema(name)
     const changed = schema_ && schema && JSON.stringify(schema) !== JSON.stringify(schema_)
@@ -96,22 +109,25 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                 epName ?
                     <Page>
                         <PageHeader>
-                            <Heading size="md">
-                                {toPascalCase(epName || "")} Attributes
-                            </Heading>
+                            <HStack>
+                                <Heading size="md">
+                                    Data Type : {toPascalCase(epName || "")}
+                                </Heading>
+                                <IconButton aria-label="" variant="ghost" colorScheme="red" onClick={e => confirmDelete(() => { })} >
+                                    <Icon>
+                                        <RXICO_TRASH />
+                                    </Icon>
+                                </IconButton>
+                            </HStack>
                         </PageHeader>
                         <PageToolbar>
                             <HStack justifyContent="flex-end">
+                                <Button colorScheme="red" onClick={e => confirmDelete(() => deleteAllAttributes())} >Delete All</Button>
                                 <ActionButton onClick={attributeSelectionModal.onOpen} colorScheme="purple" >Add New Attribute</ActionButton>
                             </HStack>
                         </PageToolbar>
                         <PageBody>
-                            <DeleteAlertModal onSubmit={() => {
-                                if (toDelete) {
-                                    removeAttribute(toDelete)
-                                }
-                                deleteModal.onClose()
-                            }} {...deleteModal} />
+
                             <AttributeSelectionModal
                                 {...attributeSelectionModal}
                                 onChange={(f) => { onSelectAttribute(f?.attribute); setMode("new") }}
@@ -126,7 +142,10 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                 onSubmit={saveAttribute}
                                 middlewares={[beforeSaveAttributeMiddleware]}
                             />
-                            <Box w="100%">
+                            <Stack w="100%" spacing={4}>
+                                <Heading pl={2} size="xs">
+                                    Attributes
+                                </Heading>
                                 {schemaAttrs?.length ?
                                     <List w="100%" spacing={2}>
                                         {schemaAttrs.map((attr, ind) => {
@@ -150,8 +169,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                                                 </Icon>
                                                             </IconButton>
                                                             <IconButton onClick={() => {
-                                                                setToDelete(attr as any)
-                                                                deleteModal.onOpen()
+                                                                confirmDelete(() => deleteAttribute(attr))
                                                             }} variant="ghost" aria-label="">
                                                                 <Icon>
                                                                     <RXICO_TRASH />
@@ -177,7 +195,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                         </Text>
                                         } />
                                 }
-                            </Box>
+                            </Stack>
 
                         </PageBody>
                         {changed ?

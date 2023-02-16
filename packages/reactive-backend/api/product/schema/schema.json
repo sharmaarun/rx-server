@@ -22,14 +22,6 @@
           "value": "50000"
         }
       ]
-    },
-    "category": {
-      "type": "relation",
-      "ref": "category",
-      "name": "category",
-      "relationType": "m:1",
-      "customType": "relation",
-      "foreignKey": "product"
     }
   }
 }
