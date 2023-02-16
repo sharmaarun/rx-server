@@ -1,0 +1,11 @@
+{
+  "name": "ola",
+  "attributes": {
+    "popla": {
+      "type": "string",
+      "customType": "string",
+      "name": "popla",
+      "subType": "varchar"
+    }
+  }
+}

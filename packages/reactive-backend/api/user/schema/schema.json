@@ -8,6 +8,12 @@
       "subType": "varchar",
       "isRequired": true,
       "isUnique": true
+    },
+    "test": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "test"
     }
   }
 }

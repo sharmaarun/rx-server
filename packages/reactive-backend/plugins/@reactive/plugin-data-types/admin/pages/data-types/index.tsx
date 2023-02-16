@@ -1,7 +1,7 @@
 import { PluginObj } from "@reactive/client"
 import { EntitySchema, toPascalCase } from "@reactive/commons"
 import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
-import { Heading, Icon, IconButton, List, ListItem, NameInputModal, Page, PageBody, PageHeader, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
+import { Heading, Icon, IconButton, List, ListItem, NameInputModal, Page, PageBody, PageHeader, PageSearchProvider, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
@@ -100,11 +100,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                     <Heading size="md" >{"Data Types"}</Heading>
                 </PageHeader>
                 <PageToolbar>
-                    <IconButton aria-label="" variant="outline">
-                        <Icon>
-                            <RXICO_SEARCH />
-                        </Icon>
-                    </IconButton>
+                    <PageSearchProvider />
                     {newSchema?.name ? "" : <IconButton aria-label="" onClick={(e: any) => nameModal.onOpen()}>
                         <Icon>
                             <RXICO_PLUS />
@@ -113,37 +109,40 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                     }
                 </PageToolbar>
                 <PageBody>
-                    <NameInputModal {...nameModal} errors={nameModalErrors}>
-                    </NameInputModal >
-                    <Stack spacing={4}>
-                        {basicTypes?.length && <List minW="200px" spacing={2}>
-                            {
-                                basicTypes?.map((ep, ind) => {
-                                    const path = "/admin/data-types/" + ep?.name
-                                    const isActive = path === pathname
-                                    return <ListItem
-                                        p={2} pl={4}
-                                        key={ind}
-                                        bgColor={isActive ? "blackAlpha.200" : ""}
-                                        // color={isActive ? "whiteAlpha.900" : "blackAlpha.900"}
-                                        _hover={{ bgColor: isActive ? "" : "blackAlpha.50" }}
-                                        borderRadius={4}
-                                        display="flex"
-                                        justifyContent="stretch"
-                                        alignItems="stretch"
-                                        as={Link}
-                                        {...({ to: ep?.name } as any)}
-                                    >
-                                        {/* <Link style={{ padding: "10px", height: "100%", width: "100%" }} to={ep.name} key={ind}> */}
-                                        {ep && toPascalCase(ep.name)}
-                                        {/* </Link> */}
-                                    </ListItem>
+                    {({ search }) =>
+                        <><NameInputModal {...nameModal} errors={nameModalErrors}>
+                        </NameInputModal >
+                            <Stack spacing={4}>
+                                {basicTypes?.length && <List minW="200px" spacing={2}>
+                                    {
+                                        basicTypes?.filter(ep => search?.length ? ep.name.includes(search) : true).map((ep, ind) => {
+                                            const path = "/admin/data-types/" + ep?.name
+                                            const isActive = path === pathname
+                                            return <ListItem
+                                                p={2} pl={4}
+                                                key={ind}
+                                                bgColor={isActive ? "blackAlpha.200" : ""}
+                                                // color={isActive ? "whiteAlpha.900" : "blackAlpha.900"}
+                                                _hover={{ bgColor: isActive ? "" : "blackAlpha.50" }}
+                                                borderRadius={4}
+                                                display="flex"
+                                                justifyContent="stretch"
+                                                alignItems="stretch"
+                                                as={Link}
+                                                {...({ to: ep?.name } as any)}
+                                            >
+                                                {/* <Link style={{ padding: "10px", height: "100%", width: "100%" }} to={ep.name} key={ind}> */}
+                                                {ep && toPascalCase(ep.name)}
+                                                {/* </Link> */}
+                                            </ListItem>
+                                        }
+                                        )
+                                    }
+                                </List>
                                 }
-                                )
-                            }
-                        </List>
-                        }
-                    </Stack>
+                            </Stack>
+                        </>
+                    }
                 </PageBody>
             </Page>
             <Outlet context={{ schemas: eps, newSchema, onSave: save, onDelete }} />
