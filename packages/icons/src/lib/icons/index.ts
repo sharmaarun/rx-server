@@ -10,6 +10,8 @@ export * from "./align-top-left";
 export * from "./align-top-right";
 export * from "./arrow-back";
 export * from "./backward";
+export * from "./relation";
+export * from "./field-types";
 export * from "./border-all";
 export * from "./border-bottom";
 export * from "./border-left";

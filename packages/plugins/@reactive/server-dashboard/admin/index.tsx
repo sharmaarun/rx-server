@@ -4,13 +4,13 @@ import { bootstrap } from "@reactive/client";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./pages/_app";
-import { registerCoreFieldTypes } from "./utils";
+import { registerCoreAttributeTypes } from "./utils";
 
 // Initialize the app
 bootstrap()
 
-// Register all the basic field types
-registerCoreFieldTypes()
+// Register all the basic attribute types
+registerCoreAttributeTypes()
 
 
 // Render the app

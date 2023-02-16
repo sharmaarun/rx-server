@@ -1,5 +1,5 @@
-import { BaseFieldType, EntitySchema, Query } from "@reactive/commons";
-import { DBAdapter, DropDatabaseOptions, Entity, PluginClass, ServerContext, SyncDatabaseOptions, UpdateReturnType, UpsertReturnType } from "@reactive/server";
+import { Attribute, BaseAttributeType, BasicAttributeValidation, EntitySchema, Query } from "@reactive/commons";
+import { DBAdapter, DropDatabaseOptions, Entity, PluginClass, QueryInterface, ServerContext, SyncDatabaseOptions, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { DataType, DataTypes, Model, ModelAttributes, ModelStatic, Sequelize } from "sequelize";
 
 export class SQLEntity<T = any> extends Entity<T> {
@@ -40,30 +40,78 @@ export class SQLEntity<T = any> extends Entity<T> {
     public override async delete<FT extends T>(filters?: Query<FT>) {
         return this.model.destroy(filters)
     }
-
 }
 
 type TypeMap = {
-    [key in BaseFieldType]: DataType;
+    [key in BaseAttributeType]: DataType;
 };
 
 const TypeMap: TypeMap = {
-    [BaseFieldType.string]: DataTypes.STRING,
-    [BaseFieldType.boolean]: DataTypes.BOOLEAN,
-    [BaseFieldType.date]: DataTypes.DATE,
-    [BaseFieldType.enum]: DataTypes.ENUM,
-    [BaseFieldType.json]: DataTypes.JSON,
-    [BaseFieldType.number]: DataTypes.NUMBER,
-    [BaseFieldType.relation]: DataTypes.STRING,
-    [BaseFieldType.uuid]: DataTypes.UUID,
+    [BaseAttributeType.string]: DataTypes.STRING,
+    [BaseAttributeType.boolean]: DataTypes.BOOLEAN,
+    [BaseAttributeType.date]: DataTypes.DATE,
+    [BaseAttributeType.enum]: DataTypes.ENUM,
+    [BaseAttributeType.json]: DataTypes.JSON,
+    [BaseAttributeType.number]: DataTypes.NUMBER,
+    [BaseAttributeType.relation]: DataTypes.STRING,
+    [BaseAttributeType.uuid]: DataTypes.UUID,
 }
 
+export class SequelizeQueryInterfaceAdapter extends QueryInterface {
+    constructor(
+        private adapter: SequelizeAdapter,
+    ) {
+        super()
+    }
+
+    addAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        const column = this.prepareColumn(attribute)
+        return this.adapter.dataSource.getQueryInterface().addColumn(entityName, attribute.name, { ...column })
+    }
+
+    changeAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        const column = this.prepareColumn(attribute)
+        return this.adapter.dataSource.getQueryInterface().changeColumn(entityName, attribute.name, { ...column })
+    }
+
+    removeAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        return this.adapter.dataSource.getQueryInterface().removeColumn(entityName, attribute.name)
+    }
+
+    public prepareColumn = (attribute: Attribute) => {
+        const validate: any = {}
+        for (let v of attribute?.validations || []) {
+            validate[v.type] = v.value
+        }
+        if (attribute.values) {
+            validate[BasicAttributeValidation.isIn] = [
+                ...(validate[BasicAttributeValidation.isIn] || []),
+                ...(attribute.values || [])
+            ]
+        }
+        if (attribute.isRequired) {
+            validate[BasicAttributeValidation.notNull] = true
+        }
+        const col = {
+            type: TypeMap[attribute.type],
+            validate,
+            allowNull: !attribute.isRequired ?? false,
+            autoIncrement: attribute.autoIncrement,
+            values: attribute.values
+        }
+        return col
+    }
+
+
+
+}
 
 export class SequelizeAdapter extends DBAdapter {
-    private dataSource!: Sequelize
-
+    public dataSource!: Sequelize
+    private queryInterface!: SequelizeQueryInterfaceAdapter;
     public override async init(ctx: ServerContext) {
         this.ctx = ctx
+
         const { db } = this.ctx.config
         this.dataSource = new Sequelize({
             dialect: db.options.type as any || "sqlite",
@@ -74,6 +122,10 @@ export class SequelizeAdapter extends DBAdapter {
             logging: db.options.logging,
 
         })
+
+        this.queryInterface = new SequelizeQueryInterfaceAdapter(this)
+        this.dataSource
+
         await this.connect()
         console.info("Connected to DB!")
     }
@@ -91,33 +143,31 @@ export class SequelizeAdapter extends DBAdapter {
     }
 
     async entity(schema: EntitySchema) {
-        const columns: ModelAttributes = {}
-        const { columns: cols = [] } = schema || {}
-        //TODO: validate the field before mapping
-        for (let field of cols) {
-            if (field.type.length) {
-                columns[field.name] = {
-                    type: TypeMap[field.type],
-                    allowNull: field.allowNull || true,
-                    primaryKey: field.isPrimary,
-                    unique: field.isUnique,
-                    validate: field.validations?.reduceRight((ac, cv) => { ac[cv.type] = cv.value }, {} as any),
-                    autoIncrement: field.autoIncrement,
-                }
+        const columns: ModelAttributes = {
+        }
+        const { attributes: cols = {}, name } = schema || {}
+        //TODO: validate the attribute before mapping
+
+        // prepare columns
+        for (let col in cols) {
+            const attribute = cols[col]
+            // map basic attributes
+            if (attribute.type.length) {
+                columns[attribute.name] = this.queryInterface.prepareColumn(attribute)
             }
         }
 
         const model = this.dataSource.define(schema.name, columns, {
-            freezeTableName: this.ctx.config.db.options.freezeTableName,
-            timestamps: this.ctx.config.db.options.timestamps,
+            freezeTableName: this.ctx.config.db.options.freezeTableName ?? true,
+            timestamps: this.ctx.config.db.options.timestamps ?? true,
         })
+
         const entity = new SQLEntity(
             model,
             this.ctx,
             this.dataSource
         )
         entity.schema = schema
-        this.dataSource.sync()
         return entity
     }
 
@@ -129,8 +179,17 @@ export class SequelizeAdapter extends DBAdapter {
 
     async sync(opts?: SyncDatabaseOptions) {
         console.info("Syncing database...")
-        await this.dataSource.sync()
+        await this.dataSource.sync({
+            force: false,
+            alter: true
+        })
     }
+
+    public override getQueryInterface() {
+        return this.queryInterface
+    }
+
+
 
 }
 

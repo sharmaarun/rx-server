@@ -16,7 +16,8 @@
         "assets": [
           "packages/reactive-backend/plugins/@reactive/plugin-data-types/*.md",
           "packages/reactive-backend/plugins/@reactive/plugin-data-types/admin/**/*"
-        ]
+        ],
+        "clean": false
       }
     },
     "publish": {

@@ -1,8 +1,9 @@
-import { registerFieldType, Route as IRoute, RegisteredField } from "@reactive/client"
-import { BaseFieldType } from "@reactive/commons"
-import { Input, RegisteredFields, Select, Switch, Textarea } from "@reactive/ui"
+import { registerAttributeType, RegisteredAttribute, Route as IRoute } from "@reactive/client"
+import { BaseAttributeType, RelationType } from "@reactive/commons"
+import { RXICO_CALENDAR, RXICO_FIELD_BOOLEAN, RXICO_FIELD_ENUM, RXICO_FIELD_JSON, RXICO_FIELD_NUMBER, RXICO_FIELD_RELATION, RXICO_FIELD_RICH_TEXT, RXICO_FIELD_STRING, RXICO_FIELD_UUID, RXICO_RELATION_HAS_MANY, RXICO_RELATION_HAS_ONE, RXICO_RELATION_MANY_TO_MANY, RXICO_RELATION_MANY_TO_ONE, RXICO_RELATION_ONE_TO_MANY, RXICO_RELATION_ONE_TO_ONE } from "@reactive/icons"
+import { Input } from "@reactive/ui"
 import { Route } from "react-router-dom"
-import { StringTypeEditor, NumberTypeEditor } from "../components/type-editors"
+import { EnumTypeEditor, NumberTypeEditor, RelationsTypeEditor, StringTypeEditor } from "../components/type-editors"
 export const buildRouter = (routes?: IRoute[]) => {
     return routes?.map((r, ind) => {
         const Ele = r.element || (() => <></>)
@@ -16,10 +17,10 @@ export const buildRouter = (routes?: IRoute[]) => {
     })
 }
 
-const fieldTypes: RegisteredField[] = [
+const attributeTypes: RegisteredAttribute[] = [
     {
-        field: {
-            type: BaseFieldType.string,
+        attribute: {
+            type: BaseAttributeType.string,
             customType: "string",
         },
         metadata: {
@@ -28,12 +29,12 @@ const fieldTypes: RegisteredField[] = [
                 valueRenderer: Input,
                 typeEditor: StringTypeEditor
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_STRING />
         }
     },
     {
-        field: {
-            type: BaseFieldType.number,
+        attribute: {
+            type: BaseAttributeType.number,
             customType: "number",
         },
         metadata: {
@@ -42,12 +43,12 @@ const fieldTypes: RegisteredField[] = [
                 valueRenderer: Input,
                 typeEditor: NumberTypeEditor
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_NUMBER />
         }
     },
     {
-        field: {
-            type: BaseFieldType.string,
+        attribute: {
+            type: BaseAttributeType.string,
             customType: "rich-text",
         },
         metadata: {
@@ -55,12 +56,12 @@ const fieldTypes: RegisteredField[] = [
                 valueEditor: Input,
                 valueRenderer: Input,
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_RICH_TEXT />
         }
     },
     {
-        field: {
-            type: BaseFieldType.boolean,
+        attribute: {
+            type: BaseAttributeType.boolean,
             customType: "boolean",
         },
         metadata: {
@@ -68,12 +69,12 @@ const fieldTypes: RegisteredField[] = [
                 valueEditor: Input,
                 valueRenderer: Input,
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_BOOLEAN />
         }
     },
     {
-        field: {
-            type: BaseFieldType.date,
+        attribute: {
+            type: BaseAttributeType.date,
             customType: "date",
         },
         metadata: {
@@ -81,25 +82,26 @@ const fieldTypes: RegisteredField[] = [
                 valueEditor: Input,
                 valueRenderer: Input,
             },
-            icon: <></>
+            icon: () => <RXICO_CALENDAR />
         }
     },
     {
-        field: {
-            type: BaseFieldType.enum,
+        attribute: {
+            type: BaseAttributeType.enum,
             customType: "enum",
         },
         metadata: {
             components: {
                 valueEditor: Input,
                 valueRenderer: Input,
+                typeEditor: EnumTypeEditor
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_ENUM />
         }
     },
     {
-        field: {
-            type: BaseFieldType.json,
+        attribute: {
+            type: BaseAttributeType.json,
             customType: "json",
         },
         metadata: {
@@ -107,25 +109,26 @@ const fieldTypes: RegisteredField[] = [
                 valueEditor: Input,
                 valueRenderer: Input,
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_JSON />
         }
     },
     {
-        field: {
-            type: BaseFieldType.relation,
+        attribute: {
+            type: BaseAttributeType.relation,
             customType: "relation",
         },
         metadata: {
             components: {
                 valueEditor: Input,
                 valueRenderer: Input,
+                typeEditor: RelationsTypeEditor
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_RELATION />
         }
     },
     {
-        field: {
-            type: BaseFieldType.uuid,
+        attribute: {
+            type: BaseAttributeType.uuid,
             customType: "uuid",
         },
         metadata: {
@@ -133,14 +136,43 @@ const fieldTypes: RegisteredField[] = [
                 valueEditor: Input,
                 valueRenderer: Input,
             },
-            icon: <></>
+            icon: () => <RXICO_FIELD_UUID />
         }
     }
 ]
 
 
-export const registerCoreFieldTypes = () => {
-    fieldTypes.forEach((t) => {
-        registerFieldType(ctx => (t))
+
+
+export const RelationTypes = {
+    [RelationType.ONE_TO_ONE]: {
+        icon: <RXICO_RELATION_ONE_TO_ONE />,
+        title: "One To One"
+    },
+    [RelationType.ONE_TO_MANY]: {
+        icon: <RXICO_RELATION_ONE_TO_MANY />,
+        title: "One To Many"
+    },
+    [RelationType.MANY_TO_ONE]: {
+        icon: <RXICO_RELATION_MANY_TO_ONE />,
+        title: "Many To One"
+    },
+    [RelationType.MANY_TO_MANY]: {
+        icon: <RXICO_RELATION_MANY_TO_MANY />,
+        title: "Many To Many"
+    },
+    [RelationType.HAS_ONE]: {
+        icon: <RXICO_RELATION_HAS_ONE />,
+        title: "Has One"
+    },
+    [RelationType.HAS_MANY]: {
+        icon: <RXICO_RELATION_HAS_MANY />,
+        title: "Has Many"
+    },
+}
+
+export const registerCoreAttributeTypes = () => {
+    attributeTypes.forEach((t) => {
+        registerAttributeType(ctx => (t))
     })
 }

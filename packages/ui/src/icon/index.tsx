@@ -7,7 +7,7 @@ export interface IconProps extends _IconProps {
 
 export const Icon = forwardRef((props: IconProps, ref: any) => {
     return (
-        <_Icon ref={ref} w="24px" h="24px" {...props} />
+        <_Icon ref={ref} fontSize="24px" {...props} />
     )
 })
 

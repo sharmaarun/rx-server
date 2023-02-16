@@ -5,6 +5,7 @@ import { injectable } from "inversify";
 import { resolve } from "path";
 import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
+import bodyParser from "body-parser"
 
 export type CreateRouteOpts = {
     route: APIRoute,
@@ -27,6 +28,10 @@ export class ExpressManager extends PluginClass {
     }
     public override async init(ctx: ServerContext) {
         this.ctx = ctx
+        this.app.use(bodyParser.urlencoded({
+            extended: true
+        }))
+        this.app.use(bodyParser.json())
         this.app.use(cors(ctx?.config?.server?.cors))
 
     }
@@ -55,6 +60,7 @@ export class ExpressManager extends PluginClass {
             if (method && handler)
                 router_?.[method]?.(path, async (req, res) => {
                     try {
+                        console.log(req.body)
                         const ctx: APIRequestContext = {
                             params: req.params,
                             query: req.query,

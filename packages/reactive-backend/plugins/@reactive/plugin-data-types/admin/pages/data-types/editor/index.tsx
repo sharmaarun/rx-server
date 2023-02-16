@@ -1,13 +1,13 @@
-import { RegisteredField, useFields } from "@reactive/client"
-import { Endpoint, Field, toPascalCase } from "@reactive/commons"
+import { RegisteredAttribute, useAttributes } from "@reactive/client"
+import { EntitySchema, Attribute, toPascalCase } from "@reactive/commons"
 import { RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
 import { ActionButton, Box, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, StackProps, Text, useDisclosure } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { useOutletContext, useParams } from "react-router-dom"
-import { EndpointEditorOutletContext } from ".."
-import { FieldEditorModal } from "../../../components/field-editor-modal"
-import { FieldSelectionModal } from "../../../components/field-selection-modal"
+import { SchemaEditorOutletContext } from ".."
+import { AttributeEditorModal } from "../../../components/attribute-editor-modal"
+import { AttributeSelectionModal } from "../../../components/attribute-selection-modal"
 export interface EditorPageProps extends StackProps {
     children?: any
 }
@@ -15,74 +15,80 @@ export interface EditorPageProps extends StackProps {
 
 export function EditorPage({ children, ...props }: EditorPageProps) {
     const { name } = useParams() || {}
-    const { fields } = useFields()
-    const { endpoints = [], newEndpoint } = useOutletContext<EndpointEditorOutletContext>() || {}
-    const fieldSelectionModal = useDisclosure()
+    const { attributes } = useAttributes()
+    const { schemas = [], newSchema, onSave } = useOutletContext<SchemaEditorOutletContext>() || {}
+    const attributeSelectionModal = useDisclosure()
     const deleteModal = useDisclosure()
 
     const [errors, setErrors] = useState<ValidationError[]>([])
-    const [toDelete, setToDelete] = useState<Field>()
-    const [newField, setNewField] = useState<RegisteredField>()
-    const [endpoint, setEndpoint] = useState<Endpoint>()
+    const [toDelete, setToDelete] = useState<Attribute>()
+    const [newAttribute, setNewAttribute] = useState<Attribute>()
+    const [schema, setSchema] = useState<EntitySchema>()
 
     useEffect(() => {
-        const ep = getEndpoint(name)
+        const ep = getSchema(name)
         if (ep) {
-            setEndpoint(JSON.parse(JSON.stringify({ ...ep })))
+            setSchema(JSON.parse(JSON.stringify({ ...ep })))
         }
-    }, [name, endpoints, newEndpoint])
-    const { schema, name: epName } = endpoint || {}
-    const endpointAttrs = schema?.columns?.filter?.(c => c?.name?.length)
-    // const endpointAttrs = Object.keys(schema?.columns || {}).filter(name => schema?.columns?.[name]).map(name => ({ ...(schema?.columns?.[name] || {}) }))
+    }, [name, schemas, newSchema])
+    const { name: epName } = schema || {}
+    // const schemaAttrs = schema?.attributes
+    const schemaAttrs = Object.keys(schema?.attributes || {}).filter(name => schema?.attributes?.[name]).map(name => ({ ...(schema?.attributes?.[name] || {}) }))
     const [mode, setMode] = useState<"edit" | "new">("new")
 
-    const getEndpoint = (name?: string) => [...endpoints, ...(newEndpoint ? [newEndpoint] : [])]?.find?.((ep: any) => ep?.name === name)
+    const getSchema = (name?: string) => [...schemas, ...(newSchema ? [newSchema] : [])]?.find?.((ep: any) => ep?.name === name)
 
-    const onSelectField = (field: RegisteredField) => {
-        setNewField(field)
+    const onSelectAttribute = (attribute: Omit<Attribute, "name">) => {
+        setNewAttribute(attribute as any)
         setErrors([])
-        fieldSelectionModal.onClose()
+        attributeSelectionModal.onClose()
     }
 
-    const saveField = (field: Field) => {
-        if (endpoint && schema && field.name) {
-            schema.columns = schema.columns || []
-            const exists = schema?.columns?.find(c => c.name === field.name)
-            if (mode === "edit" && !exists) throw new Error("Can't edit a field that doesn't exist!")
+    const saveAttribute = (attribute: Attribute) => {
+        if (schema && attribute.name) {
+            schema.attributes = schema.attributes || {}
+            const exists = schema.attributes?.[attribute.name]
+            if (mode === "edit" && !exists) throw new Error("Can't edit a attribute that doesn't exist!")
             if (exists) {
-                Object.assign(exists, field)
+                Object.assign(exists, attribute)
             } else {
-                schema.columns.push(field)
+                schema.attributes[attribute.name] = attribute
             }
-            setEndpoint({ ...endpoint })
+
+            setSchema({ ...schema })
         }
     }
 
-    const removeField = (field: Field) => {
-        if (endpoint && schema?.columns) {
-            schema.columns = schema.columns.filter(c => c.name !== field.name)
-            setEndpoint({ ...endpoint })
+    const removeAttribute = (attribute: Attribute) => {
+        if (schema && schema?.attributes && schema.attributes[attribute.name]) {
+            schema.attributes[attribute.name] = undefined as any
+            delete schema.attributes[attribute.name]
+            setSchema({ ...schema })
         }
     }
 
-    const beforeSaveFieldMiddleware = ({ value }: FormContext) => {
-        if (endpoint && schema && schema.columns && value.name) {
+    const beforeSaveAttributeMiddleware = ({ value }: FormContext) => {
+        if (schema && schema && schema.attributes && value.name) {
             setErrors([])
-            const exists = schema.columns.find(c => c.name === value.name)
+            const exists = schema.attributes?.[value.name]
             if (mode === "new" && exists) {
                 setErrors([{
                     property: "name",
                     constraints: { "exists": "Already exists" }
                 }])
-                throw new Error("Field already exists")
+                throw new Error("Attribute already exists")
             }
         }
 
     }
 
-    const fields_ = [...fields]
-    const endpoint_ = getEndpoint(name)
-    const changed = endpoint_ && endpoint && JSON.stringify(endpoint) !== JSON.stringify(endpoint_)
+    const saveSchema = () => {
+        onSave?.(schema)
+    }
+
+    const attributes_ = [...attributes]
+    const schema_ = getSchema(name)
+    const changed = schema_ && schema && JSON.stringify(schema) !== JSON.stringify(schema_)
 
     return (
         <>
@@ -96,35 +102,36 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                         </PageHeader>
                         <PageToolbar>
                             <HStack justifyContent="flex-end">
-                                <ActionButton onClick={fieldSelectionModal.onOpen} colorScheme="purple" >Add New Attribute</ActionButton>
+                                <ActionButton onClick={attributeSelectionModal.onOpen} colorScheme="purple" >Add New Attribute</ActionButton>
                             </HStack>
                         </PageToolbar>
                         <PageBody>
                             <DeleteAlertModal onSubmit={() => {
                                 if (toDelete) {
-                                    removeField(toDelete)
+                                    removeAttribute(toDelete)
                                 }
                                 deleteModal.onClose()
                             }} {...deleteModal} />
-                            <FieldSelectionModal
-                                {...fieldSelectionModal}
-                                onChange={(f) => { onSelectField(f); setMode("new") }}
+                            <AttributeSelectionModal
+                                {...attributeSelectionModal}
+                                onChange={(f) => { onSelectAttribute(f?.attribute); setMode("new") }}
                             >
-                            </FieldSelectionModal>
-                            <FieldEditorModal
+                            </AttributeSelectionModal>
+                            <AttributeEditorModal
+                                schema={schema}
                                 errors={errors}
-                                isOpen={newField?.field?.type?.length ? true : false}
-                                field={newField}
-                                onClose={() => { setNewField(null) }}
-                                onSubmit={saveField}
-                                middlewares={[beforeSaveFieldMiddleware]}
+                                isOpen={newAttribute?.type?.length ? true : false}
+                                attribute={newAttribute}
+                                onClose={() => { setNewAttribute(undefined) }}
+                                onSubmit={saveAttribute}
+                                middlewares={[beforeSaveAttributeMiddleware]}
                             />
                             <Box w="100%">
-                                {endpointAttrs?.length ?
+                                {schemaAttrs?.length ?
                                     <List w="100%" spacing={2}>
-                                        {endpointAttrs.map((attr, ind) => {
-                                            const rf = fields_?.find(f => f.field.customType === attr.customType)
-                                            const registeredField: any = { ...rf, field: attr }
+                                        {schemaAttrs.map((attr, ind) => {
+                                            const rf = attributes_?.find(f => f.attribute.customType === attr.customType)
+                                            const registeredAttribute: any = { ...rf, attribute: attr }
                                             return <ListItem w="100%"
                                                 key={ind}
                                             >
@@ -136,7 +143,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                                         <HStack>
                                                             <IconButton onClick={() => {
                                                                 setMode("edit")
-                                                                onSelectField(registeredField)
+                                                                onSelectAttribute(attr as any)
                                                             }} variant="ghost" aria-label="">
                                                                 <Icon>
                                                                     <RXICO_EDIT />
@@ -158,7 +165,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                     </List>
                                     :
                                     <JumboAlert
-                                        onClick={fieldSelectionModal.onOpen}
+                                        onClick={attributeSelectionModal.onOpen}
                                         variant="left-accent"
                                         cursor="pointer"
                                         status="info"
@@ -175,7 +182,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                         </PageBody>
                         {changed ?
                             <PageFooter>
-                                <ActionButton onClick={e => console.log(endpoint)}>Save</ActionButton>
+                                <ActionButton onClick={e => saveSchema()}>Save</ActionButton>
                             </PageFooter>
                             : ""}
                     </Page >

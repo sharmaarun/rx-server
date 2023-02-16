@@ -1,6 +1,5 @@
 import * as dotenv from "dotenv"
 import { existsSync } from "fs"
-import { ServerContext } from "./context"
 import {
   apiGen,
   app,
@@ -11,7 +10,8 @@ import {
   plugins,
   settings
 } from "../container"
-import { query } from "./utils"
+import { ServerContext } from "./context"
+import { query, restartServer } from "./utils"
 export type BootstrapOpts = {
   appDir: string
 }
@@ -49,8 +49,12 @@ export async function bootstrap(opts?: BootstrapOpts) {
     endpoints,
     app,
     fs,
+    db,
     apiGen,
-    query
+    query,
+    utils: {
+      restartServer
+    }
   }
 
 

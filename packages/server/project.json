@@ -17,7 +17,8 @@
           "packages/server/*.md",
           "packages/server/tsconfig.base.json",
           "packages/server/src/**/template/**/*"
-        ]
+        ],
+        "clean": false
       }
     },
     "publish": {

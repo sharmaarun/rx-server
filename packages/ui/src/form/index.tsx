@@ -11,12 +11,13 @@ import Stack from "../stack"
 export type FormProps = BoxProps & {
     children?: any,
     validationClass?: any
-    onSubmit?: (value: any) => void
+    preSubmit?: (ctx: FormContext) => void | Promise<void>
+    onSubmit?: (value: any) => void | Promise<void>
     onChange?: (value: any) => void
     defaultValue?: any
 }
 
-export type FieldType = "string" | "number" | "float"
+export type FieldType = "string" | "number" | "float" | "boolean"
 
 /**
  * Form Field Props
@@ -43,7 +44,7 @@ export type FormContext = Omit<FormProps, "onChange"> & {
     errors?: ValidationError[]
     formId?: string
     stages?: FormStageProps[]
-    addStage?: (stage: FormStageProps) => void
+    registerStage?: (stage: FormStageProps) => void
     active?: number
     prevStage?: () => void
     middlewares?: FormMiddleware[]
@@ -68,12 +69,14 @@ let formStageID = 0;
  * @param param0 
  * @returns 
  */
+const tids: any = {
+    regField: -1,
+    regStage: -1,
+}
 export function Form({ children, validationClass, middlewares: mws, errors: errs, defaultValue, onSubmit }: FormContext) {
 
     const fields_: RegisteredFields = {};
     const stages_: FormStageProps[] = [];
-    let tid: any = -1
-    let tid2: any = -1
 
     const [fields, setFields] = useState<RegisteredFields>({})
     const [form, setForm] = useState<any>({ ...(defaultValue || {}) })
@@ -91,10 +94,10 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
     }, [errs])
 
     const register = (key: string, opts: FieldRegisterOpts) => {
-        clearTimeout(tid)
+        clearTimeout(tids.regField)
         fields_[key] = opts
-        tid = setTimeout(() => {
-            const _form: any = {}
+        tids.regField = setTimeout(() => {
+            const _form: any = { ...(form || {}) }
             for (let key in fields_) { _form[key] = fields_[key]?.defaultValue }
             setForm({ ..._form })
             setFields({ ...fields_ })
@@ -112,19 +115,9 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
     const handleSubmit = async (e: any) => {
         e.preventDefault()
         e.stopPropagation()
-        let validationClass_ = validationClass
-        if (stages.length) {
-            validationClass_ = stages[active]?.validationClass
-        }
-        if (validationClass_) {
-            setErrors([])
-            const errors_ = await validate(plainToInstance(validationClass_, form))
-            if (errors_.length) {
-                setErrors([...errors_])
-                handleErrors()
-                return;
-            }
-        }
+
+        console.log("current form stage", active)
+
         if (middlewares.length) {
             for (let middleware of middlewares) {
                 try {
@@ -135,7 +128,49 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
                 }
             }
         }
+
+
+
+        let validationClass_ = validationClass
+        let preSubmit_, onSubmit_;
+        if (stages.length) {
+            validationClass_ = stages[active]?.validationClass
+            preSubmit_ = stages[active]?.preSubmit
+            onSubmit_ = stages[active]?.onSubmit
+        }
+
+
+        if (preSubmit_) {
+            console.log("presubmit")
+            try {
+                await preSubmit_(ctx)
+            } catch (e) {
+                console.error(e)
+                return;
+            }
+        }
+
+        if (validationClass_) {
+            setErrors([])
+            const errors_ = await validate(plainToInstance(validationClass_, form))
+            if (errors_.length) {
+                setErrors([...errors_])
+                handleErrors()
+                return;
+            }
+        }
+
+        if (onSubmit_) {
+            try {
+                onSubmit_?.(form)
+            } catch (e) {
+                console.error(e)
+                return;
+            }
+        }
+
         if (stages.length && active < stages.length - 1) {
+
             setActive(active + 1)
         } else {
             onSubmit?.(transform(form))
@@ -169,10 +204,14 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
         return form;
     }
 
-    const addStage = (stage: FormStageProps) => {
-        clearTimeout(tid2)
-        stages_.push(stage)
-        tid2 = setTimeout(() => {
+    const registerStage = (stage: FormStageProps) => {
+        clearTimeout(tids.regStage)
+        const exists = stages_?.findIndex(s => s.id === stage.id)
+        if (exists > -1)
+            stages_.splice(exists, 1, stage)
+        else
+            stages_.push(stage)
+        tids.regStage = setTimeout(() => {
             setStages([...stages_])
         }, 50)
     }
@@ -188,7 +227,7 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
         register,
         formId,
         stages,
-        addStage,
+        registerStage,
         active,
         prevStage,
         defaultValue,
@@ -229,7 +268,7 @@ export function Field({
     }, [defaultValue])
 
     const onChange_ = (key: string) => (e: any) => {
-        onChange?.(name, e.target ? e.target.value : e)
+        onChange?.(name, type === "boolean" ? e.target.checked : e.target ? e.target.value : e)
     }
 
     const error = errors?.find(e => e.property === name)
@@ -241,7 +280,8 @@ export function Field({
                     cloneElement(child, {
                         onChange: onChange_(name),
                         value,
-                        defaultValue: form?.[name] || defaultValue
+                        defaultValue: form?.[name] || defaultValue,
+                        defaultChecked: form?.[name] || defaultValue
                     })
                 }
                 {error && <>
@@ -259,17 +299,18 @@ export interface FormStageProps extends Partial<FormProps> {
 }
 
 export function FormStage({ children, ...props }: FormStageProps) {
-    const { addStage, stages, formId: fid, active } = useContext(FormContext)
+    const { registerStage, stages, formId: fid, value, active } = useContext(FormContext)
     const stage = stages?.[active || 0]
     const [id] = useState<string>(fid + "-FORMSTAGE-" + (formID++))
     useEffect(() => {
-        addStage?.({
+        registerStage?.({
             ...props,
             id
         })
-    }, [])
+    }, [value])
+    const { preSubmit, validationClass, ...rest } = props || {}
     return (
-        <Stack {...props} id={id} display={stage?.id === id ? "" : "none"}>
+        <Stack {...rest} id={id} display={stage?.id === id ? "" : "none"}>
             {children}
         </Stack>
     )

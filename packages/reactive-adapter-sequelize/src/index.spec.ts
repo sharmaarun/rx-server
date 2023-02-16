@@ -1,18 +1,37 @@
-import "reflect-metadata"
-import { BaseFieldType, EntitySchema } from "@reactive/commons"
-import { SequelizeAdapter, SQLEntity } from "./index"
+import { BaseAttributeType, BasicAttributeValidation, EntitySchema } from "@reactive/commons";
+import "reflect-metadata";
+import { SequelizeAdapter, SQLEntity } from "./index";
+process.on('unhandledRejection', (reason) => {
+    console.log(reason); // log the reason including the stack trace
+    throw reason;
+});
 describe('TypeORM DB Adapter', () => {
     const adapter = new SequelizeAdapter()
-    let model: SQLEntity<{
-        name: string
-    }>;
+    let model: SQLEntity<any>;
+
+    const dummySchema: EntitySchema = {
+        name: "test",
+        attributes: {
+            name: {
+                type: BaseAttributeType.string,
+                customType: "string",
+                name: "name",
+            }
+        }
+    }
+
+
+
     beforeAll(async () => {
         await adapter.init({
             config: {
                 db: {
                     options: {
                         database: "test.db",
-                        type: "sqlite"
+                        type: "sqlite",
+                        logging: (sql: any, queryObject: any) => {
+                            // console.log(sql)
+                        }
                     }
                 }
             }
@@ -22,6 +41,7 @@ describe('TypeORM DB Adapter', () => {
 
         // clean db
         await model.delete({ where: { name: "ola" } })
+
     })
 
     const obj = {
@@ -29,23 +49,13 @@ describe('TypeORM DB Adapter', () => {
     }
     const createEntry = async () => await model.create(obj)
 
-    const dummySchema: EntitySchema = {
-        name: "test",
-        columns: [{
-            type: BaseFieldType.string,
-            customType: "string",
-            name: "name"
-        }
-        ]
-    }
-
     beforeEach(async () => {
         await model.delete({ where: { name: "ola" } })
     })
 
     it("should create entity", async () => {
         expect(model.schema.name).toEqual(dummySchema.name)
-        expect(model.schema?.columns?.find(c => c.name === "name")).toBeDefined()
+        expect(model.schema?.attributes?.["name"]).toBeDefined()
         expect(await model.findOne()).toBeNull()
     })
 
@@ -89,6 +99,63 @@ describe('TypeORM DB Adapter', () => {
         expect(res).toEqual(1)
     })
 
+    describe('Query Interface', () => {
+
+        const oldSchema: EntitySchema = {
+            name: "test2",
+            attributes: {
+                name: {
+                    type: BaseAttributeType.number,
+                    customType: "number",
+                    name: "name",
+                },
+                attr: {
+                    type: BaseAttributeType.boolean,
+                    customType: "boolean",
+                    name: "attr",
+                }
+            }
+        }
+        let model2: SQLEntity<any>;
+
+        beforeAll(async () => {
+            await adapter.getQueryInterface().addAttribute(dummySchema.name, {
+                name: "isNew",
+                type: BaseAttributeType.string
+            })
+
+            model2 = await adapter.entity(oldSchema)
+            await adapter.dataSource.sync()
+        })
+        it("should add new attribute to an existing table", async () => {
+            const desc: any = await adapter.dataSource.getQueryInterface().describeTable(dummySchema.name)
+            expect(desc.isNew).toBeDefined()
+        })
+
+        it("should change attribute in an existing table", async () => {
+            await adapter.getQueryInterface().changeAttribute("test", {
+                name: "isNew",
+                type: BaseAttributeType.boolean,
+                validations: [{
+                    type: BasicAttributeValidation.equals,
+                    value: "2"
+                }]
+            })
+
+            const desc: any = await adapter.dataSource.getQueryInterface().describeTable("test")
+            expect(desc.isNew).toBeDefined()
+        })
+        it("should remove attribute in an existing table", async () => {
+            await adapter.getQueryInterface().removeAttribute("test", {
+                name: "isNew",
+                type: BaseAttributeType.boolean,
+            })
+
+            const desc: any = await adapter.dataSource.getQueryInterface().describeTable("test")
+            expect(desc.isNew).toBeUndefined()
+        })
+
+    })
     afterAll(async () => {
         await adapter.dropDatabase()
     })

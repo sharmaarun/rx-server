@@ -1,4 +1,6 @@
 import { APIRoute, APIRouteHandlersMap, Endpoint } from "@reactive/commons"
+import { IPCClient, IPC_COMMAND } from "@reactive/server-helpers"
+import { readFileSync, writeFileSync } from "fs"
 import { db, endpoints } from "../../container"
 import { ServerContext } from "../context"
 
@@ -28,5 +30,19 @@ export const createControllers = (name: string, cb?: (ctx: ServerContext) => API
  * @returns 
  */
 export const query = <T = any>(name: string) => {
-    return db.getModel<T>(name)
+    return db.getEntity<T>(name)
+}
+
+/**
+ *  trigger server restart by saving the entry file (node watcher will restart the app when it sees any change in the entry file)
+ */
+export const restartServer = () => {
+    const file = process?.argv?.[1]
+    if (file) {
+        writeFileSync(file, readFileSync(file, "utf-8"))
+    }
+}
+
+export const ServerUtils = {
+    restartServer
 }

@@ -2,11 +2,36 @@
 // build project using tsc in watch mode -> .cache/app
 // load the entry point from .cache/app and reload on every file change event
 
-import { exec, spawn } from "child_process"
+import { ChildProcess, exec, fork, spawn } from "child_process"
+import { IPCServer } from "@reactive/server-helpers"
+// import ipc from "node-ipc"
 
-export const dev = () => {
-    const pwd = process.cwd()
-    const devProcess = exec(`ts-node-dev ${pwd}/main.ts`)
-    devProcess.stdout.pipe(process.stdout)
-    devProcess.stderr.pipe(process.stderr)
+let appProcess: ChildProcess;
+const pwd = process.cwd()
+
+const init = async () => {
+    const ipcServer = new IPCServer({
+        RESTART_SERVER: () => {
+            if (appProcess?.pid > -1) {
+                appProcess.kill()
+                appProcess = startApp(pwd)
+            }
+        }
+    })
+
+    await ipcServer.init()
+    ipcServer.start()
+}
+
+
+export const dev = async () => {
+    appProcess = startApp(pwd)
+}
+
+
+const startApp = (pwd: string) => {
+    return spawn(`npx ts-node-dev`, ["--respawn", "--exit-child",`--watch .rid`, `${pwd}/main.ts`], {
+        stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+        shell: true
+    })
 }

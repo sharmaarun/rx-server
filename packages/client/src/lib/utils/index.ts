@@ -2,7 +2,7 @@
 import { Container } from "inversify"
 import { ClientContext } from "../contexts"
 import { Route } from "../contexts/routes"
-import { FieldsManager, RegisteredField } from "../fields"
+import { AttributesManager, RegisteredAttribute } from "../attributes"
 import { NetworkManager } from "../network"
 import { PluginsManager } from "../plugins/manager"
 import { RoutesManager } from "../routes"
@@ -12,7 +12,7 @@ const { container }: { container: Container } = (global as any)
 const plugins = container.get<PluginsManager>("PluginsManager")
 const routes = container.get<RoutesManager>("RoutesManager")
 const network = container.get<NetworkManager>("NetworkManager")
-const fields = container.get<FieldsManager>("FieldsManager")
+const attributes = container.get<AttributesManager>("AttributesManager")
 
 export type BootstrapOptions = {
     serverUrl?: string
@@ -25,10 +25,10 @@ export const bootstrap = async (opts?: BootstrapOptions) => {
     } = opts || {}
 
     //create main context
-    const clientContext = ClientContext
+    ClientContext.server.serverUrl = serverUrl
 
-    // fields
-    fields.init(ClientContext)
+    // attributes
+    attributes.init(ClientContext)
 
     // initialize all modules
     // Plugins
@@ -69,8 +69,8 @@ export const registerCoreRoute = (cb?: (ctx: ClientContext) => Route) => {
     }, 0)
 }
 
-export const registerFieldType = (cb: (ctx: ClientContext) => RegisteredField) => {
+export const registerAttributeType = (cb: (ctx: ClientContext) => RegisteredAttribute) => {
     setTimeout(() => {
-        fields?.register(cb)
+        attributes?.register(cb)
     }, 0)
 }

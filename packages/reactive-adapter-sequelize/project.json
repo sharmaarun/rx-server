@@ -11,7 +11,8 @@
         "outputPath": "dist/packages/reactive-adapter-sequelize",
         "main": "packages/reactive-adapter-sequelize/src/index.ts",
         "tsConfig": "packages/reactive-adapter-sequelize/tsconfig.lib.json",
-        "assets": ["packages/reactive-adapter-sequelize/*.md"]
+        "assets": ["packages/reactive-adapter-sequelize/*.md"],
+        "clean": false
       },
       "configurations": {
         "watch":{

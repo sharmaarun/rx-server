@@ -1,46 +1,62 @@
 import { PluginObj } from "@reactive/client"
-import { Endpoint, toPascalCase } from "@reactive/commons"
+import { EntitySchema, toPascalCase } from "@reactive/commons"
 import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
-import { Heading, Icon, IconButton, List, ListItem, Page, PageBody, PageHeader, PageToolbar, NameInputModal, Stack, StackProps, TwoColumns, useFormModal } from "@reactive/ui"
+import { Heading, Icon, IconButton, List, ListItem, NameInputModal, Page, PageBody, PageHeader, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
 import { useEffect, useState } from "react"
-import { Link, Outlet, useLocation, useNavigate, useNavigation, useRoutes } from "react-router-dom"
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 
-export interface ListEndpointsProps extends StackProps {
+export interface ListSchemasProps extends StackProps {
     children?: any
 }
 
-export type EndpointEditorOutletContext = {
-    endpoints: Endpoint[]
-    newEndpoint: Endpoint
+export type SchemaEditorOutletContext = {
+    schemas: EntitySchema[]
+    newSchema: EntitySchema
+    onSave: any
 }
 
-export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
-    const [endpoint] = useState(new PluginObj("data-types"))
+export function ListSchemas({ children, ...props }: ListSchemasProps) {
+    const [schema] = useState(new PluginObj("data-types", {
+        objectIdKey: "name"
+    }))
+    const toast = useToast()
     const { pathname } = useLocation()
     const navigate = useNavigate()
-    const [eps, setEps] = useState<Endpoint[]>([])
-    const [newEndpoint, setNewEndpoint] = useState<Endpoint>()
+    const [eps, setEps] = useState<EntitySchema[]>([])
+    const [newSchema, setNewSchema] = useState<EntitySchema>()
     const nameModal = useFormModal({
         onSubmit({ name }) {
-            setNewEndpoint({
-                name,
-                type: "basic",
-                schema: {
-                    name
-                }
+            setNewSchema({
+                name
             })
             navigate(name)
         }
     })
     useEffect(() => {
-        endpoint.get().then(d => setEps(JSON.parse(d.data)))
+        fetchSchemas()
     }, [])
 
-    const create = () => {
-        endpoint.call("create/temps")
+    const fetchSchemas = async () => setEps(await schema.list())
+
+    const save = async (obj: EntitySchema) => {
+        if (!obj?.name) return
+        schema.set(obj)
+        await schema.save({}, { mode: newSchema?.name ? "create" : "update" })
+        toast({
+            title: "Success",
+            description: "All changes were applied correctly. Server will now restart for the changes to take effect...",
+            status: "success",
+            position:"top"
+        })
+        if (typeof window !== "undefined") {
+            setTimeout(() => {
+                window.location.reload()
+            }, 3000)
+        }
+        // fetchSchemas()
     }
 
-    const basicTypes = newEndpoint?.name ? [...eps, newEndpoint] : eps
+    const basicTypes = newSchema?.name ? [...eps, newSchema] : eps
     return (
         <TwoColumns>
             <Page>
@@ -48,12 +64,12 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                     <Heading size="md" >{"Data Types"}</Heading>
                 </PageHeader>
                 <PageToolbar>
-                    <IconButton variant="outline">
+                    <IconButton aria-label="" variant="outline">
                         <Icon>
                             <RXICO_SEARCH />
                         </Icon>
                     </IconButton>
-                    {newEndpoint?.name ? "" : <IconButton onClick={(e: any) => nameModal.onOpen()}>
+                    {newSchema?.name ? "" : <IconButton aria-label="" onClick={(e: any) => nameModal.onOpen()}>
                         <Icon>
                             <RXICO_PLUS />
                         </Icon>
@@ -67,7 +83,7 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                         {basicTypes?.length && <List minW="200px" spacing={2}>
                             {
                                 basicTypes?.map((ep, ind) => {
-                                    const path = "/admin/data-types/" + ep.name
+                                    const path = "/admin/data-types/" + ep?.name
                                     const isActive = path === pathname
                                     return <ListItem
                                         p={2} pl={4}
@@ -80,10 +96,10 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                                         justifyContent="stretch"
                                         alignItems="stretch"
                                         as={Link}
-                                        {...({ to: ep.name } as any)}
+                                        {...({ to: ep?.name } as any)}
                                     >
                                         {/* <Link style={{ padding: "10px", height: "100%", width: "100%" }} to={ep.name} key={ind}> */}
-                                        {toPascalCase(ep.name)}
+                                        {ep && toPascalCase(ep.name)}
                                         {/* </Link> */}
                                     </ListItem>
                                 }
@@ -94,9 +110,9 @@ export function ListEndpoints({ children, ...props }: ListEndpointsProps) {
                     </Stack>
                 </PageBody>
             </Page>
-            <Outlet context={{ endpoints: eps, newEndpoint }} />
+            <Outlet context={{ schemas: eps, newSchema, onSave: save }} />
         </TwoColumns >
     )
 }
 
-export default ListEndpoints
+export default ListSchemas

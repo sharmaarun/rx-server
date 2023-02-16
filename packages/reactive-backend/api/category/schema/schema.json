@@ -1,0 +1,19 @@
+{
+  "name": "category",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "isRequired": true
+    },
+    "product": {
+      "type": "relation",
+      "ref": "product",
+      "name": "product",
+      "relationType": "1:m",
+      "customType": "relation",
+      "foreignKey": "category"
+    }
+  }
+}

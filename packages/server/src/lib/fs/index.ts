@@ -57,4 +57,8 @@ export class LocalFS extends PluginClass {
     public unlink(path: string) {
         return unlinkSync(path)
     }
+    public writeFile(path: string, data: string) {
+        return writeFileSync(path, data)
+    }
+
 }

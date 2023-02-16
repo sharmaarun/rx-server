@@ -10,5 +10,5 @@
     "experimentalDecorators": true
   },
   "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
-  "include": ["config/**/*.ts", "main.ts", "api/**/*.ts", "api/**/*.json"]
+  "include": ["config/**/*.ts", "main.ts", "api/**/*.ts", "api/**/*.json","**/*.rid"]
 }

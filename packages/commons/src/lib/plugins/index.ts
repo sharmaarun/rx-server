@@ -17,4 +17,4 @@ export type PluginsConfig = {
     plugins: PluginOpts[],
 }
 
-export const PLUGINS_WEB_ROOT = "plugins:plugins"
+export const PLUGINS_WEB_ROOT = "plugins_plugins"

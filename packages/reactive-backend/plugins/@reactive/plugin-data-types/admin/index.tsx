@@ -1,11 +1,11 @@
 import { registerCoreRoute } from "@reactive/client"
 import { RXICO_DASHBOARD } from "@reactive/icons"
-import { EditorPage, ListEndpoints } from "./pages"
+import { EditorPage, ListSchemas } from "./pages"
 
 registerCoreRoute(ctx => ({
     title: "Data Types",
     path: "/data-types",
-    element: () => <ListEndpoints />
+    element: () => <ListSchemas />
     ,
     icon: () => <RXICO_DASHBOARD />,
     children: [{

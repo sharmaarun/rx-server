@@ -1,0 +1,35 @@
+{
+  "name": "product",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "isRequired": true
+    },
+    "price": {
+      "type": "number",
+      "customType": "number",
+      "name": "price",
+      "isRequired": true,
+      "validations": [
+        {
+          "type": "min",
+          "value": "0"
+        },
+        {
+          "type": "max",
+          "value": "50000"
+        }
+      ]
+    },
+    "category": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "category",
+      "relationType": "m:1",
+      "ref": "category",
+      "foreignKey": "product"
+    }
+  }
+}

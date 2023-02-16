@@ -11,7 +11,8 @@
         "outputPath": "dist/packages/server-helpers",
         "main": "packages/server-helpers/src/index.ts",
         "tsConfig": "packages/server-helpers/tsconfig.lib.json",
-        "assets": ["packages/server-helpers/*.md"]
+        "assets": ["packages/server-helpers/*.md"],
+        "clean": false
       }
     },
     "publish": {

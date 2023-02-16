@@ -6,6 +6,7 @@ export * from './delete-alert-modal';
 export * from './card';
 export * from "./chakra-provider";
 export * from './checkbox';
+export * from './spread-select';
 export * from './editable';
 export * from './form';
 export * from './form-modal';

@@ -1,4 +1,3 @@
-import { ColumnOptions, ColumnType, EntitySchema as ES, EntitySchemaColumnOptions } from "typeorm"
 export type DBConfig = {
     adapter: string
     options: DBConnectionOpts
@@ -19,6 +18,10 @@ export type DBConnectionOpts = {
     password?: string
     database?: string,
     /**
+     * Enum values (used by ENUM field type)
+     */
+    values?: string[]
+    /**
      *  enable / disable logging
      */
     logging?: any,
@@ -33,10 +36,10 @@ export type DBConnectionOpts = {
     /**
      * Auto extend entities from the base entity (with id, createdAt, updatedAt , __v etc fields)
      */
-    autoExtendEntitiesFromCore?:boolean
+    autoExtendEntitiesFromCore?: boolean
 }
 
-export enum BaseFieldType {
+export enum BaseAttributeType {
     "string" = "string",
     "number" = "number",
     "boolean" = "boolean",
@@ -57,80 +60,86 @@ export enum RelationType {
 }
 
 
-export const BasicFieldValidations = {
-    "is": { title: "is" },
-    "not": { title: "not" },
-    "isEmail": { title: "isEmail" },
-    "isUrl": { title: "isUrl" },
-    "isIP": { title: "isIP" },
-    "isIPv4": { title: "isIPv4" },
-    "isIPv6": { title: "isIPv6" },
-    "isAlpha": { title: "isAlpha" },
-    "isAlphanumeric": { title: "isAlphanumeric" },
-    "isNumeric": { title: "isNumeric" },
-    "isInt": { title: "isInt" },
-    "isFloat": { title: "isFloat" },
-    "isDecimal": { title: "isDecimal" },
-    "isLowercase": { title: "isLowercase" },
-    "isUppercase": { title: "isUppercase" },
-    "notNull": { title: "notNull" },
-    "isNull": { title: "isNull" },
-    "notEmpty": { title: "notEmpty" },
-    "equals": { title: "equals" },
-    "contains": { title: "contains" },
-    "notIn": { title: "notIn" },
-    "isIn": { title: "isIn" },
-    "notContains": { title: "notContains" },
-    "len": { title: "len" },
-    "isUUID": { title: "isUUID" },
-    "isDate": { title: "isDate" },
-    "isAfter": { title: "isAfter" },
-    "isBefore": { title: "isBefore" },
-    "max": { title: "max" },
-    "min": { title: "min" },
-    "isCreditCard": { title: "isCreditCard" },
+export enum BasicAttributeValidation {
+    "is" = "is",
+    "not" = "not",
+    "isEmail" = "isEmail",
+    "isUrl" = "isUrl",
+    "isIP" = "isIP",
+    "isIPv4" = "isIPv4",
+    "isIPv6" = "isIPv6",
+    "isAlpha" = "isAlpha",
+    "isAlphanumeric" = "isAlphanumeric",
+    "isNumeric" = "isNumeric",
+    "isInt" = "isInt",
+    "isFloat" = "isFloat",
+    "isDecimal" = "isDecimal",
+    "isLowercase" = "isLowercase",
+    "isUppercase" = "isUppercase",
+    "notNull" = "notNull",
+    "isNull" = "isNull",
+    "notEmpty" = "notEmpty",
+    "equals" = "equals",
+    "contains" = "contains",
+    "notIn" = "notIn",
+    "isIn" = "isIn",
+    "notContains" = "notContains",
+    "len" = "len",
+    "isUUID" = "isUUID",
+    "isDate" = "isDate",
+    "isAfter" = "isAfter",
+    "isBefore" = "isBefore",
+    "max" = "max",
+    "min" = "min",
+    "isCreditCard" = "isCreditCard",
 }
 
-export type BasicFieldValidationType = keyof typeof BasicFieldValidations
-
-export type BasicFieldValidation = {
-    type: BasicFieldValidationType
+export type BasicAttributeValidationType = {
+    type: BasicAttributeValidation
     value: any
 }
 
-export type RefType = {
-    relationType?: RelationType
-    entityName: string
-    foreignKey?: string
-}
 
-export type FieldType = {
-    name: string
-    type: BaseFieldType
-    customType?: string
-    ref?: RefType
-}
-
-export class Field {
-    constructor(opts: FieldType) {
+export class Attribute {
+    constructor(opts: typeof Attribute) {
         Object.assign(this, opts)
     }
     public name!: string
-    public type!: BaseFieldType
+    public type!: BaseAttributeType
     public customType?: string
     public defaultValue?: string
     public isUnique?: boolean
-    public isPrimary?: boolean
-    public allowNull?: boolean
-    public validations?: BasicFieldValidation[]
-    public ref?: RefType
+    public validations?: BasicAttributeValidationType[]
+    public ref?: string
+    public relationType?: RelationType
+    public foreignKey?: string
     public autoIncrement?: boolean
+    public values?: string[]
+    public isRequired?: boolean
 }
 
-export type EntitySchema = {
-    name: string,
-    columns?: Field[]
+export type EntityMappedAttributes<T = any> = {
+    [k in keyof T]: Attribute
 }
+export type EntityAnyAttributes = {
+    [k: string]: Attribute
+}
+
+export type EntityAttributes<T = any> = EntityMappedAttributes<T> & EntityAnyAttributes
+
+export interface EntitySchema<T = any> {
+    name: string,
+    attributes?: EntityAttributes<T>
+}
+
+export interface CoreAttributesType {
+    id: Attribute
+}
+
+export class CoreAttributes {
+    public id!: string
+}
+
 
 export type WhereOptionsAttrs = {
     attributes?: any

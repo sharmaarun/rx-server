@@ -39,10 +39,17 @@ describe('Simple File System Wrapper', () => {
         expect(!fs.exists(__dirname + "/tmp.txt"))
     })
 
+    it("should write file sync", () => {
+        fs.writeFile(__dirname + "/.tmp", "ok")
+        expect(existsSync(__dirname + "/.tmp"))
+    })
+
 
     afterAll(() => {
         if (existsSync(__dirname + "/tmp"))
             rmdirSync(__dirname + "/tmp", { recursive: true })
+
+        unlinkSync(__dirname + "/.tmp")
     })
 
 })
