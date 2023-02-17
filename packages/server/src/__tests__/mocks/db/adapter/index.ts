@@ -2,6 +2,7 @@ import { EntitySchema } from "@reactive/commons";
 import { DBAdapter, DropDatabaseOptions, Entity, QueryInterface, SyncDatabaseOptions } from "../../../../"
 
 export default class MockDBAdapter extends DBAdapter {
+
     public models: Entity[] = []
     connect(): void | Promise<void> {
         return;
@@ -9,7 +10,7 @@ export default class MockDBAdapter extends DBAdapter {
     disconnect(): void | Promise<void> {
         return;
     }
-    entity<T = any>(schema: EntitySchema<any>): Entity<T> | Promise<Entity<T>> {
+    model<T = any>(schema: EntitySchema<any>): Entity<T> | Promise<Entity<T>> {
         const e = new Entity()
         e.schema = schema
         this.models.push(e)
@@ -27,6 +28,10 @@ export default class MockDBAdapter extends DBAdapter {
             changeAttribute(name, attribute) { },
             removeAttribute(name, attribute) { }
         }
+    }
+
+    defineRelations<T = any>(entity: Entity<any>, entities: Entity<any>[]): void | Promise<void> {
+
     }
 
 }

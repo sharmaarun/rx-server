@@ -5,8 +5,8 @@ import { existsSync, readFileSync, rmdirSync } from "fs"
 import { resolve } from "path"
 import { LocalFS } from "../../fs"
 import { APIGenerator } from "./index"
+import { apiGen } from "../../../container"
 describe('Simple API Generator extends basic generator', () => {
-    const apiGen = new APIGenerator()
     const fs = new LocalFS()
     apiGen.init({
         fs,
@@ -121,33 +121,11 @@ describe('Simple API Generator extends basic generator', () => {
         const schema = JSON.parse(schemaStr)
         const relSchema = JSON.parse(relSchemaStr)
         expect(schema.attributes.name.name)
-        expect(schema.attributes.testapi2s.name === "testapi2s")
+        console.log(schema.attributes)
+        expect(schema.attributes.testapi2.name === "testapi2")
 
     })
 
-    it("should prepare related schemas ", async () => {
-        const schema1: EntitySchema = {
-            name: "schema1",
-            attributes: {
-                schema2: {
-                    name: "schema2",
-                    type: BaseAttributeType.relation,
-                    customType: "relation",
-                    ref: "schema2",
-                    relationType: RelationType.ONE_TO_ONE,
-                    foreignKey: "schema1"
-                }
-            }
-        }
-        const schema2 = {
-            name: "schema2",
-            attributes: {
-            }
-        }
-        const refSchemas = await apiGen.prepareRelatedSchemas(schema1, [schema1, schema2])
-        expect(refSchemas?.length).toEqual(1)
-        expect(refSchemas?.[0]?.attributes?.["schema2"]?.name).toBeDefined
-    })
 
     it("should remove/destroy the endpoint completly", async () => {
         await apiGen.removeEndpointSchema(testapi)

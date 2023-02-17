@@ -1,19 +1,19 @@
 {
   "name": "user",
   "attributes": {
-    "pola": {
+    "name": {
       "type": "string",
       "customType": "string",
-      "name": "pola",
-      "subType": "varchar",
-      "isRequired": true,
-      "isUnique": true
+      "name": "name",
+      "subType": "varchar"
     },
-    "test": {
-      "type": "string",
-      "customType": "rich-text",
-      "subType": "text",
-      "name": "test"
+    "olas": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "olas",
+      "relationType": "1:m",
+      "ref": "ola",
+      "foreignKey": "user"
     }
   }
 }

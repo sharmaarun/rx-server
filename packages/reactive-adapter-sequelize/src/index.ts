@@ -1,11 +1,11 @@
-import { Attribute, BaseAttributeType, BasicAttributeValidation, DateAttributeSubType, EntitySchema, NumberAttributeSubType, Query, StringAttributeSubType } from "@reactive/commons";
+import { Attribute, BaseAttributeType, BasicAttributeValidation, DateAttributeSubType, EntitySchema, NumberAttributeSubType, Query, RelationType, StringAttributeSubType } from "@reactive/commons";
 import { DBAdapter, DropDatabaseOptions, Entity, PluginClass, QueryInterface, ServerContext, SyncDatabaseOptions, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { DataType, DataTypes, Model, ModelAttributes, ModelStatic, Sequelize } from "sequelize";
 
 export class SQLEntity<T = any> extends Entity<T> {
     public override schema!: EntitySchema;
     constructor(
-        private model: ModelStatic<Model>,
+        public model: ModelStatic<Model>,
         private ctx: ServerContext,
         private ds: Sequelize
     ) {
@@ -84,20 +84,29 @@ export class SequelizeQueryInterfaceAdapter extends QueryInterface {
     }
 
     addAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        if (attribute.type === BaseAttributeType.relation) return;
         const column = this.prepareColumn(attribute)
         return this.adapter.dataSource.getQueryInterface().addColumn(entityName, attribute.name, { ...column })
     }
 
     changeAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        if (attribute.type === BaseAttributeType.relation) return;
         const column = this.prepareColumn(attribute)
         return this.adapter.dataSource.getQueryInterface().changeColumn(entityName, attribute.name, { ...column })
     }
 
     removeAttribute(entityName: string, attribute: Attribute): void | Promise<void> {
+        if (attribute.type === BaseAttributeType.relation) return;
         return this.adapter.dataSource.getQueryInterface().removeColumn(entityName, attribute.name)
     }
 
+    /**
+     * Prepare db column for sequelize model
+     * @param attribute 
+     * @returns 
+     */
     public prepareColumn = (attribute: Attribute) => {
+
         const validate: any = {}
         for (let v of attribute?.validations || []) {
             validate[v.type] = v.value
@@ -126,6 +135,7 @@ export class SequelizeQueryInterfaceAdapter extends QueryInterface {
 }
 
 export class SequelizeAdapter extends DBAdapter {
+
     public dataSource!: Sequelize
     private queryInterface!: SequelizeQueryInterfaceAdapter;
     public override async init(ctx: ServerContext) {
@@ -161,7 +171,7 @@ export class SequelizeAdapter extends DBAdapter {
         await this.dataSource.close()
     }
 
-    async entity(schema: EntitySchema) {
+    public override async model<T = any>(schema: EntitySchema) {
         const columns: ModelAttributes = {
         }
         const { attributes: cols = {}, name } = schema || {}
@@ -172,6 +182,11 @@ export class SequelizeAdapter extends DBAdapter {
             const attribute = cols[col]
             // map basic attributes
             if (attribute.type.length) {
+                /**
+                 * *Skips the attribute type `relation` as the relations need to be established\
+                * separately after all the models hav been registered into the system as models
+                 */
+                if (attribute.type === BaseAttributeType.relation) continue;
                 columns[attribute.name] = this.queryInterface.prepareColumn(attribute)
             }
         }
@@ -181,7 +196,7 @@ export class SequelizeAdapter extends DBAdapter {
             timestamps: this.ctx.config.db.options.timestamps ?? true,
         })
 
-        const entity = new SQLEntity(
+        const entity = new SQLEntity<T>(
             model,
             this.ctx,
             this.dataSource
@@ -202,6 +217,45 @@ export class SequelizeAdapter extends DBAdapter {
             force: false,
             alter: true
         })
+    }
+
+    public override async defineRelations<T = any>(entity: SQLEntity<any>, entities: SQLEntity<any>[]) {
+        const { schema, model } = entity || {}
+        if (!schema || !schema.name || schema.name.length <= 0) throw new Error(`Invalid schema ${schema.name}`)
+        if (!schema.attributes || Object.keys(schema.attributes).length <= 0) {
+            console.error(`No attributes found ${schema.name}`)
+            return;
+        }
+        const attrs = Object.values(schema.attributes)
+        for (let attr of attrs) {
+            // IMP: remember to skip the target
+            if (attr.type === BaseAttributeType.relation && !attr.isTarget) {
+                const { ref } = attr
+                const refEntity = entities.find(e => e.schema.name === ref)
+                if (!refEntity) throw new Error(`Reference entity not found ${ref} for ${schema.name}`)
+                // if this attr is the target, it holds the foreign key
+                const through = schema.name + "_" + refEntity.schema.name
+                const foreignKey = (attr.foreignKey || schema.name) + "Id"
+                const targetKey = (refEntity.schema.attributes?.[attr.foreignKey || ""]?.foreignKey || attr.ref || refEntity.schema.name) + "Id"
+                if (attr.relationType === RelationType.ONE_TO_ONE || attr.relationType === RelationType.HAS_ONE) {
+                    model.hasOne(refEntity.model)
+                    refEntity.model.belongsTo(model, { foreignKey })
+                } else if (attr.relationType === RelationType.ONE_TO_MANY || attr.relationType === RelationType.HAS_MANY) {
+                    model.hasMany(refEntity.model)
+                    refEntity.model.belongsTo(model, { foreignKey })
+                } else if (attr.relationType === RelationType.MANY_TO_ONE) {
+                    model.belongsTo(refEntity.model, { foreignKey: targetKey })
+                    refEntity.model.hasMany(model)
+                } else if (attr.relationType === RelationType.MANY_TO_MANY) {
+                    if (schema.name === refEntity.schema.name) {
+                        model.belongsToMany(refEntity.model, { as: ("target_" + schema.name), through, foreignKey, constraints: false })
+                    } else {
+                        model.belongsToMany(refEntity.model, { through, foreignKey, constraints: false })
+                        refEntity.model.belongsToMany(model, { through, foreignKey: targetKey, constraints: false })
+                    }
+                }
+            }
+        }
     }
 
     public override getQueryInterface() {

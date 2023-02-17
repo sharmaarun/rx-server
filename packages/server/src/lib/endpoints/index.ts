@@ -21,7 +21,6 @@ export class EndpointManager extends PluginClass {
 
     constructor(
         @inject(ExpressManager) private express: ExpressManager,
-        @inject(DBManager) private db: DBManager
     ) {
         super()
     }
@@ -38,18 +37,13 @@ export class EndpointManager extends PluginClass {
     }
 
     override start = async () => {
-        await this.initializeDBEntities()
+
+        // initialize server/api/business logic related components
         await this.createServerEndpoints(this.endpoints)
 
     }
 
-    public initializeDBEntities = async () => {
-        for (let ep of this.endpoints) {
-            if (ep.schema?.name?.length) {
-                await this.db?.registerEntity(ep.schema)
-            }
-        }
-    }
+
 
     public registerAll = (endpoints: Endpoint[], opts?: RegisterOpts) => {
         const { type = "core" } = opts || {}
@@ -89,7 +83,10 @@ export class EndpointManager extends PluginClass {
 
     public loadFromDir = async (path: string) => {
         const endpoint: Endpoint = {
-            name: ""
+            name: "",
+            schema: {
+                name: ""
+            }
         }
         // load schema
         const schemaFilePath = resolve(path + "/schema/schema.json")

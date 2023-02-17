@@ -1,9 +1,11 @@
-import { BaseAttributeType, EntitySchema } from "@reactive/commons"
+import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons"
 import { DBManager, Entity } from "."
 import { dummyConfig } from "../../__tests__"
+import { EndpointManager } from "../endpoints"
+import { ExpressManager } from "../express"
 
 describe('DB Manager', () => {
-    const db = new DBManager()
+    const db = new DBManager(new EndpointManager(new ExpressManager()))
     beforeAll(async () => {
         await db.init({
             config: dummyConfig
@@ -57,23 +59,94 @@ describe('DB Manager', () => {
         }
     }
 
+    const testSchema = {
+        name: "test",
+        attributes: {
+            "name": {
+                name: "name",
+                type: BaseAttributeType.string,
+            }
+        }
+    }
+
     it("should connect to db ", async () => {
         expect(await db.connect())
     })
     it("should drop db connection", async () => {
         expect(await db.disconnect())
     })
-    it("should register entity", async () => {
-        await db.registerEntity({
-            name: "test",
+    it("should define model", async () => {
+        await db.define(testSchema)
+        expect(db.entities.find(e => e.schema.name === "test"))
+    })
+
+    it("should define relations for provided model schema", async () => {
+        await db.defineRelations(db.entities[0], db.entities)
+        expect(true)
+
+    })
+
+    it("should load db entities", async () => {
+        await db.loadDBEntities()
+        expect(true)
+
+    })
+
+
+    it("should prepare related schemas ", async () => {
+        const schema1: EntitySchema = {
+            name: "schema1",
             attributes: {
-                "name": {
-                    name: "name",
-                    type: BaseAttributeType.string,
+                schema2: {
+                    name: "schema2",
+                    type: BaseAttributeType.relation,
+                    customType: "relation",
+                    ref: "schema2",
+                    relationType: RelationType.ONE_TO_ONE,
+                    foreignKey: "schema1"
                 }
             }
-        })
-        expect(db.entities.find(e => e.schema.name === "test"))
+        }
+
+        const schema2 = {
+            name: "schema2",
+            attributes: {
+            }
+        }
+        let refSchemas = await db.prepareRelatedSchemas(schema1, [schema1, schema2])
+        expect(refSchemas?.length).toEqual(1)
+        expect(refSchemas?.[0]?.attributes?.["schema1"]?.name).toBeDefined
+        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
+    })
+
+    it("should define proper target when preparing relations", async () => {
+        const schema1: EntitySchema = {
+            name: "schema1",
+            attributes: {
+                schema2: {
+                    name: "schema2",
+                    type: BaseAttributeType.relation,
+                    customType: "relation",
+                    ref: "schema2",
+                    relationType: RelationType.ONE_TO_ONE,
+                    foreignKey: "schema1"
+                }
+            }
+        }
+        const schema2: EntitySchema = {
+            name: "schema2",
+            attributes: {
+            }
+        }
+
+        let refSchemas = await db.prepareRelatedSchemas(schema1, [schema1, schema2])
+        expect(refSchemas?.length).toEqual(1)
+        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
+        const modSchema: any = JSON.parse(JSON.stringify(schema1))
+        modSchema.attributes.schema2.isTarget = true
+        refSchemas = await db.prepareRelatedSchemas(modSchema, [modSchema, schema2])
+        expect(refSchemas?.length).toEqual(1)
+        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeFalsy()
     })
 
     it("should start", async () => {

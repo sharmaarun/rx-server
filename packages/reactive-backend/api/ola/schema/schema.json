@@ -6,6 +6,15 @@
       "customType": "string",
       "name": "popla",
       "subType": "varchar"
+    },
+    "user": {
+      "type": "relation",
+      "ref": "user",
+      "name": "user",
+      "relationType": "m:1",
+      "customType": "relation",
+      "foreignKey": "olas",
+      "isTarget": true
     }
   }
 }

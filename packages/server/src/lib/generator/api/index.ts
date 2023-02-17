@@ -1,10 +1,11 @@
 
 import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons";
-import { injectable } from "inversify";
+import { inject, injectable } from "inversify";
 import { resolve } from "path";
 import { pluralize } from "@reactive/commons";
 import { Generator } from "../index";
 import { existsSync } from "fs";
+import { DBManager } from "../../db";
 
 export type SaveEndpointOpts = {
     updateRefs?: boolean
@@ -22,17 +23,13 @@ export type RemoveEndpointSchemaOpts = {
     all?: boolean
 }
 
-export const ReverseRelationsMap = {
-    [RelationType.MANY_TO_MANY]: RelationType.MANY_TO_MANY,
-    [RelationType.MANY_TO_ONE]: RelationType.ONE_TO_MANY,
-    [RelationType.ONE_TO_MANY]: RelationType.MANY_TO_ONE,
-    [RelationType.ONE_TO_ONE]: RelationType.ONE_TO_ONE,
-    [RelationType.HAS_MANY]: undefined,
-    [RelationType.HAS_ONE]: undefined,
-}
-
 @injectable()
 export class APIGenerator extends Generator {
+
+    constructor(@inject(DBManager) private db: DBManager) {
+        super()
+    }
+
     /**
      * Generates endpoint schema in the api path configured
      * @param schema 
@@ -75,9 +72,8 @@ export class APIGenerator extends Generator {
 
         if (updateRefs) {
             const allSchemas = this.ctx.endpoints.endpoints.filter(ep => ep.schema && ep.schema.name)?.map(ep => ep.schema)
-            const refsToUpdate = await this.prepareRelatedSchemas(schema, allSchemas as any || [])
+            const refsToUpdate = await this.db.prepareRelatedSchemas(schema, allSchemas as any || [])
             if (refsToUpdate?.length) {
-                console.log(refsToUpdate)
                 for (let ref of refsToUpdate) {
                     await this.saveEndpointSchema(ref, { updateRefs: false })
                 }
@@ -87,41 +83,7 @@ export class APIGenerator extends Generator {
         return schema
     }
 
-    /**
-     * Prepares the relational schemas (having attribut type `relation`)
-     * @param schema 
-     * @param allSchemas 
-     * @returns 
-     */
-    public async prepareRelatedSchemas(schema: EntitySchema, allSchemas: EntitySchema[]) {
-        const refAttributes = Object.values(schema?.attributes || {}).filter(attr => attr.type === BaseAttributeType.relation)
 
-        if (refAttributes.length <= 0) return;
-        const refSchemas: EntitySchema[] = []
-        for (let refAttr of refAttributes) {
-            const refSchema = allSchemas.find(s => s?.name === refAttr.ref)
-            if (refSchema?.name) {
-                if (!refAttr.relationType) throw new Error(`Invalid relation type ${refAttr.relationType} for attribute ${refAttr?.name}`)
-                if (!refAttr.foreignKey) throw new Error(`Invalid foreign key  ${refAttr.foreignKey} for attribute ${refAttr?.name}`)
-                if (!ReverseRelationsMap[refAttr.relationType]) throw new Error(`Invalid reverse relation type : ${ReverseRelationsMap[refAttr.relationType]} for attribute ${refAttr?.name}`)
-
-
-                refSchema.attributes = {
-                    ...(refSchema.attributes || {}),
-                    [refAttr.foreignKey]: {
-                        type: BaseAttributeType.relation,
-                        ref: schema.name,
-                        name: refAttr.foreignKey,
-                        relationType: ReverseRelationsMap[refAttr.relationType],
-                        customType: refAttr.customType,
-                        foreignKey: refAttr.name
-                    }
-                }
-                refSchemas.push(refSchema)
-            }
-        }
-        return refSchemas
-    }
 
     /**
      * Remove endpoint schema

@@ -135,6 +135,7 @@ export class Attribute {
     public autoIncrement?: boolean
     public values?: string[]
     public isRequired?: boolean
+    public isTarget?: boolean
 }
 
 export type EntityMappedAttributes<T = any> = {

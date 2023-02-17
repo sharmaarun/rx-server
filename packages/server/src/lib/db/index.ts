@@ -1,6 +1,7 @@
-import { Attribute, EntitySchema, Query } from "@reactive/commons"
-import { injectable } from "inversify"
+import { Attribute, BaseAttributeType, EntitySchema, Query, RelationType } from "@reactive/commons"
+import { inject, injectable } from "inversify"
 import { ServerContext } from "../context"
+import { EndpointManager } from "../endpoints"
 import { PluginClass } from "../plugin"
 
 export type DropDatabaseOptions = {
@@ -27,10 +28,15 @@ export abstract class DBAdapter extends PluginClass {
      */
     abstract disconnect(): void | Promise<void>
     /**
-     * Register a new Entity
+     * Define a new model
      * @param schema 
      */
-    abstract entity<T = any>(schema: EntitySchema): Entity<T> | Promise<Entity<T>>
+    abstract model<T = any>(schema: EntitySchema): Entity<T> | Promise<Entity<T>>
+    /**
+     * Define relations
+     * @param schema 
+     */
+    abstract defineRelations<T = any>(entity: Entity, entities: Entity[]): void | Promise<void>
     /**
      * Drop database
      * @param opts 
@@ -130,10 +136,27 @@ export class Entity<T = any> {
     }
 }
 
+
+
+export const ReverseRelationsMap = {
+    [RelationType.MANY_TO_MANY]: RelationType.MANY_TO_MANY,
+    [RelationType.MANY_TO_ONE]: RelationType.ONE_TO_MANY,
+    [RelationType.ONE_TO_MANY]: RelationType.MANY_TO_ONE,
+    [RelationType.ONE_TO_ONE]: RelationType.ONE_TO_ONE,
+    [RelationType.HAS_MANY]: RelationType.HAS_MANY,
+    [RelationType.HAS_ONE]: RelationType.HAS_ONE,
+}
+
+
 @injectable()
 export class DBManager extends PluginClass {
     public adapter!: DBAdapter;
     public entities: Entity[] = [];
+
+    constructor(@inject(EndpointManager) private endpoints: EndpointManager) {
+        super()
+    }
+
 
     /**
      * Initialize the Manager: Load, instantiate and initialize the adapter module
@@ -170,15 +193,29 @@ export class DBManager extends PluginClass {
     }
 
     /**
-     * Register entity schema
+     * Define entity model
      * @param schema 
      */
-    public async registerEntity(schema: EntitySchema) {
+    public async define(schema: EntitySchema) {
         const exists = this.entities.find(m => m.schema.name === schema.name)
         if (exists) throw new Error("Entity with this name already exists")
-        const entity = await this.adapter.entity(schema)
+        const entity = await this.adapter.model(schema)
         this.entities.push(entity)
         console.info("Registered entity", entity?.schema?.name)
+        return entity
+    }
+
+    /**
+     * Define entity model relations
+     * @param schema 
+     */
+    public async defineRelations(entity: Entity, entities: Entity[]) {
+        const exists = this.entities.find(m => m.schema.name === entity.schema.name)
+        if (!exists) throw new Error(`Entity with this name doesn't exist : ${entity.schema.name}`)
+        if (this.entities && this.entities?.length) {
+            await this.adapter.defineRelations(entity, entities)
+        }
+        console.info("Relations loaded", entity?.schema.name)
     }
 
 
@@ -228,9 +265,30 @@ export class DBManager extends PluginClass {
     }
 
     /**
+     * Load database entities/models into the system
+     */
+    public loadDBEntities = async () => {
+        // define entities
+        for (let e of this.endpoints.endpoints) {
+            if (e.schema?.name?.length) {
+                await this.define(e.schema)
+            }
+        }
+        // define relations
+        for (let e of this.entities) {
+            if (e.schema?.name?.length) {
+                await this.defineRelations(e, this.entities)
+            }
+        }
+    }
+
+    /**
      * Start the manager process
      */
     public override async start() {
+        // load database related components
+        await this.loadDBEntities()
+        // start the db connection
         await this.adapter.start()
     }
 
@@ -240,5 +298,67 @@ export class DBManager extends PluginClass {
      * @returns 
      */
     public getEntity = <T>(name: string) => this.entities.find(m => m.schema.name === name) as Entity<T>
+
+
+    /**
+     * Prepares the relational schemas (having attribut type `relation`)
+     * @param schema 
+     * @param allSchemas 
+     * @returns 
+     */
+    public async prepareRelatedSchemas(schema: EntitySchema, allSchemas: EntitySchema[]) {
+        const refAttributes = Object.values(schema?.attributes || {}).filter(attr => attr.type === BaseAttributeType.relation)
+
+        if (refAttributes.length <= 0) return;
+        const refSchemas: EntitySchema[] = []
+        for (let refAttr of refAttributes) {
+            const refSchema = allSchemas.find(s => s?.name === refAttr.ref)
+
+            if (schema?.name === refAttr.ref) continue;
+            if (refSchema?.name) {
+
+                if (!refAttr.relationType) throw new Error(`Invalid relation type ${refAttr.relationType} for attribute ${refAttr?.name}`)
+
+                if ((
+                    refAttr.relationType === RelationType.HAS_ONE ||
+                    refAttr.relationType === RelationType.HAS_MANY
+                )) {
+                    if (refSchema && refSchema.attributes && refAttr.foreignKey &&
+                        refSchema.attributes[refAttr.foreignKey]?.name) {
+                        try {
+
+                            refSchema.attributes[refAttr.foreignKey] = undefined as any
+                            delete refSchema.attributes[refAttr.foreignKey]
+                            refSchemas.push(refSchema)
+                        } catch (e) {
+                            console.error(e)
+                        }
+                    }
+                    continue
+                }
+
+                if (!refAttr.foreignKey) throw new Error(`Invalid foreign key  ${refAttr.foreignKey} for attribute ${refAttr?.name}`)
+
+                if (!ReverseRelationsMap[refAttr.relationType]) throw new Error(`Invalid reverse relation type : ${ReverseRelationsMap[refAttr.relationType]} for attribute ${refAttr?.name}`)
+
+
+                refSchema.attributes = {
+                    ...(refSchema.attributes || {}),
+                    [refAttr.foreignKey]: {
+                        type: BaseAttributeType.relation,
+                        ref: schema.name,
+                        name: refAttr.foreignKey,
+                        relationType: ReverseRelationsMap[refAttr.relationType],
+                        customType: refAttr.customType,
+                        foreignKey: refAttr.name,
+                        // if this attribute is not the target already, then related schema attribute is a target
+                        ...(refAttr.ref !== schema?.name ? { isTarget: !refAttr.isTarget } : {})
+                    }
+                }
+                refSchemas.push(refSchema)
+            }
+        }
+        return refSchemas
+    }
 }
 

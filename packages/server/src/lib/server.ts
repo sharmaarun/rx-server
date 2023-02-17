@@ -80,11 +80,12 @@ export async function bootstrap(opts?: BootstrapOpts) {
 
 
 
-  // Starting
-  await endpoints.start()
-
+  
   // start db
   await db.start()
+  
+  // Starting
+  await endpoints.start()
 
   // Start App
   await app.start()

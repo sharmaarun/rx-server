@@ -1,6 +1,6 @@
 import "reflect-metadata"
 //
-import { BaseAttributeType, BasicAttributeValidation, EntitySchema } from "@reactive/commons";
+import { BaseAttributeType, BasicAttributeValidation, EntitySchema, RelationType, StringAttributeSubType } from "@reactive/commons";
 import { SequelizeAdapter, SQLEntity } from "./index";
 
 const adapter = new SequelizeAdapter()
@@ -29,76 +29,62 @@ const run = async () => {
             }
         }
     } as any)
-    await adapter.dropDatabase({ cascade: true })
     const qi = adapter.dataSource.getQueryInterface()
     try {
 
-        const oldSchema: EntitySchema = {
-            name: "test2",
+        const dummySchema: EntitySchema = {
+            name: "test",
             attributes: {
                 name: {
                     type: BaseAttributeType.string,
+                    subType: StringAttributeSubType.varchar,
                     customType: "string",
                     name: "name",
-                    isRequired: true
                 },
-                attr: {
-                    type: BaseAttributeType.enum,
-                    customType: "enum",
-                    name: "attr",
-                    values: ["asd", "dsa"],
-                }
+                test2: {
+                    type: BaseAttributeType.relation,
+                    customType: "relation",
+                    name: "test2",
+                    foreignKey: "test",
+                    relationType: RelationType.MANY_TO_MANY,
+                    ref: "test2",
+
+                },
             }
         }
-        let model2: SQLEntity<any>;
 
-        const newSchema2: EntitySchema = {
+        const dummySchema2: EntitySchema = {
             name: "test2",
             attributes: {
+                test: {
+                    type: BaseAttributeType.relation,
+                    customType: "relation",
+                    name: "test",
+                    foreignKey: "test2s",
+                    relationType: RelationType.ONE_TO_MANY,
+                    ref: "test",
+                    isTarget: true
+                },
                 name: {
                     type: BaseAttributeType.string,
                     customType: "string",
-                    name: "name",
-                    isRequired: true
-                },
-                attr2: {
-                    type: BaseAttributeType.boolean,
-                    customType: "boolean",
-                    name: "attr2",
+                    name: "name"
                 }
             }
         }
 
-        model = await adapter.entity(dummySchema)
-        model2 = await adapter.entity(oldSchema)
+        const model1 = await adapter.model(dummySchema)
+        const model2 = await adapter.model(dummySchema2)
         await adapter.sync()
-
-        // clean db
-        await model.delete({ where: { name: "ola" } })
-
-        const obj = {
-            name: "ola"
-        }
-        const createEntry = async () => await model.create(obj)
-
-
-
-        await model2.create({ name: "ola", attr: "asd" })
-
-        await adapter.getQueryInterface().migrateSchema(newSchema2, oldSchema)
-        // await model2.create({ attr2: false })
-        // await adapter.dataSource.getQueryInterface().insert(null, "test2", {
-        //     attr2: false,
-        //     createdAt: new Date(),
-        //     updatedAt: new Date()
-        // })
-        // console.log(await adapter.dataSource.getQueryInterface().describeTable("test2"))
+        await adapter.defineRelations(model1, [model1, model2])
+        await adapter.defineRelations(model2, [model1, model2])
+        await adapter.sync()
 
 
     } catch (e: any) {
         console.log(e)
     } finally {
-        await adapter.dropDatabase()
+        // await adapter.dropDatabase()
         console.log("dropped db")
     }
 
