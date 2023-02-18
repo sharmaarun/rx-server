@@ -1,3 +1,6 @@
+import { Query } from "../db"
+import { Endpoint } from "../endpoints"
+
 export type APIRouteMethod = "post" | "get" | "put" | "delete" | "patch" | "options"
 
 export type APIRoute = {
@@ -7,12 +10,23 @@ export type APIRoute = {
     staticPath?: string
 }
 
-export type APIRequestContext = {
-    params: any
-    query: any
-    body: any
+export interface APIRequestContext<P = any, Q = any, B = any> {
+    params: P
+    query: Q extends Q ? Partial<Q> & Query<Q> : Query<Q>,
+    body: B
     send: (data?: any) => void
     header: (key: string, value: string) => void
+    endpoint: Endpoint
+    route: APIRoute
+}
+
+export type APIRouteMiddleware = {
+    endpointName: string | RegExp,
+    route: {
+        path: string | RegExp,
+        method: string | RegExp
+    },
+    handler: (ctx: APIRequestContext) => void | Promise<void>
 }
 
 export type APIRouteHandler = (ctx: APIRequestContext) => any | Promise<any>

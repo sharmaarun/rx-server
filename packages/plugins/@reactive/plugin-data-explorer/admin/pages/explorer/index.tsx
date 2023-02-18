@@ -1,7 +1,8 @@
-import { PluginObj } from "@reactive/client"
+import { PluginObj, useServerContext } from "@reactive/client"
 import { EntitySchema, toPascalCase } from "@reactive/commons"
-import { RXICO_PLUS } from "@reactive/icons"
-import { Heading, Icon, IconButton, LinkListItem, List, NameInputModal, Page, PageBody, PageHeader, PageSearchProvider, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
+import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
+import { Heading, Icon, IconButton, LinkListItem, List, ListItem, NameInputModal, Page, PageBody, PageHeader, PageSearchProvider, PageToolbar, Stack, StackProps, TwoColumns, useFormModal, useToast } from "@reactive/ui"
+import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom"
 
@@ -23,7 +24,8 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
     const toast = useToast()
     const { pathname } = useLocation()
     const navigate = useNavigate()
-    const [eps, setEps] = useState<EntitySchema[]>([])
+    const { endpoints } = useServerContext()
+    const eps = endpoints?.filter(ep => ep.type === "basic").map(ep => ep.schema) || []
     const [newSchema, setNewSchema] = useState<EntitySchema>()
     const [nameModalErrors, setNameModalErrors] = useState<any[]>([])
     const nameModal = useFormModal({
@@ -43,10 +45,12 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
         }
     })
     useEffect(() => {
-        fetchSchemas()
-    }, [])
+        if (!pathname || pathname === "/admin/explorer") {
+            navigate(eps?.[0]?.name)
+        }
+    }, [pathname, eps])
 
-    const fetchSchemas = async () => setEps(await schema.list())
+    // const fetchSchemas = async () => setEps(await schema.list())
 
     const save = async (obj: EntitySchema) => {
         if (!obj?.name || Object.keys(obj?.attributes || {}).length <= 0) {
@@ -96,42 +100,33 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
         <TwoColumns>
             <Page>
                 <PageHeader>
-                    <Heading size="md" >{"Data Types"}</Heading>
+                    <Heading size="md" >{"Explore"}</Heading>
                 </PageHeader>
                 <PageToolbar>
                     <PageSearchProvider />
-                    {newSchema?.name ? "" : <IconButton aria-label="" onClick={(e: any) => nameModal.onOpen()}>
-                        <Icon>
-                            <RXICO_PLUS />
-                        </Icon>
-                    </IconButton>
-                    }
                 </PageToolbar>
                 <PageBody>
                     {({ search }) =>
                         <><NameInputModal {...nameModal} errors={nameModalErrors}>
                         </NameInputModal >
                             <Stack spacing={4}>
-                                {basicTypes?.length &&
-                                    <List minW="200px" spacing={2}>
-                                        {
-                                            basicTypes?.filter(ep => search?.length ? ep.name.includes(search) : true).map((ep, ind) => {
-                                                const path = "/admin/data-types/" + ep?.name
-                                                const isActive = path === pathname
-                                                return <LinkListItem
-                                                    key={ind}
-                                                    isActive={isActive}
-                                                    as={Link}
-                                                    {...({ to: ep?.name } as any)}
-                                                >
-                                                    {/* <Link style={{ padding: "10px", height: "100%", width: "100%" }} to={ep.name} key={ind}> */}
-                                                    {ep && toPascalCase(ep.name)}
-                                                    {/* </Link> */}
-                                                </LinkListItem>
-                                            }
-                                            )
+                                {basicTypes?.length && <List minW="200px" spacing={2}>
+                                    {
+                                        basicTypes?.filter(ep => ep.name?.length && (search?.length ? ep.name.includes(search) : true)).map((ep, ind) => {
+                                            const path = "/admin/explorer/" + ep?.name
+                                            const isActive = path === pathname
+                                            return <LinkListItem
+                                                key={ind}
+                                                isActive={isActive}
+                                                as={ep?.name ? Link : ListItem}
+                                                {...(ep?.name ? { to: ep?.name } : {})}
+                                            >
+                                                {ep && toPascalCase(ep.name)}
+                                            </LinkListItem>
                                         }
-                                    </List>
+                                        )
+                                    }
+                                </List>
                                 }
                             </Stack>
                         </>

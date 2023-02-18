@@ -1,5 +1,5 @@
-import { createControllers } from "@reactive/server";
-export default createControllers("data-types", ctx => ({
+import { createCoreControllers } from "@reactive/server";
+export default createCoreControllers("data-types", ctx => ({
     async list(req) {
 
         return req.send(

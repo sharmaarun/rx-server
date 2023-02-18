@@ -1,6 +1,6 @@
 import { Attribute, BaseAttributeType, BasicAttributeValidation, DateAttributeSubType, EntitySchema, NumberAttributeSubType, Query, RelationType, StringAttributeSubType } from "@reactive/commons";
 import { DBAdapter, DropDatabaseOptions, Entity, PluginClass, QueryInterface, ServerContext, SyncDatabaseOptions, UpdateReturnType, UpsertReturnType } from "@reactive/server";
-import { DataType, DataTypes, Model, ModelAttributes, ModelStatic, Sequelize } from "sequelize";
+import { DataType, DataTypes, Model, ModelAttributes, ModelStatic, NonNullFindOptions, Sequelize, UpdateOptions } from "sequelize";
 
 export class SQLEntity<T = any> extends Entity<T> {
     public override schema!: EntitySchema;
@@ -12,13 +12,33 @@ export class SQLEntity<T = any> extends Entity<T> {
         super()
     }
 
+    private convertQuery = (filters?: Query<any>) => {
+        const page = filters?.pagination?.page || 1
+        const limit = filters?.pagination?.pageSize || 100
+        const offset = ((page > 0 ? page : 1) - 1) * limit
+        const filters_: NonNullFindOptions<T> = {
+            where: {
+                ...(filters?.where || {}),
+            },
+            limit,
+            offset,
+            include:filters?.include,
+            group: filters?.group,
+            order: filters?.order as any,
+            rejectOnEmpty: false
+        }
+        return filters_
+    }
+
     public override async findOne<FT extends T>(filters?: Query<FT>) {
-        return await this.model.findOne(filters) as T
+        const query = this.convertQuery(filters)
+        return await this.model.findOne(query) as T
     }
 
 
     public override async findAll<FT extends T>(filters?: Query<FT>) {
-        return await this.model.findAll(filters) as T[]
+        const query = this.convertQuery(filters)
+        return await this.model.findAll(query) as T[]
     }
 
     public override async create(body?: Partial<T>) {
@@ -30,15 +50,21 @@ export class SQLEntity<T = any> extends Entity<T> {
     }
 
     public override async update<FT extends T>(filters?: Query<FT>, update?: Partial<T>) {
-        return await this.model.update(update as any, filters as any) as UpdateReturnType<FT>
+        const query = this.convertQuery(filters)
+        const filters_: UpdateOptions = {
+            ...(query as any || {})
+        }
+        return (await this.model.update(update as any, filters_) as any) as UpdateReturnType<FT>
     }
 
     public override async upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>) {
-        return (this.model.upsert(body as any, filters as any) as any) as UpsertReturnType<FT>
+        const query = this.convertQuery(filters)
+        return (this.model.upsert(body as any, query as any) as any) as UpsertReturnType<FT>
     }
 
     public override async delete<FT extends T>(filters?: Query<FT>) {
-        return this.model.destroy(filters)
+        const query = this.convertQuery(filters)
+        return this.model.destroy(query)
     }
 }
 

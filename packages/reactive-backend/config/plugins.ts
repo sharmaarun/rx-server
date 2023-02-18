@@ -6,6 +6,9 @@ export default {
             name: "@reactive/server-dashboard",
         },
         {
+            name: "@reactive/plugin-data-explorer",
+        },
+        {
             name: "@reactive/plugin-data-types",
         }
     ]

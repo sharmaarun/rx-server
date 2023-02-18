@@ -1,7 +1,7 @@
-import { createRouter } from "@reactive/server";
+import { createCoreRouter } from "@reactive/server";
 import { resolve } from "path";
 
-export default createRouter("admin", ctx => ([
+export default createCoreRouter("admin", ctx => ([
     {
         path: "/",
         method: "get",

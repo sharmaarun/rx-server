@@ -23,12 +23,17 @@
       "@reactive/client": ["packages/client/src/index.ts"],
       "@reactive/commons": ["packages/commons/src/index.ts"],
       "@reactive/icons": ["packages/icons/src/index.ts"],
+      "@reactive/plugin-data-explorer": [
+        "packages/plugins/@reactive/plugin-data-explorer/src/index.ts"
+      ],
       "@reactive/plugin-data-types": [
         "packages/reactive-backend/plugins/@reactive/plugin-data-types/src/index.ts"
       ],
       "@reactive/server": ["packages/server/src/index.ts"],
       "@reactive/server-cli": ["packages/cli/src/index.ts"],
-      "@reactive/server-dashboard": ["packages/plugins/@reactive/server-dashboard/src/index.ts"],
+      "@reactive/server-dashboard": [
+        "packages/plugins/@reactive/server-dashboard/src/index.ts"
+      ],
       "@reactive/server-helpers": ["packages/server-helpers/src/index.ts"],
       "@reactive/ui": ["packages/ui/src/index.ts"]
     }

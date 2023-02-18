@@ -9,12 +9,15 @@ import bodyParser from "body-parser"
 
 export type CreateRouteOpts = {
     route: APIRoute,
-    handler?: APIRouteHandler
+    handler?: (req: Express.Request, res: Express.Response) => any | Promise<any>
 }
 
 export type ExpressRoutes = CreateRouteOpts & {
     path: string
 }
+
+export type Request = Express.Request
+export type Response = Express.Response
 
 @injectable()
 export class ExpressManager extends PluginClass {
@@ -60,15 +63,7 @@ export class ExpressManager extends PluginClass {
             if (method && handler)
                 router_?.[method]?.(path, async (req, res) => {
                     try {
-                        console.log(req.body)
-                        const ctx: APIRequestContext = {
-                            params: req.params,
-                            query: req.query,
-                            body: req.body,
-                            header: res.header.bind(res),
-                            send: res.send.bind(res)
-                        }
-                        return await handler(ctx)
+                        return await handler(req, res)
                     } catch (e: any) {
                         console.log(e)
                         res.status(e.statusCode || 500).send({

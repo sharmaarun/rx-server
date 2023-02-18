@@ -2,18 +2,21 @@ import { useRoutes } from "@reactive/client"
 import { HStack, Icon, List, ListItem, Stack, StackProps, Text } from "@reactive/ui"
 import { Link, useLocation } from "react-router-dom"
 
+export type MainMenuMode = "collapsed" | "open"
+
 export interface MainMenuProps extends StackProps {
     children?: any
+    mode?: MainMenuMode
 }
 
-export function MainMenu({ children, ...props }: MainMenuProps) {
+export function MainMenu({ children, mode = "open", ...props }: MainMenuProps) {
     const { coreRoutes, pluginRoutes } = useRoutes()
     const allRoutes = [...(coreRoutes || []), ...(pluginRoutes || [])]
     const { pathname } = useLocation()
     return (
         <>
-            <Stack>
-                <List flexWrap="nowrap" p={4} spacing={2}>
+            <List flexWrap="nowrap" p={4} spacing={2} {...props}>
+                <Stack spacing={2}>
                     {allRoutes?.map((r, ind) => {
                         const isActive = pathname?.startsWith(r.path)
                         const Ico = r.icon || (() => <></>)
@@ -32,16 +35,16 @@ export function MainMenu({ children, ...props }: MainMenuProps) {
                                     <Icon>
                                         {<Ico />}
                                     </Icon>
-                                    <Text whiteSpace="nowrap" >
+                                    {mode === "open" ? <Text whiteSpace="nowrap" >
                                         {r.title}
-                                    </Text>
+                                    </Text> : ""}
                                 </HStack>
                             </ListItem>
                         </Link>
                     }
                     )}
-                </List>
-            </Stack>
+                </Stack>
+            </List>
         </>
     )
 }

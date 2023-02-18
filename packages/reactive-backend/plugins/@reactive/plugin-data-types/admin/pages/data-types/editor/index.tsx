@@ -1,7 +1,7 @@
 import { confirmDelete, RegisteredAttribute, useAttributes } from "@reactive/client"
 import { EntitySchema, Attribute, toPascalCase } from "@reactive/commons"
 import { RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
-import { ActionButton, Box, Button, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, Stack, StackProps, Text, useDisclosure } from "@reactive/ui"
+import { ActionButton, ActionListItem, Box, Button, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, Stack, StackProps, Text, useDisclosure } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { useOutletContext, useParams } from "react-router-dom"
@@ -20,7 +20,6 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
     const attributeSelectionModal = useDisclosure()
 
     const [errors, setErrors] = useState<ValidationError[]>([])
-    const [toDelete, setToDelete] = useState<Attribute>()
     const [newAttribute, setNewAttribute] = useState<Attribute>()
     const [schema, setSchema] = useState<EntitySchema>()
 
@@ -31,7 +30,7 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
         }
     }, [name, schemas, newSchema])
     const { name: epName } = schema || {}
-    // const schemaAttrs = schema?.attributes
+
     const schemaAttrs = Object.keys(schema?.attributes || {}).filter(name => schema?.attributes?.[name]).map(name => ({ ...(schema?.attributes?.[name] || {}) }))
     const [mode, setMode] = useState<"edit" | "new">("new")
 
@@ -136,34 +135,31 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                             </HStack>
                         </PageToolbar>
                         <PageBody>
-
-                            <AttributeSelectionModal
-                                {...attributeSelectionModal}
-                                onChange={(f) => { onSelectAttribute(f?.attribute); setMode("new") }}
-                            >
-                            </AttributeSelectionModal>
-                            <AttributeEditorModal
-                                schema={schema}
-                                errors={errors}
-                                isOpen={newAttribute?.type?.length ? true : false}
-                                attribute={newAttribute}
-                                onClose={() => { setNewAttribute(undefined) }}
-                                onSubmit={saveAttribute}
-                                middlewares={[beforeSaveAttributeMiddleware]}
-                            />
-                            <Stack w="100%" spacing={4}>
-                                <Heading pl={2} size="xs">
-                                    Attributes
-                                </Heading>
-                                {schemaAttrs?.length ?
-                                    <List w="100%" spacing={2}>
-                                        {schemaAttrs.map((attr, ind) => {
-                                            const rf = attributes_?.find(f => f.attribute.customType === attr.customType)
-                                            const registeredAttribute: any = { ...rf, attribute: attr }
-                                            return <ListItem w="100%"
-                                                key={ind}
-                                            >
-                                                <Card w="100%" p={4}>
+                            <>
+                                <AttributeSelectionModal
+                                    {...attributeSelectionModal}
+                                    onChange={(f) => { onSelectAttribute(f?.attribute); setMode("new") }}
+                                >
+                                </AttributeSelectionModal>
+                                <AttributeEditorModal
+                                    schema={schema}
+                                    errors={errors}
+                                    isOpen={newAttribute?.type?.length ? true : false}
+                                    attribute={newAttribute}
+                                    onClose={() => { setNewAttribute(undefined) }}
+                                    onSubmit={saveAttribute}
+                                    middlewares={[beforeSaveAttributeMiddleware]}
+                                />
+                                <Stack w="100%" spacing={4}>
+                                    <Heading pl={2} size="xs">
+                                        Attributes
+                                    </Heading>
+                                    {schemaAttrs?.length ?
+                                        <List w="100%" spacing={2}>
+                                            {schemaAttrs.map((attr, ind) => {
+                                                const rf = attributes_?.find(f => f.attribute.customType === attr.customType)
+                                                const registeredAttribute: any = { ...rf, attribute: attr }
+                                                return <ActionListItem key={ind}>
                                                     <HStack >
                                                         <Text flex={1}>
                                                             {attr.name}
@@ -186,26 +182,25 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                                             </IconButton>
                                                         </HStack>
                                                     </HStack>
-                                                </Card>
-                                            </ListItem>
-                                        })}
-                                    </List>
-                                    :
-                                    <JumboAlert
-                                        onClick={attributeSelectionModal.onOpen}
-                                        variant="left-accent"
-                                        cursor="pointer"
-                                        status="info"
-                                        title="No attributes found"
-                                        description={<Text>
-                                            Click here
-                                            to add one now
+                                                </ActionListItem>
+                                            })}
+                                        </List>
+                                        :
+                                        <JumboAlert
+                                            onClick={attributeSelectionModal.onOpen}
+                                            variant="left-accent"
+                                            cursor="pointer"
+                                            status="info"
+                                            title="No attributes found"
+                                            description={<Text>
+                                                Click here
+                                                to add one now
 
-                                        </Text>
-                                        } />
-                                }
-                            </Stack>
-
+                                            </Text>
+                                            } />
+                                    }
+                                </Stack>
+                            </>
                         </PageBody>
                         {changed ?
                             <PageFooter>

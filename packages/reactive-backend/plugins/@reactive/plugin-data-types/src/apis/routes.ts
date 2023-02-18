@@ -1,6 +1,6 @@
-import { createRouter } from "@reactive/server";
+import { createCoreRouter } from "@reactive/server";
 
-export default createRouter("data-types", ctx => ([
+export default createCoreRouter("data-types", ctx => ([
     {
         path: "/",
         method: "post",

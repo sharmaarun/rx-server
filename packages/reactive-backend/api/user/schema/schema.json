@@ -6,14 +6,6 @@
       "customType": "string",
       "name": "name",
       "subType": "varchar"
-    },
-    "olas": {
-      "type": "relation",
-      "customType": "relation",
-      "name": "olas",
-      "relationType": "1:m",
-      "ref": "ola",
-      "foreignKey": "user"
     }
   }
 }

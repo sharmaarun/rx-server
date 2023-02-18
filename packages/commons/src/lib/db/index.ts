@@ -167,11 +167,20 @@ export type WhereOptionsAttrs = {
 
 export type WhereOptions<T = any> = T extends T ? Partial<T> & WhereOptionsAttrs : WhereOptionsAttrs;
 
+export type QueryPagination = {
+    page?: number,
+    pageSize?: number
+}
+
+export type QueryOrderItem = string | [string, string]
+export type QueryOrder = string | string[] | QueryOrderItem[]
+
+export type QueryGroup = string | string[]
+
 export type Query<T = any> = {
     where?: WhereOptions<T>
-    include?: string[],
-    offset?: number,
-    limit?: number,
-    group?: string,
-    order?: string[]
+    include?: string[]
+    pagination?: QueryPagination
+    group?: QueryGroup
+    order?: QueryOrder
 }

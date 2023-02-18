@@ -11,13 +11,48 @@ export function List(props: ListProps) {
 }
 
 import { ListItem as _ListItem, ListItemProps as _ListItemProps } from "@chakra-ui/react"
+import Card from "../card"
 export interface ListItemProps extends _ListItemProps {
-
+    isActive?: boolean
 }
 
-export function ListItem(props: ListItemProps) {
+export function ListItem({ isActive, ...props }: ListItemProps) {
     return (
-        <_ListItem {...props} />
+        <_ListItem
+            p={2}
+            borderRadius={4}
+            display="flex"
+            justifyContent="stretch"
+            alignItems="stretch"
+            {...props} />
+    )
+}
+export function LinkListItem({ isActive, ...props }: ListItemProps) {
+    return (
+        <_ListItem
+            p={2} pl={4}
+            bgColor={isActive ? "blackAlpha.200" : ""}
+            _hover={{ bgColor: isActive ? "" : "blackAlpha.50" }}
+            borderRadius={4}
+            display="flex"
+            justifyContent="stretch"
+            alignItems="stretch"
+            {...props} />
+    )
+}
+export function ActionListItem({ isActive, children, ...props }: ListItemProps) {
+    return (
+        <_ListItem
+            p={2} pl={4}
+            borderRadius={4}
+            display="flex"
+            justifyContent="stretch"
+            alignItems="stretch"
+            {...props} >
+            <Card w="100%" p={4}>
+                {children}
+            </Card>
+        </_ListItem>
     )
 }
 

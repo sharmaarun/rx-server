@@ -3,26 +3,31 @@ import { IPCClient, IPC_COMMAND } from "@reactive/server-helpers"
 import { readFileSync, writeFileSync } from "fs"
 import { db, endpoints } from "../../container"
 import { ServerContext } from "../context"
+import { createDefaultCRUDRoutes } from "../endpoints"
 
-export const registerPluginEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
-    return () => endpoints?.register(cb, { type: "plugin" })
-}
+export const registerPluginEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => () =>
+    endpoints?.register(cb, { type: "plugin" })
 
-export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
-    return () => endpoints?.register(cb, { type: "core" })
-}
 
-export const registerEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => {
-    return () => endpoints?.register(cb, { type: "basic" })
-}
+export const registerCoreEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => () =>
+    endpoints?.register(cb, { type: "core" })
 
-export const createRouter = (name: string, cb?: (ctx: ServerContext) => APIRoute[]) => {
-    return () => endpoints?.createRouter(name, cb)
-}
+export const registerEndpoint = (cb?: (ctx: ServerContext) => Omit<Endpoint, 'type'>) => () =>
+    endpoints?.register(cb, { type: "basic" })
 
-export const createControllers = (name: string, cb?: (ctx: ServerContext) => APIRouteHandlersMap) => {
-    return () => endpoints?.createController(name, cb)
-}
+export const createRouter = (name: string, cb?: (ctx: ServerContext) => APIRoute[]) => () =>
+    endpoints?.createRouter(name, cb)
+
+export const createControllers = (name: string, cb?: (ctx: ServerContext) => APIRouteHandlersMap) => () =>
+    endpoints?.createController(name, cb)
+
+
+export const createCoreRouter = (name: string, cb?: (ctx: ServerContext) => APIRoute[]) => () =>
+    endpoints?.createCoreRouter(name, cb)
+
+export const createCoreControllers = (name: string, cb?: (ctx: ServerContext) => APIRouteHandlersMap) => () =>
+    endpoints?.createCoreController(name, cb)
+
 
 /**
  * Query a model by schema name
