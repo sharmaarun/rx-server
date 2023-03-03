@@ -34,7 +34,7 @@ export type FieldProps = BoxProps & {
 
 export type RegisteredFields = { [key: string]: FieldRegisterOpts }
 
-export type FormMiddleware = (ctx: FormContext) => void | Promise<void>
+export type FormMiddleware = (ctx: FormContext) => void | ValidationError[] | Promise<void | ValidationError[]>
 
 /**
  * Form Context Type
@@ -121,13 +121,17 @@ export function Form({ children, ...props }: FormContext) {
     const handleSubmit = async (e: any) => {
         e.preventDefault()
         e.stopPropagation()
-
+        setErrors([])
+        let mwErrors: ValidationError[] = []
+        let validationErrors: ValidationError[] = []
         console.log("current form stage", active)
-
         if (middlewares.length) {
             for (let middleware of middlewares) {
                 try {
-                    await middleware({ ...ctx })
+                    const mwErrors_ = await middleware({ ...ctx }) as ValidationError[]
+                    if (mwErrors_ && mwErrors_.length) {
+                        mwErrors = [...mwErrors, ...mwErrors_]
+                    }
                 } catch (e) {
                     console.error(e)
                     return;
@@ -156,15 +160,17 @@ export function Form({ children, ...props }: FormContext) {
             }
         }
 
+
         if (validationClass_) {
-            setErrors([])
-            const errors_ = await validate(plainToInstance(validationClass_, form))
-            if (errors_.length) {
-                setErrors([...errors_])
-                handleErrors()
-                return;
-            }
+            validationErrors = await validate(plainToInstance(validationClass_, form))
         }
+        console.log(validationErrors,mwErrors)
+        if (validationErrors.length || mwErrors.length) {
+            setErrors([...validationErrors, ...mwErrors])
+            handleErrors()
+            return;
+        }
+
 
         if (onSubmit_) {
             try {

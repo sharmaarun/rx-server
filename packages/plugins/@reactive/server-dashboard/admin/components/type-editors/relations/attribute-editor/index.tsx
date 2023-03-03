@@ -2,7 +2,7 @@ import { AttributeEditorContext, DefaultAttributesValidationClass, useServerCont
 import { Attribute, pluralize, RelationType } from "@reactive/commons"
 import { Field, FieldControl, FieldDescription, FieldLabel, FormContext, FormStage, HStack, Icon, Input, Select, SelectOption, SpreadSelect, SpreadSelectOption, SpreadSelectProps, Stack, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { RelationTypes } from "../../../../utils"
 export interface RelationsAttributeEditorProps extends SpreadSelectProps, AttributeEditorContext {
     children?: any
@@ -20,6 +20,26 @@ const tid: any = {}
 export function RelationsAttributeEditor({ children, attribute, schema, ...props }: RelationsAttributeEditorProps) {
     const { value, defaultValue, onChange, addMiddleware } = useFormContext()
     const { endpoints } = useServerContext()
+    const [middlewareAdded, setMiddlewareAdded] = useState(false)
+
+    useEffect(() => {
+        if (addMiddleware && !middlewareAdded) {
+            addMiddleware?.((ctx) => {
+                const exists = endpoints?.find(e => Object.values(e.schema?.attributes || {}).find(a => a.name === ctx.value?.["foreignKey"]))
+                if (exists) {
+                    const errors = [{ property: "foreignKey", constraints: { "exists": "Already exists!" } }]
+                    console.error("Validation Error", errors)
+                    return errors
+                }
+                return []
+            })
+            setMiddlewareAdded(true)
+        }
+    }, [addMiddleware])
+
+    const foreignKeyExists = (name: string) => {
+
+    }
 
     const generateForeignKeyName = (val: any) => {
         const foreignKey = (
