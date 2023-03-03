@@ -6,7 +6,7 @@
       "customType": "string",
       "name": "name",
       "subType": "text",
-      "isRequired": true
+      "isRequired": false
     },
     "popa": {
       "type": "number",
@@ -56,14 +56,14 @@
       "subType": "integer",
       "isRequired": false
     },
-    "temp": {
+    "tmp": {
       "type": "relation",
-      "customType": "relation",
-      "name": "temp",
-      "relationType": "[1]",
       "ref": "temp",
-      "foreignKey": "user",
-      "isTarget": false
+      "name": "tmp",
+      "relationType": "1:1",
+      "customType": "relation",
+      "foreignKey": "usr",
+      "isTarget": true
     }
   }
 }

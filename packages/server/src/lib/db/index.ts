@@ -487,31 +487,30 @@ export class DBManager extends PluginClass {
             }
         }
 
-        // for HAS_ONE and HAS_MANY relations, the corresponding ref schema attribute should be null/none
         if (
             refAttribute.relationType === RelationType.HAS_MANY ||
             refAttribute.relationType === RelationType.HAS_ONE
         ) {
-            if (!refSchema.attributes[refAttribute.foreignKey])
-                return
+            // for HAS_ONE and HAS_MANY relations, the corresponding ref schema attribute should be null/none
+            if (refSchema.attributes[refAttribute.foreignKey]) {
+                refSchema.attributes[refAttribute.foreignKey] = undefined as any
+                delete refSchema.attributes[refAttribute.foreignKey]
+            }
+        } else {
 
-            refSchema.attributes[refAttribute.foreignKey] = undefined as any
-            delete refSchema.attributes[refAttribute.foreignKey]
-            return;
-        }
-
-        // for other type of relations, the corresponding ref schema attribute is
-        // an opposite replica of this attribute with isTarget set to false
-        // if (!refSchema.attributes[refAttribute.foreignKey]) {
-        refSchema.attributes[refAttribute.foreignKey] = {
-            type: BaseAttributeType.relation,
-            ref: schema.name,
-            name: refAttribute.foreignKey,
-            relationType: ReverseRelationsMap[refAttribute.relationType],
-            customType: refAttribute.customType,
-            foreignKey: refAttribute.name,
-            // if this attribute is not the target already, or it is m:1 relation then related schema attribute is a target
-            isTarget: !refAttribute.isTarget
+            // for other type of relations, the corresponding ref schema attribute is
+            // an opposite replica of this attribute with isTarget set to false
+            // if (!refSchema.attributes[refAttribute.foreignKey]) {
+            refSchema.attributes[refAttribute.foreignKey] = {
+                type: BaseAttributeType.relation,
+                ref: schema.name,
+                name: refAttribute.foreignKey,
+                relationType: ReverseRelationsMap[refAttribute.relationType],
+                customType: refAttribute.customType,
+                foreignKey: refAttribute.name,
+                // if this attribute is not the target already, or it is m:1 relation then related schema attribute is a target
+                isTarget: !refAttribute.isTarget
+            }
         }
         // }
         return refSchema
