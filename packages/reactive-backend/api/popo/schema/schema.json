@@ -1,0 +1,26 @@
+{
+  "name": "popo",
+  "attributes": {
+    "temp": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "temp",
+      "relationType": "1:1",
+      "ref": "temp",
+      "foreignKey": "popo",
+      "isTarget": false
+    },
+    "test": {
+      "type": "string",
+      "customType": "string",
+      "name": "test",
+      "subType": "varchar"
+    },
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "subType": "varchar"
+    }
+  }
+}

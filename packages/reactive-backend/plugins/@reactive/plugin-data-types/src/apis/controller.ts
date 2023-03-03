@@ -1,16 +1,51 @@
 import { createCoreControllers } from "@reactive/server";
 export default createCoreControllers("data-types", ctx => ({
     async list(req) {
-        
+
         return req.send(
             ctx.endpoints.endpoints.filter(e => e.type === "basic").map(e => e.schema)
         )
     },
     async create(req) {
         if (!req.body?.attributes) throw new Error("Invalid request")
-        const res = await ctx.apiGen.generateAPI(req.body)
-        restartServer(ctx.utils.restartServer)
-        return req.send(res)
+        // start a transaction before actually writing out the api structure
+        const transaction = await ctx.db.transaction()
+        let res: any
+        try {
+            if (!req.body || !req.body.name) throw new Error(`Invalid request to create new data type}`)
+            // extract all the modified schemas related to the requested one
+            let relatedSchemasToMigrate = await ctx.db.getAllModifiedSchemas(req?.body)
+            //filter out this new schema
+            const processedNewSchema = relatedSchemasToMigrate.find(s => s.name === req?.body?.name)
+            if (!processedNewSchema) throw new Error(`Process schema cound not be generated`)
+
+            relatedSchemasToMigrate = relatedSchemasToMigrate.filter(s => s.name !== req?.body?.name)
+            console.log("schemas", JSON.stringify(relatedSchemasToMigrate, null, 2))
+
+            //for all the modified schemas
+            for (let s of relatedSchemasToMigrate) {
+                // try to perform the migrations the db definitions
+                const os = ctx.endpoints.endpoints.find(ep => ep?.schema?.name === s.name)?.schema
+                if (!os) throw new Error(`No existing schema found for ref : ${s.name}`)
+                res = await ctx.db.migrateSchema(s, os, transaction)
+            }
+
+            // once migrated, define the new schema
+            await ctx.db.defineSchema(processedNewSchema)
+
+            // once defined, save modified apis and generate the new API
+            res = await Promise.all(relatedSchemasToMigrate?.map(async s => await ctx.apiGen.saveEndpointSchema(s)) || [])
+            res = await ctx.apiGen.generateAPI(req.body)
+            await transaction.commit()
+
+            // restart the server for the changes to take effect
+            restartServer(ctx.utils.restartServer)
+            return req.send(res)
+        } catch (e: any) {
+            console.error(e)
+            await transaction.rollback()
+            throw new Error(e.message)
+        }
     },
     async update(req) {
         if (!req.body?.attributes) throw new Error("Invalid request")
@@ -24,7 +59,6 @@ export default createCoreControllers("data-types", ctx => ({
         try {
             // for each modified schema (including the requested one),
             // try to migrate the changes
-
             for (let schema of relatedSchemasToMigrate || []) {
                 // get the old unchanged schema
                 const os = ctx.endpoints.endpoints.find(ep => ep?.schema?.name === schema.name)?.schema

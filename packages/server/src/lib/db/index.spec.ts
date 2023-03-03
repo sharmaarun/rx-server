@@ -210,6 +210,11 @@ describe('DB Manager', () => {
 
     })
 
+    it("should defined schema in the db",async ()=>{
+        await db.defineSchema(newSchema)
+        expect(true)
+    })
+
     it("should migrate old schema to new", async () => {
         await db.migrateSchema(newSchema2, oldSchema)
         expect(true)

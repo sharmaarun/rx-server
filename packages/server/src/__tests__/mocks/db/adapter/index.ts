@@ -35,11 +35,19 @@ export default class MockDBAdapter extends DBAdapter {
             removeAttribute(
                 allSchemas,
                 attribute
-            ) { }
+            ) { },
+            createEntity(schema, opts) {
+
+            },
         }
     }
-    async transaction({ }: any) {
-        return {} as any;
+    async transaction() {
+        return {
+            async commit() { },
+            async afterCommit() { },
+            async rollback() { },
+            LOCK: null
+        };
     }
 
     defineRelations<T = any>(entity: Entity<any>, entities: Entity<any>[]): void | Promise<void> {

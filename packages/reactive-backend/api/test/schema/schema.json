@@ -1,0 +1,11 @@
+{
+  "name": "test",
+  "attributes": {
+    "popa": {
+      "type": "string",
+      "customType": "string",
+      "name": "popa",
+      "subType": "varchar"
+    }
+  }
+}

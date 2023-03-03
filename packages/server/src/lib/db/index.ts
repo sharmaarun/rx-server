@@ -132,6 +132,13 @@ export type QueryInterfaceOptions<T = any> = {
 
 export abstract class QueryInterface {
     /**
+     * Create a new entity (defining its db structure as well)
+     * @param entityName 
+     * @param attribute 
+     */
+    public abstract createEntity(schema: EntitySchema, opts?: QueryInterfaceOptions): void | Promise<void>
+
+    /**
      * Add new attribute to the table
      * @param entityName 
      * @param attribute 
@@ -271,7 +278,8 @@ export class DBManager extends PluginClass {
     }
 
     /**
-     * Define entity model
+     * Define entity model (doesn't create any database definitions).
+     * Should be called at time of initialization
      * @param schema 
      */
     public async define(schema: EntitySchema) {
@@ -284,7 +292,8 @@ export class DBManager extends PluginClass {
     }
 
     /**
-     * Define entity model relations
+     * Define entity model relations (doesn't create any database relations).
+     * Should be called after all the models have been defined
      * @param schema 
      */
     public async defineRelations(entity: Entity, entities: Entity[]) {
@@ -321,26 +330,58 @@ export class DBManager extends PluginClass {
     }
 
     /**
-     * Perform the migration if new schemas is diff than the old schema
-     * @param newSchema 
-     * @param oldSchema 
+     * Creates the actual database definitions for the provided schema
+     * @param schema Schema to create table for
+     * @param transaction (optional)
      */
-    public async migrateSchema(newSchema: EntitySchema, oldSchema: EntitySchema, transaction?: any) {
-        const [toRemove, toChange, toAdd] = await this.diffSchemas(newSchema, oldSchema)
-        console.debug("Migrating", oldSchema?.name)
-        for (let tc of toChange) {
-            const otc = Object.values(oldSchema?.attributes || {}).find(attr => tc.name === attr.name)
-            if (!otc) throw new Error("Could not find correspnding old attribute to change!")
-            console.debug("Chanding attribute from ", tc, "to", otc)
-            await this.adapter.getQueryInterface().changeAttribute(oldSchema, otc, tc, { transaction })
+    public async defineSchema(schema: EntitySchema, transaction?: Transaction) {
+        const trx = transaction || await this.adapter.transaction()
+        try {
+            let res: any;
+            res = await this.adapter.getQueryInterface().createEntity(schema, {
+                transaction: trx
+            })
+            if (!transaction) await trx.commit()
+            return res
+        } catch (e) {
+            if (!transaction) await trx.rollback()
+            console.error(e)
+            throw e
         }
-        for (let ta of toAdd) {
-            console.debug("Adding ", ta)
-            await this.adapter.getQueryInterface().addAttribute(oldSchema, ta, { transaction })
-        }
-        for (let tr of toRemove) {
-            console.debug("Removing ", tr)
-            await this.adapter.getQueryInterface().removeAttribute(oldSchema, tr, { transaction })
+    }
+
+    /**
+     * Perform the migration in the database if new schemas is diff than the old schema
+     * @param newSchema To Migrate
+     * @param oldSchema Original
+     */
+    public async migrateSchema(newSchema: EntitySchema, oldSchema: EntitySchema, transaction?: Transaction) {
+        const trx = transaction || await this.adapter.transaction()
+        let res: { changed?: any, added?: any, removed?: any } = {};
+        try {
+            const [toRemove, toChange, toAdd] = await this.diffSchemas(newSchema, oldSchema)
+            console.debug("Migrating", oldSchema?.name)
+            for (let tc of toChange) {
+                const otc = Object.values(oldSchema?.attributes || {}).find(attr => tc.name === attr.name)
+                if (!otc) throw new Error("Could not find correspnding old attribute to change!")
+                console.debug("Chanding attribute to ", tc, "from", otc)
+                res.changed = await this.adapter.getQueryInterface().changeAttribute(oldSchema, otc, tc, { transaction: trx })
+            }
+            for (let ta of toAdd) {
+                console.debug("Adding ", ta)
+                res.added = await this.adapter.getQueryInterface().addAttribute(oldSchema, ta, { transaction: trx })
+            }
+            for (let tr of toRemove) {
+                console.debug("Removing ", tr)
+                res.removed = await this.adapter.getQueryInterface().removeAttribute(oldSchema, tr, { transaction: trx })
+            }
+
+            if (!transaction) await trx.commit()
+            return res
+        } catch (e) {
+            if (!transaction) await trx.rollback()
+            console.error(e)
+            throw e
         }
     }
 
@@ -384,9 +425,8 @@ export class DBManager extends PluginClass {
     public getEntity = <T>(name: string) => this.entities.find(m => m.schema.name === name) as Entity<T>
 
     /**
-     * Prepares the relational schemas (having attribut type `relation`)
+     * Processes and returns the provided modified schema along with any other affected schemas
      * @param schema 
-     * @param allSchemas 
      * @returns 
      */
     public async getAllModifiedSchemas(newSchema: EntitySchema) {
@@ -398,7 +438,17 @@ export class DBManager extends PluginClass {
         let allSchemas: EntitySchema[] = JSON.parse(JSON.stringify(this.schemas))
         allSchemas = allSchemas.filter(s => s.name !== newSchema.name)
         allSchemas = [...allSchemas, newSchema]
-        const oldSchema = this.schemas.find(s => s.name === newSchema.name)
+
+        // retrive old schema if exists
+        let oldSchema = this.schemas.find(s => s.name === newSchema.name)
+
+        // else create empty old schema 
+        if (!oldSchema) {
+            oldSchema = {
+                name: newSchema.name,
+                attributes: {}
+            }
+        }
         if (!oldSchema) throw new Error(`No such schema exists : ${newSchema.name}`)
 
         const [remove, change, add] = await this.diffSchemas(newSchema, oldSchema)

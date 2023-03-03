@@ -1042,6 +1042,31 @@ describe('Sequelize Adapter :: Query Interface', () => {
     })
 
 
+    it("should create and drop entity definitions", async () => {
+        const test = {
+            name: "mgr",
+            type: BaseAttributeType.relation,
+            ref: "test",
+            relationType: RelationType.ONE_TO_MANY,
+            foreignKey: 'mem'
+        }
+        const schema: EntitySchema = {
+            name: "test",
+            attributes: {
+                name: {
+                    name: "name",
+                    type: BaseAttributeType.string
+                },
+                test
+            }
+        }
+        const created = await qi.createEntity(schema)
+        expect(await qi.tableExists("test")).toBeTruthy()
+        const desc = await qi.describe(schema.name);
+        expect(desc?.["memId"]).toBeDefined()
+        await qi.dropTable("test")
+    })
+
 
     afterAll(async () => {
         rmSync(resolve(process.cwd(), "test.db"))

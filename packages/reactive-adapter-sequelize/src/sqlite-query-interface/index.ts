@@ -55,6 +55,7 @@ export type ChangeAttributeOpts = QueryInterfaceOptions & {}
  * Interacts with the low level layer (query interface) of the sequelize ORM
  */
 export class SQLiteQueryInterfaceAdapter extends QueryInterface {
+
     constructor(
         private adapter: SequelizeAdapter,
     ) {
@@ -965,6 +966,31 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
                 res = await this.removeColumn(schema.name, attribute.name, { transaction: trx })
             }
 
+            if (!opts?.transaction) await trx.commit()
+            return res
+        } catch (e: any) {
+            if (!opts?.transaction) await trx.rollback()
+            console.error(e.message)
+            throw e
+        }
+    }
+
+    /**
+     * Create entity definition in the database (along with relational attributes)
+     * @param schema Schema to define in the db
+     * @param opts (optinal)
+     * @returns 
+     */
+    async createEntity(schema: EntitySchema<any>, opts?: QueryInterfaceOptions<any> | undefined) {
+        const trx = opts?.transaction || await this.ds.transaction()
+        let res: any;
+        try {
+            const attributes = Object.values(schema.attributes || {})
+            if (!attributes || attributes.length <= 0) throw new Error(`No attributes defined for schema : ${schema.name}`)
+            res = await this.createTable(schema.name, attributes, {
+                skipRelational: false,
+                transaction: trx
+            })
             if (!opts?.transaction) await trx.commit()
             return res
         } catch (e: any) {
