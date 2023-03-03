@@ -132,7 +132,7 @@ export const ArryOfInput = ({ children, defaultValue = [], title, renderer, titl
 export function AttributeEditorModal({ attribute, onSubmit, schema, middlewares, errors, ...props }: AttributeEditorModalProps) {
     const { attributes } = useAttributes()
     const regAttr = attributes.find(rf => rf.attribute.customType === attribute?.customType)
-    const CustomTypeEditor = regAttr?.metadata.components?.typeEditor
+    const CustomTypeEditor = regAttr?.metadata.components?.attributeEditor
     return (
         <Modal size="3xl" {...props} >
             <AttributeEditorContext.Provider value={{ attribute, schema }}>

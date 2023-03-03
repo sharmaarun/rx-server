@@ -115,13 +115,12 @@ describe('Simple API Generator extends basic generator', () => {
                     foreignKey: "testapi2"
                 }
             }
-        }, { updateRefs: true })
+        })
         const schemaStr = readFileSync(resolve(__dirname, "tmp", "testapi", "schema", "schema.json")).toString()
         const relSchemaStr = readFileSync(resolve(__dirname, "tmp", "testapi2", "schema", "schema.json")).toString()
         const schema = JSON.parse(schemaStr)
         const relSchema = JSON.parse(relSchemaStr)
         expect(schema.attributes.name.name)
-        console.log(schema.attributes)
         expect(schema.attributes.testapi2.name === "testapi2")
 
     })
@@ -131,6 +130,8 @@ describe('Simple API Generator extends basic generator', () => {
         await apiGen.removeEndpointSchema(testapi)
         expect(existsSync(resolve(__dirname, "tmp", testapi.name))).toBeFalsy()
     })
+
+    it("should save m:1 relational attributes with isTarget true", async () => { })
 
     afterEach(async () => {
         rmdirSync(resolve(__dirname, "tmp"), { recursive: true })

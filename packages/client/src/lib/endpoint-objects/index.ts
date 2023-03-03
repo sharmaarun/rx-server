@@ -1,7 +1,8 @@
-import { CoreAttributes, PLUGINS_WEB_ROOT } from "@reactive/commons";
+import { CoreAttributes, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
+import { useEffect, useState } from "react";
 import { container } from "../../container";
 import NetworkManager, { Method } from "../network";
-
+import { stringify } from "qs"
 export interface ObjInitOpts {
     objectIdKey?: string
 }
@@ -23,13 +24,13 @@ export class Obj<T = any> implements ObjInitOpts {
         this.attributes = { ...this.attributes, ...attrs }
     }
 
-    public async list(query?: any) {
-        return await this.net.get(this.name) as T[]
+    public async list(query?: Query<T>) {
+        return await this.net.get(this.name + (query ? `?${stringify(query)}` : "")) as T[]
     }
 
-    public async get() {
-        if (!this.id) throw new Error("No ID specified")
-        const data = await this.net.get(this.name + "/" + this.id)
+    public async get(id?: string | number, query?: Query<T>) {
+        if (!this.id && !id) throw new Error("No ID specified")
+        const data = await this.net.get((this.name + "/" + (this.id ?? id)) + (query ? `?${stringify(query)}` : ""))
         if (data.id) this.attributes = { ...data }
         return data as T
     }
@@ -59,7 +60,7 @@ export class Obj<T = any> implements ObjInitOpts {
     }
 
     public get id() {
-        return (this.attributes as any)[this.objectIdKey]
+        return (this?.attributes as any)?.[this.objectIdKey]
     }
 }
 
@@ -67,4 +68,71 @@ export class PluginObj extends Obj {
     constructor(name: string, opts?: ObjInitOpts) {
         super(PLUGINS_WEB_ROOT + "/" + name, opts)
     }
+}
+
+export type UseEntityObjProps = {
+    name: string
+}
+
+export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
+    const [obj, setObj] = useState(new Obj<T>(props.name))
+    const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isSaving, setIsSaving] = useState<boolean>(false)
+    const [isRemoving, setIsRemoving] = useState<boolean>(false)
+    useEffect(() => {
+        setIsLoading(false)
+    }, [])
+
+    const get = async (id?: string | number, query?: Query<T>) => {
+        setIsLoading(true)
+        try {
+            await obj.get(id,query)
+        } catch (e: any) {
+            throw new Error(e)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    const save = async (data?: T, opts?: SaveOpts) => {
+        setIsSaving(true)
+        try {
+            await obj.save(data, opts)
+        } catch (e: any) {
+            throw new Error(e)
+        } finally {
+            setIsSaving(false)
+        }
+    }
+    const list = async (query?: any) => {
+        setIsLoading(true)
+        try {
+            return obj.list(query)
+        } catch (e: any) {
+            throw new Error(e)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+    const remove = async () => {
+        setIsRemoving(true)
+        try {
+            return obj.list()
+        } catch (e: any) {
+            throw new Error(e)
+        } finally {
+            setIsRemoving(false)
+        }
+    }
+
+    return {
+        get,
+        save,
+        list,
+        remove,
+        obj,
+        isLoading,
+        isSaving,
+        isRemoving
+    }
+
 }

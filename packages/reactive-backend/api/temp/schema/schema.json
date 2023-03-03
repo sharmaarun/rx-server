@@ -1,0 +1,12 @@
+{
+  "name": "temp",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "subType": "varchar",
+      "validations": []
+    }
+  }
+}

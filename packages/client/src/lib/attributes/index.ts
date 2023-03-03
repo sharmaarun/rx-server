@@ -10,13 +10,23 @@ export interface AttributeEditorContext {
     schema?: EntitySchema
 }
 
+export interface ValueEditorContext {
+    attribute?: Attribute
+    schema?: EntitySchema
+}
+
+export interface ValueRendererContext {
+    attribute?: Attribute
+    schema?: EntitySchema
+}
+
 export const AttributeEditorContext = createContext<AttributeEditorContext>({})
 export const useAttributeEditorContext = () => useContext(AttributeEditorContext)
 
 export type AttributeComponents = {
-    valueEditor?: any
-    valueRenderer?: any
-    typeEditor?: (props: AttributeEditorContext) => JSX.Element
+    valueEditor?: (props: ValueEditorContext) => JSX.Element
+    valueRenderer?: (props: ValueRendererContext) => JSX.Element
+    attributeEditor?: (props: AttributeEditorContext) => JSX.Element
 }
 
 export type AttributeMetaData = {

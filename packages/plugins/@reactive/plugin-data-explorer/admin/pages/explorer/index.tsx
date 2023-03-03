@@ -10,11 +10,8 @@ export interface ListSchemasProps extends StackProps {
     children?: any
 }
 
-export type SchemaEditorOutletContext = {
+export type ListSchemaOutletContext = {
     schemas: EntitySchema[]
-    newSchema: EntitySchema
-    onSave: (obj: EntitySchema) => void | Promise<void>
-    onDelete: (obj: EntitySchema) => void | Promise<void>
 }
 
 export function ListSchemas({ children, ...props }: ListSchemasProps) {
@@ -46,7 +43,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
     })
     useEffect(() => {
         if (!pathname || pathname === "/admin/explorer") {
-            navigate(eps?.[0]?.name)
+            eps?.[0]?.name && navigate(eps?.[0]?.name)
         }
     }, [pathname, eps])
 
@@ -133,7 +130,7 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
                     }
                 </PageBody>
             </Page>
-            <Outlet context={{ schemas: eps, newSchema, onSave: save, onDelete }} />
+            <Outlet context={{ schemas: eps }} />
         </TwoColumns >
     )
 }

@@ -1,4 +1,4 @@
-import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons"
+import { Attribute, BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons"
 import { DBManager, Entity } from "."
 import { dummyConfig } from "../../__tests__"
 import { EndpointManager } from "../endpoints"
@@ -92,19 +92,19 @@ describe('DB Manager', () => {
 
     })
 
-
-    it("should prepare related schemas ", async () => {
+    it("should create a new foreign key", async () => {
+        const refAttribute: Attribute = {
+            name: "schema2",
+            type: BaseAttributeType.relation,
+            customType: "relation",
+            ref: "schema2",
+            relationType: RelationType.MANY_TO_ONE,
+            foreignKey: "schema1"
+        }
         const schema1: EntitySchema = {
             name: "schema1",
             attributes: {
-                schema2: {
-                    name: "schema2",
-                    type: BaseAttributeType.relation,
-                    customType: "relation",
-                    ref: "schema2",
-                    relationType: RelationType.ONE_TO_ONE,
-                    foreignKey: "schema1"
-                }
+                schema2: refAttribute
             }
         }
 
@@ -113,40 +113,83 @@ describe('DB Manager', () => {
             attributes: {
             }
         }
-        let refSchemas = await db.prepareRelatedSchemas(schema1, [schema1, schema2])
-        expect(refSchemas?.length).toEqual(1)
-        expect(refSchemas?.[0]?.attributes?.["schema1"]?.name).toBeDefined
-        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
+        await db.define(schema1)
+        await db.define(schema2)
+        const refSchema: any = db.createOrUpdateForeignKey(schema1, {
+            refAttribute,
+            schemas: [schema1, schema2]
+        })
+        expect(refSchema?.attributes?.["schema1"]).toBeDefined()
+        expect(refSchema?.attributes?.["schema1"]?.["ref"]).toBe("schema1")
+        expect(refSchema?.attributes?.["schema1"]?.["isTarget"]).toBe(false)
+        expect(refAttribute.isTarget).toBe(true)
     })
 
-    it("should define proper target when preparing relations", async () => {
+    it("should prepare related schemas ", async () => {
         const schema1: EntitySchema = {
             name: "schema1",
+            attributes: {
+
+            }
+        }
+
+        const schema2 = {
+            name: "schema2",
+            attributes: {
+            }
+        }
+        await db.define(schema1)
+        await db.define(schema2)
+        let refSchemas = await db.getAllModifiedSchemas({
+            ...schema1,
             attributes: {
                 schema2: {
                     name: "schema2",
                     type: BaseAttributeType.relation,
                     customType: "relation",
                     ref: "schema2",
-                    relationType: RelationType.ONE_TO_ONE,
+                    relationType: RelationType.MANY_TO_ONE,
                     foreignKey: "schema1"
                 }
             }
+        })
+        expect(refSchemas?.length).toEqual(2)
+        expect(refSchemas?.[0]?.attributes?.["schema2"]?.isTarget).toBeTruthy()
+        expect(refSchemas?.[1]?.attributes?.["schema1"]?.name).toBeDefined
+        expect(refSchemas?.[1]?.attributes?.["schema1"]?.isTarget).toBeFalsy()
+    })
+
+    it("should define proper target when preparing relations", async () => {
+        const schema2trgt: Attribute = {
+            name: "schema2trgt",
+            type: BaseAttributeType.relation,
+            customType: "relation",
+            ref: "schema2trgt",
+            relationType: RelationType.ONE_TO_ONE,
+            foreignKey: "schema1"
+        }
+        const schema1: EntitySchema = {
+            name: "schema1trgt",
+            attributes: {
+            }
         }
         const schema2: EntitySchema = {
-            name: "schema2",
+            name: "schema2trgt",
             attributes: {
             }
         }
 
-        let refSchemas = await db.prepareRelatedSchemas(schema1, [schema1, schema2])
-        expect(refSchemas?.length).toEqual(1)
-        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
-        const modSchema: any = JSON.parse(JSON.stringify(schema1))
-        modSchema.attributes.schema2.isTarget = true
-        refSchemas = await db.prepareRelatedSchemas(modSchema, [modSchema, schema2])
-        expect(refSchemas?.length).toEqual(1)
-        expect(refSchemas?.[0]?.attributes?.["schema1"]?.isTarget).toBeFalsy()
+        await db.define(schema1)
+        await db.define(schema2)
+        let refSchemas = await db.getAllModifiedSchemas({ ...schema1, attributes: { schema2trgt } })
+        expect(refSchemas?.length).toEqual(2)
+        expect(refSchemas?.[1]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
+        const modSchema: any = JSON.parse(JSON.stringify({ ...schema1, attributes: { schema2trgt } }))
+        modSchema.attributes.schema2trgt.isTarget = true
+        refSchemas = await db.getAllModifiedSchemas(modSchema)
+        expect(refSchemas?.length).toEqual(2)
+        expect(refSchemas?.[1]?.attributes?.["schema1"]?.isTarget).toBeTruthy()
+        expect(refSchemas?.[0]?.attributes?.["schema2trgt"]?.isTarget).toBeFalsy()
     })
 
     it("should start", async () => {

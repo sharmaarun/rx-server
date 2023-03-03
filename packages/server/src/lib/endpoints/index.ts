@@ -280,7 +280,7 @@ export class EndpointManager extends PluginClass {
             ep.routes?.forEach(route => {
 
                 // prepare the route path
-                let path = resolve("/" + ep?.schema?.name + "/" + route.path)
+                let path = resolve("/" + ep?.name + "/" + route.path)
                 if (ep.type === "plugin") {
                     path = "/" + PLUGINS_WEB_ROOT + path
                 }

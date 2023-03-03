@@ -1,5 +1,6 @@
 export * from './alert';
 export * from './badge';
+export * from './calendar';
 export * from './box';
 export * from './button';
 export * from './delete-alert-modal';

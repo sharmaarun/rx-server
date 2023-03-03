@@ -1,9 +1,8 @@
 import { registerAttributeType, RegisteredAttribute, Route as IRoute } from "@reactive/client"
 import { BaseAttributeType, RelationType, StringAttributeSubType } from "@reactive/commons"
 import { RXICO_CALENDAR, RXICO_FIELD_BOOLEAN, RXICO_FIELD_ENUM, RXICO_FIELD_JSON, RXICO_FIELD_NUMBER, RXICO_FIELD_RELATION, RXICO_FIELD_RICH_TEXT, RXICO_FIELD_STRING, RXICO_FIELD_UUID, RXICO_RELATION_HAS_MANY, RXICO_RELATION_HAS_ONE, RXICO_RELATION_MANY_TO_MANY, RXICO_RELATION_MANY_TO_ONE, RXICO_RELATION_ONE_TO_MANY, RXICO_RELATION_ONE_TO_ONE } from "@reactive/icons"
-import { Input } from "@reactive/ui"
 import { Route } from "react-router-dom"
-import { DateTypeEditor, EnumTypeEditor, NumberTypeEditor, RelationsTypeEditor, StringTypeEditor } from "../components/type-editors"
+import { BooleanAttributeEditor, BooleanValueEditor, BooleanValueRenderer, DateTypeEditor, DateValueEditor, DateValueRenderer, EnumAttributeEditor, EnumValueEditor, EnumValueRenderer, JSONAttributeEditor, JSONValueEditor, JSONValueRenderer, NumberAttributeEditor, NumberValueEditor, NumberValueRenderer, RelationsAttributeEditor, RelationValueEditor, RelationValueRenderer, RichTextAttributeEditor, RichTextValueEditor, RichTextValueRenderer, StringAttributeEditor, StringValueEditor, StringValueRenderer, UUIDAttributeEditor, UUIDValueEditor, UUIDValueRenderer } from "../components/type-editors"
 export const buildRouter = (routes?: IRoute[]) => {
     return routes?.map((r, ind) => {
         const Ele = r.element || (() => <></>)
@@ -25,9 +24,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
-                typeEditor: StringTypeEditor
+                valueEditor: StringValueEditor,
+                valueRenderer: StringValueRenderer,
+                attributeEditor: StringAttributeEditor
             },
             icon: () => <RXICO_FIELD_STRING />
         }
@@ -39,9 +38,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
-                typeEditor: NumberTypeEditor
+                valueEditor: NumberValueEditor,
+                valueRenderer: NumberValueRenderer,
+                attributeEditor: NumberAttributeEditor
             },
             icon: () => <RXICO_FIELD_NUMBER />
         }
@@ -54,8 +53,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
+                valueEditor: RichTextValueEditor,
+                valueRenderer: RichTextValueRenderer,
+                attributeEditor: RichTextAttributeEditor
             },
             icon: () => <RXICO_FIELD_RICH_TEXT />
         }
@@ -67,8 +67,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
+                valueEditor: BooleanValueEditor,
+                valueRenderer: BooleanValueRenderer,
+                attributeEditor: BooleanAttributeEditor,
             },
             icon: () => <RXICO_FIELD_BOOLEAN />
         }
@@ -80,9 +81,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
-                typeEditor: DateTypeEditor
+                valueEditor: DateValueEditor,
+                valueRenderer: DateValueRenderer,
+                attributeEditor: DateTypeEditor
             },
             icon: () => <RXICO_CALENDAR />
         }
@@ -94,9 +95,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
-                typeEditor: EnumTypeEditor
+                valueEditor: EnumValueEditor,
+                valueRenderer: EnumValueRenderer,
+                attributeEditor: EnumAttributeEditor
             },
             icon: () => <RXICO_FIELD_ENUM />
         }
@@ -108,8 +109,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
+                valueEditor: JSONValueEditor,
+                valueRenderer: JSONValueRenderer,
+                attributeEditor: JSONAttributeEditor
             },
             icon: () => <RXICO_FIELD_JSON />
         }
@@ -121,9 +123,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
-                typeEditor: RelationsTypeEditor
+                valueEditor: RelationValueEditor,
+                valueRenderer: RelationValueRenderer,
+                attributeEditor: RelationsAttributeEditor
             },
             icon: () => <RXICO_FIELD_RELATION />
         }
@@ -135,8 +137,9 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: Input,
-                valueRenderer: Input,
+                valueEditor: UUIDValueEditor,
+                valueRenderer: UUIDValueRenderer,
+                attributeEditor: UUIDAttributeEditor
             },
             icon: () => <RXICO_FIELD_UUID />
         }

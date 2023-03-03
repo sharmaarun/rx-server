@@ -1,10 +1,9 @@
-import { RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
+import { RXICO_CHEVRON_LEFT, RXICO_PLUS, RXICO_SEARCH } from "@reactive/icons"
 import React, { createContext, useContext, useState } from "react"
 import Box from "../box"
-import { Icon, IconButton } from "../icon"
+import { Icon, IconButton, IconButtonProps } from "../icon"
 import { Input, InputGroup, InputRightElement } from "../input"
 import { HStack, Stack, StackProps } from "../stack"
-
 export interface PageProps extends StackProps {
     children?: any
 }
@@ -17,7 +16,7 @@ export type PageContext = {
 export const PageContext = createContext<PageProps & PageContext>({})
 
 export function Page({ children, ...props }: PageProps & PageContext) {
-    let header, toolbar, footer, body;
+    let header, toolbar, footer, body, content;
 
     const [ctx, setCtx] = useState<PageProps & PageContext>({ ...(props || {}) })
 
@@ -33,6 +32,9 @@ export function Page({ children, ...props }: PageProps & PageContext) {
         }
         if (ele?.type?.name === PageFooter.name) {
             footer = ele
+        }
+        if (ele?.type?.name === PageContent.name) {
+            content = ele
         }
     })
 
@@ -52,9 +54,9 @@ export function Page({ children, ...props }: PageProps & PageContext) {
         }}>
 
             {(header || toolbar) &&
-                <HStack>
+                <HStack px={4} minH="14">
                     {ctx.searchEnabled ?
-                        <Box flex={1} p={2}>
+                        <Box flex={1}>
                             <InputGroup onKeyUp={e => e.key === "Esc" && setSearchEnabled(false)}>
                                 <Input autoFocus onChange={e => setSearch(e.target.value)} placeholder="Search" />
                                 <InputRightElement onClick={e => setSearchEnabled(false)} >
@@ -75,8 +77,10 @@ export function Page({ children, ...props }: PageProps & PageContext) {
 
                 </HStack>
             }
-            {body}
-            {footer}
+            {content ?? <>
+                {body}
+                {footer}
+            </>}
         </PageContext.Provider >
     )
 }
@@ -85,9 +89,27 @@ export interface PageHeaderProps extends StackProps {
 }
 
 export function PageHeader({ children, ...props }: PageHeaderProps) {
-    return (<Stack p={2} pl={4}>
+    return (<Stack minH="14" justifyContent="center" {...props}>
         {children}
     </Stack>
+    )
+}
+
+export interface PageBackButtonProps extends Omit<IconButtonProps, "aria-label"> {
+    children?: any
+}
+
+export function PageBackButton({ children, ...props }: PageBackButtonProps) {
+    const goBack = () => {
+        if (typeof window !== 'undefined') {
+            window.history.back()
+        }
+    }
+    return (<IconButton onClick={goBack} {...props} aria-label="">
+        <Icon>
+            <RXICO_CHEVRON_LEFT />
+        </Icon>
+    </IconButton>
     )
 }
 
@@ -102,12 +124,34 @@ export function PageSearchProvider({ children, ...props }: PageSearchProviderPro
     )
 }
 
+export interface PageContentProps extends StackProps {
+    children?: any
+}
+
+export function PageContent({ children, ...props }: PageContentProps) {
+    let body, footer;
+    React.Children.forEach(children, ele => {
+        if (ele?.type?.name === PageBody.name) {
+            body = ele
+        }
+        if (ele?.type?.name === PageFooter.name) {
+            footer = ele
+        }
+    })
+    return (
+        <Stack overflowY="hidden" flex={1} {...props}>
+            {body}
+            {footer}
+        </Stack>
+    )
+}
+
 export interface PageFooterProps extends StackProps {
     children?: any
 }
 
 export function PageFooter({ children, ...props }: PageFooterProps) {
-    return (<HStack bg="gray.50" justifyContent="flex-end" p={2}>
+    return (<HStack p={2} px={4} bg="gray.50" justifyContent="flex-end" {...props}>
         {children}
     </HStack>
     )
@@ -126,7 +170,7 @@ export function PageToolbar({ children, ...props }: PageToolbarProps) {
         }
     })
     return (
-        <HStack p={2} flex={1} justifyContent="flex-end" {...props}>
+        <HStack flex={1} minH="14" justifyContent="flex-end" {...props}>
             {search ?
                 <IconButton onClick={e => ctx.setSearchEnabled?.(true)} aria-label="">
                     <Icon>
@@ -145,7 +189,7 @@ export interface PageBodyProps extends StackProps {
 export function PageBody({ children, ...props }: PageBodyProps) {
     const ctx = useContext(PageContext)
     return (
-        <Stack overflowY="auto" p={2} flex={1} spacing={0} justifyContent="stretch" {...props}>
+        <Stack p={2} px={4} overflowY="auto" flex={1} spacing={0} justifyContent="stretch" {...props}>
             {typeof children === "function" ? children(ctx) : children}
         </Stack>
     )

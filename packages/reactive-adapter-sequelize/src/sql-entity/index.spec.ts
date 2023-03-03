@@ -1,7 +1,11 @@
 import "reflect-metadata";
 //
-import { BaseAttributeType, BasicAttributeValidation, EntitySchema, NumberAttributeSubType, RelationType, StringAttributeSubType } from "@reactive/commons";
-import { SequelizeAdapter, SQLEntity } from "./index";
+import { BaseAttributeType, EntitySchema, RelationType, StringAttributeSubType } from "@reactive/commons";
+
+import { Op } from "sequelize";
+import { SequelizeAdapter } from "../adapter";
+import { SQLEntity } from "./index";
+
 process.on('unhandledRejection', (reason) => {
     console.log(reason); // log the reason including the stack trace
     throw reason;
@@ -25,6 +29,24 @@ describe('TypeORM DB Adapter', () => {
                 customType: "relation",
                 name: "test2",
                 foreignKey: "test",
+                relationType: RelationType.MANY_TO_ONE,
+                ref: "test2",
+                isTarget: true
+            },
+            test2nms: {
+                type: BaseAttributeType.relation,
+                customType: "relation",
+                name: "test2nms",
+                foreignKey: "testnms",
+                relationType: RelationType.MANY_TO_MANY,
+                ref: "test2",
+                isTarget: true
+            },
+            tester2: {
+                type: BaseAttributeType.relation,
+                customType: "relation",
+                name: "tester2",
+                foreignKey: "tester",
                 relationType: RelationType.MANY_TO_MANY,
                 ref: "test2",
                 isTarget: true
@@ -39,10 +61,25 @@ describe('TypeORM DB Adapter', () => {
                 type: BaseAttributeType.relation,
                 customType: "relation",
                 name: "tests",
-                foreignKey: "test2s",
+                foreignKey: "test2",
+                relationType: RelationType.ONE_TO_MANY,
+                ref: "test",
+            },
+            testnms: {
+                type: BaseAttributeType.relation,
+                customType: "relation",
+                name: "testnms",
+                foreignKey: "test2nms",
                 relationType: RelationType.MANY_TO_MANY,
                 ref: "test",
-
+            },
+            tester: {
+                type: BaseAttributeType.relation,
+                customType: "relation",
+                name: "tester",
+                foreignKey: "tester2",
+                relationType: RelationType.MANY_TO_MANY,
+                ref: "test",
             },
             name: {
                 type: BaseAttributeType.string,
@@ -78,17 +115,16 @@ describe('TypeORM DB Adapter', () => {
         name: "ola"
     }
     const createEntry = async () => {
-        await model.create(obj)
+        return await model.create(obj)
     }
     const init = async () => {
         model = await adapter.model(dummySchema)
         model2 = await adapter.model(dummySchema2)
         await adapter.defineRelations(model2, [model, model2])
+        await adapter.defineRelations(model, [model, model2])
         await adapter.sync()
     }
-
-
-
+    
     beforeEach(async () => {
         await model.delete({ where: { name: "ola" } })
     })
@@ -121,16 +157,44 @@ describe('TypeORM DB Adapter', () => {
         expect(existing).toBeNull()
     })
 
+
     it("should findAll of the matching entries", async () => {
         await createEntry()
         await createEntry()
-        const res = await model.findAll()
+        let res = await model.findAll()
         expect(res.length).toBeGreaterThanOrEqual(2)
+
+    })
+    const Ops = {
+        like: Symbol("like")
+    }
+    it("should findAll of the matching entries with query", async () => {
+        await createEntry()
+        await createEntry()
+        console.log(Op.like, Ops.like)
+        let res = await model.findAll({
+            where: {
+                name: {
+                    "like": "%ola%"
+                }
+            }
+        })
+        expect(res.length).toBeGreaterThanOrEqual(2)
+
     })
 
     it("should update matching entries", async () => {
         await createEntry()
         const res = await model.update({ where: { name: obj.name } }, { name: "ad" })
+        expect(res[0]).toEqual(1)
+    })
+
+    it("should update matching ref entries", async () => {
+        const entry = await createEntry()
+        const entry2 = await model2.create({
+            name: "tester",
+        })
+        const res = await model2.update({ where: { id: entry2?.id } }, { name: "tst", tests: entry.id })
         expect(res[0]).toEqual(1)
     })
 
@@ -146,78 +210,47 @@ describe('TypeORM DB Adapter', () => {
         expect(res).toEqual(1)
     })
 
-    describe('Query Interface', () => {
-
-        const oldSchema: EntitySchema = {
-            name: "test2",
-            attributes: {
-                name: {
-                    type: BaseAttributeType.number,
-                    subType: NumberAttributeSubType.double,
-                    customType: "number",
-                    name: "name",
-                },
-                attr: {
-                    type: BaseAttributeType.boolean,
-                    customType: "boolean",
-                    name: "attr",
-                }
-            }
-        }
-        let model2: SQLEntity<any>;
-
-        beforeAll(async () => {
-            await adapter.getQueryInterface().addAttribute(dummySchema.name, {
-                name: "isNew",
-                type: BaseAttributeType.string
-            })
-
-            model2 = await adapter.model(oldSchema)
-            await adapter.dataSource.sync()
+    it("should create and find entry with relations", async () => {
+        const entry = await model.create({
+            name: "entry1"
         })
-
-        it("should prepare db column from schema", () => {
-
-            const col = adapter.getQueryInterface().prepareColumn({
-                type: BaseAttributeType.number,
-                subType: NumberAttributeSubType.double,
-                customType: "number",
-                name: "name",
-            })
-            expect(typeof col.type).toBe("function")
-            expect((col.type as any).name).toBe("DOUBLE")
+        const entry2 = await model2.create({
+            name: "entry2",
+            tests: [entry.id],
+            testnms: [entry.id],
+            tester: entry.id
         })
-
-        it("should add new attribute to an existing table", async () => {
-            const desc: any = await adapter.dataSource.getQueryInterface().describeTable(dummySchema.name)
-            expect(desc.isNew).toBeDefined()
-        })
-
-        it("should change attribute in an existing table", async () => {
-            await adapter.getQueryInterface().changeAttribute("test", {
-                name: "isNew",
-                type: BaseAttributeType.boolean,
-                validations: [{
-                    type: BasicAttributeValidation.equals,
-                    value: "2"
-                }]
-            })
-
-            const desc: any = await adapter.dataSource.getQueryInterface().describeTable("test")
-            expect(desc.isNew).toBeDefined()
-        })
-        it("should remove attribute in an existing table", async () => {
-            await adapter.getQueryInterface().removeAttribute("test", {
-                name: "isNew",
-                type: BaseAttributeType.boolean,
-            })
-
-            const desc: any = await adapter.dataSource.getQueryInterface().describeTable("test")
-            expect(desc.isNew).toBeUndefined()
-        })
-
+        const dbEntry: any = await model.findAll({ include: ["test2", "test2nms", "tester2"] })
+        console.log(dbEntry?.map?.((e: any) => e?.toJSON()))
+        const dbEntry2: any = await model2.findAll({ include: ["tests", "testnms", "tester"] })
+        console.log(dbEntry2?.map?.((e: any) => e?.toJSON()))
+        expect(dbEntry2?.[0]?.id).toBeDefined()
+        expect(dbEntry2?.[0]?.tests).toBeDefined()
+        expect(dbEntry2?.[0]?.tests?.length).toBe(1)
+        expect(dbEntry2?.[0]?.testnms?.length).toBe(1)
+        expect(dbEntry2?.[0]?.tester?.id).toBeDefined()
     })
-    afterAll(async () => {
-        // await adapter.dropDatabase()
+
+    it("should update entry with relations", async () => {
+        const entry3 = await model.create({
+            name: "entry3"
+        })
+        const entry4 = await model2.create({
+            name: "entry4",
+        })
+
+        await model.update({ where: { id: entry3.id } }, {
+            test2: entry4.id,
+            tester2: entry4.id,
+            test2nms: [entry4.id]
+        })
+
+        const entry3updated = await model.findOne({ where: { name: "entry3" }, include: ["test2", "tester2", "test2nms"] })
+
+        expect(entry3updated).toBeDefined()
+        expect(entry3updated.test2).toBeDefined()
+        expect(entry3updated.tester2.id).toBeDefined()
+        expect(entry3updated.test2nms).toBeDefined()
+        expect(entry3updated.test2nms.length).toBe(1)
     })
 })

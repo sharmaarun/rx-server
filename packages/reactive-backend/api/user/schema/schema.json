@@ -5,7 +5,65 @@
       "type": "string",
       "customType": "string",
       "name": "name",
-      "subType": "varchar"
+      "subType": "text",
+      "isRequired": true
+    },
+    "popa": {
+      "type": "number",
+      "customType": "number",
+      "name": "popa",
+      "subType": "integer"
+    },
+    "description": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "description"
+    },
+    "isConfirmed": {
+      "type": "boolean",
+      "customType": "boolean",
+      "name": "isConfirmed"
+    },
+    "when": {
+      "type": "date",
+      "customType": "date",
+      "name": "when",
+      "subType": "date"
+    },
+    "mynum": {
+      "type": "enum",
+      "customType": "enum",
+      "name": "mynum",
+      "values": [
+        "one",
+        "two",
+        "three",
+        "four"
+      ],
+      "isRequired": false
+    },
+    "json": {
+      "type": "json",
+      "customType": "json",
+      "name": "json",
+      "isRequired": true
+    },
+    "age": {
+      "type": "number",
+      "customType": "number",
+      "name": "age",
+      "subType": "integer",
+      "isRequired": false
+    },
+    "temp": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "temp",
+      "relationType": "[1]",
+      "ref": "temp",
+      "foreignKey": "user",
+      "isTarget": false
     }
   }
 }

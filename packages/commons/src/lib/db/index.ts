@@ -94,9 +94,9 @@ export enum BasicAttributeValidation {
     "isDecimal" = "isDecimal",
     "isLowercase" = "isLowercase",
     "isUppercase" = "isUppercase",
-    "notNull" = "notNull",
-    "isNull" = "isNull",
-    "notEmpty" = "notEmpty",
+    // "notNull" = "notNull",
+    // "isNull" = "isNull",
+    // "notEmpty" = "notEmpty",
     "equals" = "equals",
     "contains" = "contains",
     "notIn" = "notIn",
@@ -110,6 +110,49 @@ export enum BasicAttributeValidation {
     "max" = "max",
     "min" = "min",
     "isCreditCard" = "isCreditCard",
+}
+
+export enum Operators {
+    "eq" = "eq",
+    "ne" = "ne",
+    "gte" = "gte",
+    "gt" = "gt",
+    "lte" = "lte",
+    "lt" = "lt",
+    "not" = "not",
+    "is" = "is",
+    "in" = "in",
+    "notIn" = "notIn",
+    "like" = "like",
+    "notLike" = "notLike",
+    "iLike" = "iLike",
+    "notILike" = "notILike",
+    "startsWith" = "startsWith",
+    "endsWith" = "endsWith",
+    "substring" = "substring",
+    "regexp" = "regexp",
+    "notRegexp" = "notRegexp",
+    "iRegexp" = "iRegexp",
+    "notIRegexp" = "notIRegexp",
+    "between" = "between",
+    "notBetween" = "notBetween",
+    "overlap" = "overlap",
+    "contains" = "contains",
+    "contained" = "contained",
+    "adjacent" = "adjacent",
+    "strictLeft" = "strictLeft",
+    "strictRight" = "strictRight",
+    "noExtendRight" = "noExtendRight",
+    "noExtendLeft" = "noExtendLeft",
+    "and" = "and",
+    "or" = "or",
+    "any" = "any",
+    "all" = "all",
+    "values" = "values",
+    "col" = "col",
+    "placeholder" = "placeholder",
+    "join" = "join",
+    "match" = "match",
 }
 
 export type BasicAttributeValidationType = {
@@ -160,9 +203,12 @@ export class CoreAttributes {
     public id!: string
 }
 
+export type WhereOptionsQuery = {
+    [key in Operators]?: any
+}
 
 export type WhereOptionsAttrs = {
-    attributes?: any
+    [k: string | symbol | number]: WhereOptionsQuery
 }
 
 export type WhereOptions<T = any> = T extends T ? Partial<T> & WhereOptionsAttrs : WhereOptionsAttrs;
@@ -177,9 +223,15 @@ export type QueryOrder = string | string[] | QueryOrderItem[]
 
 export type QueryGroup = string | string[]
 
+export type QueryIncludeOpts<T = any> = {
+    association?: string
+    attributes?: string[]
+    where?: WhereOptions<T>
+}
+
 export type Query<T = any> = {
     where?: WhereOptions<T>
-    include?: string[]
+    include?: (string | QueryIncludeOpts<T>)[]
     pagination?: QueryPagination
     group?: QueryGroup
     order?: QueryOrder

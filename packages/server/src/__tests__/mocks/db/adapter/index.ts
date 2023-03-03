@@ -24,10 +24,22 @@ export default class MockDBAdapter extends DBAdapter {
     }
     getQueryInterface(): QueryInterface {
         return {
-            addAttribute(name, attribute) { },
-            changeAttribute(name, attribute) { },
-            removeAttribute(name, attribute) { }
+            addAttribute(
+                schema,
+                attribute) { },
+            changeAttribute(
+                schema,
+                oldAttribute,
+                newAttribute,
+            ) { },
+            removeAttribute(
+                allSchemas,
+                attribute
+            ) { }
         }
+    }
+    async transaction({ }: any) {
+        return {} as any;
     }
 
     defineRelations<T = any>(entity: Entity<any>, entities: Entity<any>[]): void | Promise<void> {

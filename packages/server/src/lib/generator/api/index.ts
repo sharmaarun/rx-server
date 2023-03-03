@@ -59,27 +59,16 @@ export class APIGenerator extends Generator {
      * @param opts 
      * @returns 
      */
-    public async saveEndpointSchema(schema: EntitySchema, opts?: SaveEndpointOpts) {
-        const { updateRefs = true } = opts || {}
+    public async saveEndpointSchema(schema: EntitySchema) {
         if (!schema || !schema.attributes || !schema.name) throw new Error("Invalid schema provided")
         if (Object.keys(schema.attributes).length <= 0) throw new Error("At least one attribute/field required")
 
         const destDir = resolve(this.ctx.appDir, this.ctx.config.api.path, schema.name)
         if (!this.ctx.fs.exists(destDir)) throw new Error(`API doesn't exist: ${destDir}`)
-
+        
         const schemaFilePath = resolve(destDir, "schema", "schema.json")
         this.ctx.fs.writeFile(schemaFilePath, JSON.stringify(schema, null, 2))
-
-        if (updateRefs) {
-            const allSchemas = this.ctx.endpoints.endpoints.filter(ep => ep.schema && ep.schema.name)?.map(ep => ep.schema)
-            const refsToUpdate = await this.db.prepareRelatedSchemas(schema, allSchemas as any || [])
-            if (refsToUpdate?.length) {
-                for (let ref of refsToUpdate) {
-                    await this.saveEndpointSchema(ref, { updateRefs: false })
-                }
-            }
-        }
-
+        
         return schema
     }
 
@@ -98,6 +87,8 @@ export class APIGenerator extends Generator {
         if (!existsSync(path)) throw new Error("No such endpoint schema exists")
         await this.ctx.fs.rmDir(path)
     }
+
+
 
 
 }

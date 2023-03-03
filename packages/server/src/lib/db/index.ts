@@ -8,8 +8,75 @@ export type DropDatabaseOptions = {
     cascade?: boolean
 }
 
+export enum TransactionLevel {
+    READ_UNCOMMITTED = 'READ UNCOMMITTED',
+    READ_COMMITTED = 'READ COMMITTED',
+    REPEATABLE_READ = 'REPEATABLE READ',
+    SERIALIZABLE = 'SERIALIZABLE',
+}
+
+export enum TransactionType {
+    DEFERRED = 'DEFERRED',
+    IMMEDIATE = 'IMMEDIATE',
+    EXCLUSIVE = 'EXCLUSIVE',
+}
+
+
+export type TransactionOptions = {
+    autocommit?: boolean;
+    isolationLevel?: TransactionLevel;
+    type?: TransactionType;
+    deferrable?: string;
+    transaction?: Transaction | null;
+}
+
+export type Transaction = {
+    /**
+     * Commit the transaction
+     */
+    commit(): Promise<void>;
+
+    /**
+     * Rollback (abort) the transaction
+     */
+    rollback(): Promise<void>;
+
+    /**
+     * Adds hook that is run after a transaction is committed
+     */
+    afterCommit(fn: (transaction: any) => void | Promise<void>): void;
+
+    LOCK: any
+
+}
+
 export type SyncDatabaseOptions = {
-    cascade?: boolean
+    /**
+       * If force is true, each DAO will do DROP TABLE IF EXISTS ..., before it tries to create its own table
+       */
+    force?: boolean;
+
+    /**
+     * If alter is true, each DAO will do ALTER TABLE ... CHANGE ...
+     * Alters tables to fit models. Provide an object for additional configuration. Not recommended for production use. If not further configured deletes data in columns that were removed or had their type changed in the model.
+     */
+    alter?: boolean
+
+    /**
+     * Match a regex against the database name before syncing, a safety check for cases where force: true is
+     * used in tests but not live code
+     */
+    match?: RegExp;
+
+    /**
+     * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
+     */
+    schema?: string;
+
+    /**
+     * An optional parameter to specify the schema search_path (Postgres only)
+     */
+    searchPath?: string;
 }
 
 export type UpdateReturnType<T> = [number, T | T[]]
@@ -51,28 +118,39 @@ export abstract class DBAdapter extends PluginClass {
      * Returns the underlying query interface for adavanced operations
      */
     abstract getQueryInterface(): QueryInterface
+
+    /**
+     * Returns the underlying transaction mechanism
+     */
+    abstract transaction(opts?: TransactionOptions): Transaction | Promise<Transaction>
+
+}
+
+export type QueryInterfaceOptions<T = any> = {
+    transaction?: T extends T ? Transaction : T
 }
 
 export abstract class QueryInterface {
     /**
-     * Add new attribute to the database
+     * Add new attribute to the table
      * @param entityName 
      * @param attribute 
      */
-    public abstract addAttribute(entityName: string, attribute: Attribute): void | Promise<void>
-    /**
-     * Change existing attribute structure in the database
-     * @param entityName 
-     * @param attribute 
-     */
-    public abstract changeAttribute(entityName: string, attribute: Attribute): void | Promise<void>
-    /**
-     * Remove existing attribute
-     * @param entityName 
-     * @param attribute 
-     */
-    public abstract removeAttribute(entityName: string, attribute: Attribute): void | Promise<void>
+    public abstract addAttribute(schema: EntitySchema, attribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
 
+    /**
+     * Change existing attribute structure in the table
+     * @param entityName 
+     * @param attribute 
+     */
+    public abstract changeAttribute(schema: EntitySchema, oldAttribute: Attribute, newAttribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
+
+    /**
+     * Remove existing attribute from the table
+     * @param entityName 
+     * @param attribute 
+     */
+    public abstract removeAttribute(schema: EntitySchema, attribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
 }
 
 /**
@@ -247,20 +325,22 @@ export class DBManager extends PluginClass {
      * @param newSchema 
      * @param oldSchema 
      */
-    public async migrateSchema(newSchema: EntitySchema, oldSchema: EntitySchema) {
+    public async migrateSchema(newSchema: EntitySchema, oldSchema: EntitySchema, transaction?: any) {
         const [toRemove, toChange, toAdd] = await this.diffSchemas(newSchema, oldSchema)
-        console.debug("Migrating...")
+        console.debug("Migrating", oldSchema?.name)
         for (let tc of toChange) {
-            console.debug("Changing ", tc)
-            await this.adapter.getQueryInterface().changeAttribute(oldSchema.name, tc)
+            const otc = Object.values(oldSchema?.attributes || {}).find(attr => tc.name === attr.name)
+            if (!otc) throw new Error("Could not find correspnding old attribute to change!")
+            console.debug("Chanding attribute from ", tc, "to", otc)
+            await this.adapter.getQueryInterface().changeAttribute(oldSchema, otc, tc, { transaction })
         }
         for (let ta of toAdd) {
-            console.debug("Changing ", ta)
-            await this.adapter.getQueryInterface().addAttribute(oldSchema.name, ta)
+            console.debug("Adding ", ta)
+            await this.adapter.getQueryInterface().addAttribute(oldSchema, ta, { transaction })
         }
         for (let tr of toRemove) {
-            console.debug("Changing ", tr)
-            await this.adapter.getQueryInterface().removeAttribute(oldSchema.name, tr)
+            console.debug("Removing ", tr)
+            await this.adapter.getQueryInterface().removeAttribute(oldSchema, tr, { transaction })
         }
     }
 
@@ -292,6 +372,10 @@ export class DBManager extends PluginClass {
         await this.adapter.start()
     }
 
+    public async transaction(opts?: TransactionOptions) {
+        return await this.adapter.transaction(opts)
+    }
+
     /**
      * Returns the model by name
      * @param name 
@@ -299,66 +383,167 @@ export class DBManager extends PluginClass {
      */
     public getEntity = <T>(name: string) => this.entities.find(m => m.schema.name === name) as Entity<T>
 
-
     /**
      * Prepares the relational schemas (having attribut type `relation`)
      * @param schema 
      * @param allSchemas 
      * @returns 
      */
-    public async prepareRelatedSchemas(schema: EntitySchema, allSchemas: EntitySchema[]) {
-        const refAttributes = Object.values(schema?.attributes || {}).filter(attr => attr.type === BaseAttributeType.relation)
+    public async getAllModifiedSchemas(newSchema: EntitySchema) {
 
-        if (refAttributes.length <= 0) return;
+
         const refSchemas: EntitySchema[] = []
-        for (let refAttr of refAttributes) {
-            const refSchema = allSchemas.find(s => s?.name === refAttr.ref)
 
-            if (schema?.name === refAttr.ref) continue;
-            if (refSchema?.name) {
+        // for requested schema, diff from old one and extract the changed attributes
+        let allSchemas: EntitySchema[] = JSON.parse(JSON.stringify(this.schemas))
+        allSchemas = allSchemas.filter(s => s.name !== newSchema.name)
+        allSchemas = [...allSchemas, newSchema]
+        const oldSchema = this.schemas.find(s => s.name === newSchema.name)
+        if (!oldSchema) throw new Error(`No such schema exists : ${newSchema.name}`)
 
-                if (!refAttr.relationType) throw new Error(`Invalid relation type ${refAttr.relationType} for attribute ${refAttr?.name}`)
+        const [remove, change, add] = await this.diffSchemas(newSchema, oldSchema)
+        console.debug(remove, change, add)
+        // if nothing to do, return empty array
+        if (
+            remove.length <= 0 &&
+            change.length <= 0 &&
+            add.length <= 0
+        ) {
+            return refSchemas
+        }
 
-                if ((
-                    refAttr.relationType === RelationType.HAS_ONE ||
-                    refAttr.relationType === RelationType.HAS_MANY
-                )) {
-                    if (refSchema && refSchema.attributes && refAttr.foreignKey &&
-                        refSchema.attributes[refAttr.foreignKey]?.name) {
-                        try {
 
-                            refSchema.attributes[refAttr.foreignKey] = undefined as any
-                            delete refSchema.attributes[refAttr.foreignKey]
-                            refSchemas.push(refSchema)
-                        } catch (e) {
-                            console.error(e)
-                        }
-                    }
-                    continue
+        // for all new 
+        for (let refAttribute of add) {
+            if (refAttribute.type === BaseAttributeType.relation) {
+                // add foreign key to ref schema
+                const refSchema = this.createOrUpdateForeignKey(newSchema, { refAttribute, schemas: allSchemas })
+                // add this schema to refSchemas array if not already exists
+                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
+                if (!exists && refSchema?.name) {
+                    refSchemas.push(refSchema);
                 }
-
-                if (!refAttr.foreignKey) throw new Error(`Invalid foreign key  ${refAttr.foreignKey} for attribute ${refAttr?.name}`)
-
-                if (!ReverseRelationsMap[refAttr.relationType]) throw new Error(`Invalid reverse relation type : ${ReverseRelationsMap[refAttr.relationType]} for attribute ${refAttr?.name}`)
-
-
-                refSchema.attributes = {
-                    ...(refSchema.attributes || {}),
-                    [refAttr.foreignKey]: {
-                        type: BaseAttributeType.relation,
-                        ref: schema.name,
-                        name: refAttr.foreignKey,
-                        relationType: ReverseRelationsMap[refAttr.relationType],
-                        customType: refAttr.customType,
-                        foreignKey: refAttr.name,
-                        // if this attribute is not the target already, then related schema attribute is a target
-                        ...(refAttr.ref !== schema?.name ? { isTarget: !refAttr.isTarget } : {})
-                    }
-                }
-                refSchemas.push(refSchema)
             }
         }
-        return refSchemas
+
+        // for changed
+        for (let refAttribute of change) {
+            if (refAttribute.type === BaseAttributeType.relation) {
+                // add or update foreign key to ref schema
+                const refSchema = this.createOrUpdateForeignKey(newSchema, { refAttribute, schemas: allSchemas })
+                // add this schema to refSchemas array if not already exists
+                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
+                if (!exists && refSchema?.name) {
+                    refSchemas.push(refSchema);
+                }
+            }
+        }
+
+        // for removed
+        for (let refAttribute of remove) {
+            if (refAttribute.type === BaseAttributeType.relation) {
+                // remove foreign key to ref schema
+                const refSchema = this.removeForeignKey({ refAttribute, schemas: allSchemas })
+                // add this schema to refSchemas array if not already exists
+                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
+                if (!exists && refSchema?.name) {
+                    refSchemas.push(refSchema);
+                }
+            }
+        }
+
+        // push this schema if not already
+        if (!refSchemas?.find(rs => rs.name === newSchema.name)) {
+            refSchemas.push(newSchema)
+        }
+
+
+        return refSchemas || []
+    }
+
+    /**
+     * Create or update a foreign key for a ref/relation type attribute
+     * @param schema 
+     * @param opts 
+     * @returns 
+     */
+    public createOrUpdateForeignKey = (schema: EntitySchema, opts: {
+        refAttribute: Attribute,
+        schemas?: EntitySchema[]
+    }) => {
+        const { refAttribute, schemas } = opts
+        // if attr is a relation type attribute
+        // check if the ref schema has the foreingKey attribute
+        if (!refAttribute.foreignKey || !refAttribute.relationType) throw new Error(`Invalid attribute properties: ${JSON.stringify(refAttribute)}`)
+        let refSchema = (schemas || this.schemas).find(s => s.name === refAttribute.ref)
+        if (!refSchema || !refSchema.attributes) throw new Error(`No ref schema found for ${refAttribute.name}`)
+
+        // for all many to one relations, isTarget should be true
+        if (schema.attributes) {
+            if (refAttribute.relationType === RelationType.MANY_TO_ONE) {
+                schema.attributes[refAttribute.name].isTarget = true
+            } else {
+                schema.attributes[refAttribute.name].isTarget = false
+            }
+        }
+
+        // for HAS_ONE and HAS_MANY relations, the corresponding ref schema attribute should be null/none
+        if (
+            refAttribute.relationType === RelationType.HAS_MANY ||
+            refAttribute.relationType === RelationType.HAS_ONE
+        ) {
+            if (!refSchema.attributes[refAttribute.foreignKey])
+                return
+
+            refSchema.attributes[refAttribute.foreignKey] = undefined as any
+            delete refSchema.attributes[refAttribute.foreignKey]
+            return;
+        }
+
+        // for other type of relations, the corresponding ref schema attribute is
+        // an opposite replica of this attribute with isTarget set to false
+        // if (!refSchema.attributes[refAttribute.foreignKey]) {
+        refSchema.attributes[refAttribute.foreignKey] = {
+            type: BaseAttributeType.relation,
+            ref: schema.name,
+            name: refAttribute.foreignKey,
+            relationType: ReverseRelationsMap[refAttribute.relationType],
+            customType: refAttribute.customType,
+            foreignKey: refAttribute.name,
+            // if this attribute is not the target already, or it is m:1 relation then related schema attribute is a target
+            isTarget: !refAttribute.isTarget
+        }
+        // }
+        return refSchema
+    }
+
+    /**
+     * Remove a foreign key for a ref/relation type attribute
+     * @param opts 
+     * @returns 
+     */
+    public removeForeignKey = (opts: {
+        refAttribute: Attribute,
+        schemas?: EntitySchema[]
+    }) => {
+        const { refAttribute, schemas } = opts
+        // if attr is a relation type attribute
+        // check if the ref schema has the foreingKey attribute
+        if (!refAttribute.foreignKey || !refAttribute.relationType) throw new Error(`Invalid attribute properties: ${JSON.stringify(refAttribute)}`)
+        let refSchema = (schemas || this.schemas).find(s => s.name === refAttribute.ref)
+        if (!refSchema || !refSchema.attributes) throw new Error(`No ref schema found for ${refAttribute.name}`)
+
+        if (!refSchema.attributes[refAttribute.foreignKey])
+            return
+
+        refSchema.attributes[refAttribute.foreignKey] = undefined as any
+        delete refSchema.attributes[refAttribute.foreignKey]
+        return refSchema
+
+    }
+
+    public get schemas() {
+        return this.entities.map(e => e.schema)
     }
 }
 

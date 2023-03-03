@@ -30,7 +30,7 @@ export function ListItem({ isActive, ...props }: ListItemProps) {
 export function LinkListItem({ isActive, ...props }: ListItemProps) {
     return (
         <_ListItem
-            p={2} pl={4}
+            p={2}
             bgColor={isActive ? "blackAlpha.200" : ""}
             _hover={{ bgColor: isActive ? "" : "blackAlpha.50" }}
             borderRadius={4}
@@ -43,7 +43,6 @@ export function LinkListItem({ isActive, ...props }: ListItemProps) {
 export function ActionListItem({ isActive, children, ...props }: ListItemProps) {
     return (
         <_ListItem
-            p={2} pl={4}
             borderRadius={4}
             display="flex"
             justifyContent="stretch"

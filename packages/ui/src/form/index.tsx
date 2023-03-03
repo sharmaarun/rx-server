@@ -1,20 +1,22 @@
 import { Box, BoxProps } from '@chakra-ui/react'
 import { plainToInstance } from 'class-transformer'
 import { validate, ValidationError } from 'class-validator'
-import { Children, cloneElement, createContext, useContext, useEffect, useState } from 'react'
+import { Children, cloneElement, createContext, CSSProperties, useContext, useEffect, useState } from 'react'
 import { ActionButton, Button, ButtonProps } from '../button'
 import Stack from "../stack"
 
 /**
  * Form Props
  */
-export type FormProps = BoxProps & {
+export type FormProps = {
+    id?: string
     children?: any,
     validationClass?: any
     preSubmit?: (ctx: FormContext) => void | Promise<void>
     onSubmit?: (value: any) => void | Promise<void>
-    onChange?: (value: any) => void
+    onFormChange?: (value: any) => void
     defaultValue?: any
+    style?: CSSProperties
 }
 
 export type FieldType = "string" | "number" | "float" | "boolean"
@@ -73,8 +75,8 @@ const tids: any = {
     regField: -1,
     regStage: -1,
 }
-export function Form({ children, validationClass, middlewares: mws, errors: errs, defaultValue, onSubmit }: FormContext) {
-
+export function Form({ children, ...props }: FormContext) {
+    const { validationClass, middlewares: mws, errors: errs, defaultValue, onSubmit } = props || {}
     const fields_: RegisteredFields = {};
     const stages_: FormStageProps[] = [];
 
@@ -92,6 +94,10 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
         if (errs)
             setErrors(errs)
     }, [errs])
+
+    useEffect(() => {
+        props?.onFormChange?.(form)
+    }, [form])
 
     const register = (key: string, opts: FieldRegisterOpts) => {
         clearTimeout(tids.regField)
@@ -236,7 +242,7 @@ export function Form({ children, validationClass, middlewares: mws, errors: errs
     }
 
     return (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={props.style}>
             <FormContext.Provider value={ctx}>
                 {children}
             </FormContext.Provider>
@@ -268,7 +274,7 @@ export function Field({
     }, [defaultValue])
 
     const onChange_ = (key: string) => (e: any) => {
-        onChange?.(name, type === "boolean" ? e.target.checked : e.target ? e.target.value : e)
+        onChange?.(name, type === "boolean" ? e?.target?.checked : e?.target ? e?.target?.value : e)
     }
 
     const error = errors?.find(e => e.property === name)
@@ -361,7 +367,6 @@ export function FieldLabel(props: FormLabelProps) {
 }
 
 import { Text, TextProps } from "@chakra-ui/react"
-import { Middleware } from 'webpack-dev-server'
 
 export interface FormFieldDescriptionProps extends TextProps {
     children?: any
