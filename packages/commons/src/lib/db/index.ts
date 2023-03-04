@@ -79,6 +79,7 @@ export enum RelationType {
 
 
 export enum BasicAttributeValidation {
+    "matches"="matches",
     "is" = "is",
     "not" = "not",
     "isEmail" = "isEmail",

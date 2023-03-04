@@ -6,16 +6,12 @@
       "customType": "string",
       "name": "name",
       "subType": "varchar",
-      "validations": []
-    },
-    "popo": {
-      "type": "relation",
-      "ref": "popo",
-      "name": "popo",
-      "relationType": "1:1",
-      "customType": "relation",
-      "foreignKey": "temp",
-      "isTarget": true
+      "validations": [
+        {
+          "type": "matches",
+          "value": "pola"
+        }
+      ]
     }
   }
 }

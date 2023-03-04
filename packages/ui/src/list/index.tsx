@@ -43,14 +43,19 @@ export function LinkListItem({ isActive, ...props }: ListItemProps) {
 export function ActionListItem({ isActive, children, ...props }: ListItemProps) {
     return (
         <_ListItem
-            borderRadius={4}
-            display="flex"
-            justifyContent="stretch"
-            alignItems="stretch"
+            borderRadius={8}
+            border="2px solid transparent"
+            _hover={{
+                borderColor: "purple.500",
+                bgColor: "gray.50"
+            }}
+            cursor={"pointer"}
+            shadow="base"
+            p={4}
+            w="100%"
+            as={Card}
             {...props} >
-            <Card w="100%" p={4}>
-                {children}
-            </Card>
+            {children}
         </_ListItem>
     )
 }

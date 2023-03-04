@@ -68,7 +68,9 @@ export function StringAttributeEditor({ children, attribute, ...props }: StringA
                     </HStack>
                 </FieldControl>
             </HStack>
-            <AttributeValidationsEditor />
+            <Field name="validations">
+                <AttributeValidationsEditor />
+            </Field>
         </FormStage>
     )
 }

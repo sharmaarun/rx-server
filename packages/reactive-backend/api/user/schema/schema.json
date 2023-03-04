@@ -52,15 +52,6 @@
       "customType": "number",
       "name": "age",
       "subType": "integer"
-    },
-    "popo": {
-      "type": "relation",
-      "customType": "relation",
-      "name": "popo",
-      "relationType": "m:m",
-      "ref": "popo",
-      "foreignKey": "user",
-      "isTarget": false
     }
   }
 }

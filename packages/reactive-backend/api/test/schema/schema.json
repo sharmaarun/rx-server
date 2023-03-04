@@ -1,10 +1,10 @@
 {
   "name": "test",
   "attributes": {
-    "popa": {
+    "name": {
       "type": "string",
       "customType": "string",
-      "name": "popa",
+      "name": "name",
       "subType": "varchar"
     }
   }
