@@ -16,15 +16,6 @@
       "customType": "relation",
       "foreignKey": "temp",
       "isTarget": true
-    },
-    "user": {
-      "type": "relation",
-      "ref": "user",
-      "name": "user",
-      "relationType": "1:1",
-      "customType": "relation",
-      "foreignKey": "popo",
-      "isTarget": true
     }
   }
 }

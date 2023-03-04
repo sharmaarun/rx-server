@@ -21,6 +21,15 @@
       "customType": "string",
       "name": "name",
       "subType": "varchar"
+    },
+    "user": {
+      "type": "relation",
+      "ref": "user",
+      "name": "user",
+      "relationType": "m:m",
+      "customType": "relation",
+      "foreignKey": "popo",
+      "isTarget": true
     }
   }
 }

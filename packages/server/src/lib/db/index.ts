@@ -474,7 +474,7 @@ export class DBManager extends PluginClass {
         for (let refAttribute of add) {
             if (refAttribute.type === BaseAttributeType.relation) {
                 const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
-                if (oldAttr && oldAttr.foreignKey !== refAttribute.foreignKey) {
+                if (oldAttr && JSON.stringify(oldAttr)!==JSON.stringify(refAttribute)) {
                     const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
                     addIfNotExist(oldRefSchema)
                 }
@@ -490,8 +490,11 @@ export class DBManager extends PluginClass {
         for (let refAttribute of change) {
             if (refAttribute.type === BaseAttributeType.relation) {
                 const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
-                if (oldAttr && oldAttr.foreignKey !== refAttribute.foreignKey) {
+                console.debug("Found old orphaned attribute", oldAttr?.name)
+                if (oldAttr && JSON.stringify(oldAttr)!==JSON.stringify(refAttribute)) {
+                    console.debug("Removing orphaned attribute relations", oldAttr?.name)
                     const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
+                    console.debug("Done", oldRefSchema?.name)
                     addIfNotExist(oldRefSchema)
                 }
                 // add or update foreign key to ref schema
