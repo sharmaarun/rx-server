@@ -59,7 +59,8 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
             return
         }
         schema.set(obj)
-        await schema.save({}, { mode: newSchema?.name ? "create" : "update" })
+        const res = await schema.save({}, { mode: newSchema?.name ? "create" : "update" })
+        console.log(res)
         toast({
             title: "Success",
             description: "All changes were applied correctly. Server will now restart for the changes to take effect...",
@@ -81,14 +82,25 @@ export function ListSchemas({ children, ...props }: ListSchemasProps) {
 
     const onDelete = async (obj: EntitySchema) => {
         schema.set(obj)
-        await schema.delete(schema?.attributes.name)
-        toast({
-            title: "Success",
-            description: "The endpoint was deleted. Server will now restart for the changes to take effect...",
-            position: "top",
-            status: "success"
-        })
-        reload()
+        try{
+            const res = await schema.delete(schema?.attributes.name)
+            console.log(res)
+            toast({
+                title: "Success",
+                description: "The endpoint was deleted. Server will now restart for the changes to take effect...",
+                position: "top",
+                status: "success"
+            })
+            reload()
+        }catch(e:any){
+            toast({
+                title: "Error",
+                description: e.message,
+                position: "top",
+                status: "error"
+            })
+            
+        }
     }
 
     const basicTypes = newSchema?.name ? [...eps, newSchema] : eps

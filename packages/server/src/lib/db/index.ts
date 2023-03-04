@@ -140,24 +140,31 @@ export abstract class QueryInterface {
 
     /**
      * Add new attribute to the table
-     * @param entityName 
+     * @param schema EntitySchema to modify
      * @param attribute 
      */
     public abstract addAttribute(schema: EntitySchema, attribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
 
     /**
      * Change existing attribute structure in the table
-     * @param entityName 
+     * @param schema EntitySchema to modify
      * @param attribute 
      */
     public abstract changeAttribute(schema: EntitySchema, oldAttribute: Attribute, newAttribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
 
     /**
      * Remove existing attribute from the table
-     * @param entityName 
+     * @param schema EntitySchema to modify
      * @param attribute 
      */
     public abstract removeAttribute(schema: EntitySchema, attribute: Attribute, opts?: QueryInterfaceOptions): void | Promise<void>
+
+    /**
+     * Removes entity's table and relational attributes from the database
+     * @param schema EntitySchema to remove entity for
+     * @param opts (optional)
+     */
+    public abstract removeEntity(schema: EntitySchema, opts?: QueryInterfaceOptions): void | Promise<void>
 }
 
 /**
@@ -385,6 +392,26 @@ export class DBManager extends PluginClass {
         }
     }
 
+    public async removeSchema(schema: EntitySchema, transaction?: Transaction) {
+        const trx = transaction || await this.adapter.transaction()
+        let res: any;
+        try {
+            // if schema has attributes, throw error
+            const attributes = Object.values(schema.attributes || {})
+            if (attributes.length && attributes.find(attr => attr.type === BaseAttributeType.relation)) {
+                throw new Error(`Can't remove the data type! There are more than one relational attributes present.`)
+            }
+            
+            res = await this.adapter.getQueryInterface().removeEntity(schema, { transaction: trx })
+            if (!transaction) await trx.commit()
+            return res
+        } catch (e) {
+            if (!transaction) await trx.rollback()
+            console.error(e)
+            throw e
+        }
+    }
+
     /**
      * Load database entities/models into the system
      */
@@ -474,7 +501,7 @@ export class DBManager extends PluginClass {
         for (let refAttribute of add) {
             if (refAttribute.type === BaseAttributeType.relation) {
                 const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
-                if (oldAttr && JSON.stringify(oldAttr)!==JSON.stringify(refAttribute)) {
+                if (oldAttr && JSON.stringify(oldAttr) !== JSON.stringify(refAttribute)) {
                     const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
                     addIfNotExist(oldRefSchema)
                 }
@@ -491,7 +518,7 @@ export class DBManager extends PluginClass {
             if (refAttribute.type === BaseAttributeType.relation) {
                 const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
                 console.debug("Found old orphaned attribute", oldAttr?.name)
-                if (oldAttr && JSON.stringify(oldAttr)!==JSON.stringify(refAttribute)) {
+                if (oldAttr && JSON.stringify(oldAttr) !== JSON.stringify(refAttribute)) {
                     console.debug("Removing orphaned attribute relations", oldAttr?.name)
                     const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
                     console.debug("Done", oldRefSchema?.name)

@@ -88,12 +88,30 @@ export default createCoreControllers("data-types", ctx => ({
     async delete(req) {
         const { name } = req.params || {}
         if (!name) throw new Error("Invalid schema name provided")
-        const schema = ctx.endpoints.endpoints.find(ep => ep.schema?.name === name)
+        const schema = ctx.endpoints.endpoints.find(ep => ep.schema?.name === name)?.schema
         if (!schema || !schema?.name?.length!) throw new Error("No such schema exists")
-        await ctx.apiGen.removeEndpointSchema(schema)
-        // restart the server
-        restartServer(ctx.utils.restartServer)
-        return req.send(schema)
+
+        // start a transaction for migrating the db for new changes
+        const transaction = await ctx.db.transaction()
+        try {
+
+            //try to remove the db entity
+            await ctx.db.removeSchema(schema)
+
+            // If successfully removed, writeout the changes on the file system (remove from disk)
+            await ctx.apiGen.removeEndpointSchema(schema)
+
+            // commit the transaction if all changes were done successfuly
+            await transaction.commit()
+
+            //restart the server for the changes to take effecr
+            restartServer(ctx.utils.restartServer)
+            return req.send(schema)
+        } catch (e: any) {
+            console.error(e)
+            await transaction.rollback()
+            throw new Error(e.message)
+        }
     }
 }))
 

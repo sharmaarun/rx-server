@@ -1,8 +1,9 @@
-import { SQLiteQueryInterfaceAdapter } from "./index"
-import { SequelizeAdapter } from "../adapter"
-import { Attribute, BaseAttributeType, BasicAttributeValidation, EntitySchema, NumberAttributeSubType, RelationType } from "@reactive/commons"
-import { rmdirSync, rmSync } from "fs"
+import { Attribute, BaseAttributeType, EntitySchema, NumberAttributeSubType, RelationType } from "@reactive/commons"
+import { rmSync } from "fs"
 import { resolve } from "path"
+import { DataTypes } from "sequelize"
+import { SequelizeAdapter } from "../adapter"
+import { SQLiteQueryInterfaceAdapter } from "./index"
 
 describe('Sequelize Adapter :: Query Interface', () => {
 
@@ -1060,13 +1061,28 @@ describe('Sequelize Adapter :: Query Interface', () => {
                 test
             }
         }
-        const created = await qi.createEntity(schema)
+        await qi.createEntity(schema)
         expect(await qi.tableExists("test")).toBeTruthy()
         const desc = await qi.describe(schema.name);
         expect(desc?.["memId"]).toBeDefined()
-        await qi.dropTable("test")
+
+        await qi.removeEntity(schema)
+        expect(await qi.tableExists("test")).toBeFalsy()
+
     })
 
+    it("should generate id column", () => {
+        expect(qi.prepareIDColumn().type).toBe(DataTypes.INTEGER)
+        expect(qi.prepareIDColumn().autoIncrement).toBeTruthy()
+        expect(qi.prepareIDColumn().primaryKey).toBeTruthy()
+    })
+    it("should generate timestamp columns", () => {
+        const { createdAt, updatedAt } = qi.prepareTimestampColumns()
+        expect(createdAt?.type).toBe(DataTypes.DATE)
+        expect(updatedAt?.type).toBe(DataTypes.DATE)
+        expect(createdAt?.allowNull).toBe(false)
+        expect(updatedAt?.allowNull).toBe(false)
+    })
 
     afterAll(async () => {
         rmSync(resolve(process.cwd(), "test.db"))

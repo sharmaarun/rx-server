@@ -10,7 +10,8 @@
     "rootDir": ".",
     "baseUrl": ".",
     "target": "ES6",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "files": [],
   "include": [],

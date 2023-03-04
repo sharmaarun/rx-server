@@ -1,8 +1,8 @@
 import { Attribute, BaseAttributeType, BasicAttributeValidation, EntitySchema, RelationType } from "@reactive/commons";
 import { QueryInterface, QueryInterfaceOptions } from "@reactive/server";
-import { DataTypes, QueryTypes, Transaction } from "sequelize";
+import { DataTypes, Model, ModelAttributes, Sequelize, Transaction } from "sequelize";
 import { SequelizeAdapter } from "../adapter";
-import { SubTypeMap, DefaultValueMap, TypeMap } from "../utils"
+import { DefaultValueMap, SubTypeMap, TypeMap } from "../utils";
 
 
 /**
@@ -19,6 +19,10 @@ export type CreateTableOpts = QueryInterfaceOptions & {
      * True by default
      */
     skipRelational?: boolean
+    /**
+     * create timestamp columns
+     */
+    timestamps?: boolean
 }
 
 /**
@@ -69,10 +73,10 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
      * @param attributes Attributes to create (optional)
      */
     async createTable(tableName: string, attributes: Attribute[], opts?: CreateTableOpts) {
-        const { skipRelational = true } = opts || {}
+        const { skipRelational = true, timestamps = false } = opts || {}
         const trx: Transaction = opts?.transaction || await this.adapter.transaction()
         try {
-            const cols: any = {}
+            let cols: any = {}
             const relationalAttributes = attributes.filter(attr => attr.type === BaseAttributeType.relation)
             const simpleAttributes = attributes.filter(attr => attr.type !== BaseAttributeType.relation)
 
@@ -82,8 +86,17 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
             })
             if (!cols || Object.values(cols)?.length <= 0) throw new Error(`Entity: "${tableName}" should have at least one non-relational attribute!`)
 
+            const id = this.prepareIDColumn()
+            if (timestamps) {
+                const { createdAt, updatedAt } = this.prepareTimestampColumns()
+                cols = {
+                    ...(cols || {}),
+                    createdAt,
+                    updatedAt
+                }
+            }
             // create the table with the prepared columns
-            const res = await this.qi.createTable(tableName, cols, { transaction: trx })
+            const res = await this.qi.createTable(tableName, { id, ...(cols || {}) }, { transaction: trx })
 
             // create relational columns if not skipped
             if (!skipRelational) {
@@ -989,8 +1002,38 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
             if (!attributes || attributes.length <= 0) throw new Error(`No attributes defined for schema : ${schema.name}`)
             res = await this.createTable(schema.name, attributes, {
                 skipRelational: false,
+                timestamps:true,
                 transaction: trx
             })
+            if (!opts?.transaction) await trx.commit()
+            return res
+        } catch (e: any) {
+            if (!opts?.transaction) await trx.rollback()
+            console.error(e.message)
+            throw e
+        }
+    }
+
+    /**
+     * Removes entity's table and relational attributes from the database
+     * @param schema EntitySchema to remove entity for
+     * @param opts (optional)
+     */
+    public async removeEntity(schema: EntitySchema, opts?: QueryInterfaceOptions) {
+        const trx = opts?.transaction || await this.ds.transaction()
+        let res: any;
+        try {
+
+            // remove relational attributes
+            for (let attr of Object.values(schema.attributes || {})) {
+                if (attr.type === BaseAttributeType.relation) {
+                    await this.removeRelationalColumn(schema, attr, { transaction: trx })
+                }
+            }
+
+            // remove the table
+            await this.dropTable(schema.name, { transaction: trx })
+
             if (!opts?.transaction) await trx.commit()
             return res
         } catch (e: any) {
@@ -1030,6 +1073,38 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
             } : undefined
         }
         return col
+    }
+
+    /**
+     * Generates an ID column that auto increments in the database
+     * @returns 
+     */
+    public prepareIDColumn = () => {
+        return {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            alloNull: false,
+            autoIncrement: true
+        }
+    }
+
+    /**
+     * Generates default columns
+     * @returns 
+    */
+    public prepareTimestampColumns = () => {
+        return {
+            createdAt: {
+                type: DataTypes.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
+            },
+            updatedAt: {
+                type: DataTypes.DATE,
+                allowNull: false,
+                defaultValue: Sequelize.literal("CURRENT_TIMESTAMP")
+            },
+        }
     }
 
 

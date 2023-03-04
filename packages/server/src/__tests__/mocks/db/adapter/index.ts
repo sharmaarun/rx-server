@@ -39,6 +39,9 @@ export default class MockDBAdapter extends DBAdapter {
             createEntity(schema, opts) {
 
             },
+            removeEntity(schema, opts) {
+                
+            },
         }
     }
     async transaction() {
