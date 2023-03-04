@@ -1,4 +1,4 @@
-import { APIRoute, Endpoint } from "@reactive/commons";
+import { APIRoute, BaseValidationError, Endpoint } from "@reactive/commons";
 import { EndpointManager } from "."
 import { ExpressManager } from "../express"
 
@@ -76,5 +76,13 @@ describe('Endpoints Manager', () => {
         const reqHandler = epMgr.prepareRequestHandler("/", endpoint, route)
         await reqHandler({} as any, res as any)
         expect(middlewareCalled).toBeTruthy()
+    })
+
+    it("should throw validation error", () => {
+        try {
+            throw new BaseValidationError("test", [], { ok: true })
+        } catch (e) {
+            console.log(e)
+        }
     })
 })

@@ -1063,7 +1063,7 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
 
         const col = {
             type: attribute?.type === BaseAttributeType.relation ? TypeMap[BaseAttributeType.number] : (attribute?.subType ? SubTypeMap[attribute.subType] : TypeMap[attribute.type]),
-            validate,
+            // validate,
             allowNull: !attribute.isRequired ?? true,
             defaultValue: attribute.isRequired ? (DefaultValueMap[attribute.subType || attribute.type] ?? DefaultValueMap[attribute.type]) : (attribute.defaultValue ?? null),
             values: attribute.values,

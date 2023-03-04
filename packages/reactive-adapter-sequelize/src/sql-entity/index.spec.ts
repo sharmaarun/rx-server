@@ -5,12 +5,14 @@ import { BaseAttributeType, EntitySchema, RelationType, StringAttributeSubType }
 import { Op } from "sequelize";
 import { SequelizeAdapter } from "../adapter";
 import { SQLEntity } from "./index";
+import { rmSync } from "fs";
+import { resolve } from "path";
 
 process.on('unhandledRejection', (reason) => {
     console.log(reason); // log the reason including the stack trace
     throw reason;
 });
-describe('TypeORM DB Adapter', () => {
+describe('SQL Entity Model', () => {
     const adapter = new SequelizeAdapter()
     let model: SQLEntity<any>;
     let model2: SQLEntity<any>;
@@ -106,8 +108,6 @@ describe('TypeORM DB Adapter', () => {
             }
         } as any)
         await init()
-        await adapter.dropDatabase()
-        await init()
 
     })
 
@@ -124,7 +124,7 @@ describe('TypeORM DB Adapter', () => {
         await adapter.defineRelations(model, [model, model2])
         await adapter.sync()
     }
-    
+
     beforeEach(async () => {
         await model.delete({ where: { name: "ola" } })
     })
@@ -135,22 +135,18 @@ describe('TypeORM DB Adapter', () => {
         expect(await model.findOne()).toBeNull()
     })
 
-    it("should define relations ", async () => {
-        await adapter.defineRelations(model, [model, model2])
-        await adapter.defineRelations(model2, [model, model2])
-        await adapter.sync()
-        expect(true)
-    })
 
     it("should create entry", async () => {
         await createEntry()
         expect(obj.name).toEqual("ola")
+        await model.delete({ where: { name: obj.name } })
     })
 
     it("should find entry", async () => {
         await createEntry()
         const existing = await model.findOne({ where: { name: "ola" } })
         expect(existing.name).toEqual("ola")
+        await model.delete({ where: { name: obj.name } })
     })
     it("should not find entry", async () => {
         const existing = await model.findOne({ where: { name: "olaa" } })
@@ -163,6 +159,7 @@ describe('TypeORM DB Adapter', () => {
         await createEntry()
         let res = await model.findAll()
         expect(res.length).toBeGreaterThanOrEqual(2)
+        await model.delete({ where: { name: obj.name } })
 
     })
     const Ops = {
@@ -180,13 +177,15 @@ describe('TypeORM DB Adapter', () => {
             }
         })
         expect(res.length).toBeGreaterThanOrEqual(2)
+        await model.delete({ where: { name: obj.name } })
 
     })
 
     it("should update matching entries", async () => {
-        await createEntry()
-        const res = await model.update({ where: { name: obj.name } }, { name: "ad" })
+        const { id } = await createEntry() || {}
+        const res = await model.update({ where: { id, name: obj.name } }, { name: "ad" })
         expect(res[0]).toEqual(1)
+        await model.delete({ where: { name: obj.name } })
     })
 
     it("should update matching ref entries", async () => {
@@ -196,18 +195,23 @@ describe('TypeORM DB Adapter', () => {
         })
         const res = await model2.update({ where: { id: entry2?.id } }, { name: "tst", tests: entry.id })
         expect(res[0]).toEqual(1)
+        await model.delete({ where: { name: obj.name } })
+        await model2.delete({ where: { name: "tst" } })
     })
 
     it("should upsert entries", async () => {
         await createEntry()
         const res = await model.upsert({ where: { name: obj.name } }, { name: "ad" })
         expect(res[0]).toBeDefined()
+        await model.delete({ where: { name: obj.name } })
+        await model.delete({ where: { name: "ad" } })
     })
 
     it("should delete matching entries", async () => {
         await createEntry()
         const res = await model.delete({ where: { name: obj.name } })
         expect(res).toEqual(1)
+
     })
 
     it("should create and find entry with relations", async () => {
@@ -218,17 +222,22 @@ describe('TypeORM DB Adapter', () => {
             name: "entry2",
             tests: [entry.id],
             testnms: [entry.id],
-            tester: entry.id
+            tester: [entry.id]
         })
-        const dbEntry: any = await model.findAll({ include: ["test2", "test2nms", "tester2"] })
-        console.log(dbEntry?.map?.((e: any) => e?.toJSON()))
+        let dbEntry: any = await model.findAll({ include: ["test2", "test2nms", "tester2"] })
         const dbEntry2: any = await model2.findAll({ include: ["tests", "testnms", "tester"] })
-        console.log(dbEntry2?.map?.((e: any) => e?.toJSON()))
+
+        console.log(dbEntry2?.[0]?.tests)
+        console.log(dbEntry2?.[0])
+
         expect(dbEntry2?.[0]?.id).toBeDefined()
         expect(dbEntry2?.[0]?.tests).toBeDefined()
         expect(dbEntry2?.[0]?.tests?.length).toBe(1)
         expect(dbEntry2?.[0]?.testnms?.length).toBe(1)
-        expect(dbEntry2?.[0]?.tester?.id).toBeDefined()
+        expect(dbEntry2?.[0]?.tester?.length).toBe(1)
+
+        await model.delete({ where: { id: entry2.id } })
+        await model.delete({ where: { id: entry.id } })
     })
 
     it("should update entry with relations", async () => {
@@ -241,7 +250,7 @@ describe('TypeORM DB Adapter', () => {
 
         await model.update({ where: { id: entry3.id } }, {
             test2: entry4.id,
-            tester2: entry4.id,
+            tester2: [entry4.id],
             test2nms: [entry4.id]
         })
 
@@ -249,8 +258,28 @@ describe('TypeORM DB Adapter', () => {
 
         expect(entry3updated).toBeDefined()
         expect(entry3updated.test2).toBeDefined()
-        expect(entry3updated.tester2.id).toBeDefined()
+        expect(entry3updated.tester2).toBeDefined()
+        expect(entry3updated.tester2.length).toBe(1)
         expect(entry3updated.test2nms).toBeDefined()
         expect(entry3updated.test2nms.length).toBe(1)
+
+        await model.delete({ where: { id: entry3.id } })
+        await model.delete({ where: { id: entry4.id } })
+    })
+
+    it("should add hook to the model", async () => {
+        model.addHook("beforeCreate", "bc1", (m, opts) => {
+            console.log("Name is",m.name, opts)
+            m.name="lola"
+        })
+        model.addHook("afterCreate", "ac1", (m, opts) => {
+            console.log("Name is",m.name, opts)
+        })
+        await createEntry()
+        await model.delete({ where: { name: "lola" } })
+    })
+
+    afterAll(async () => {
+        rmSync(resolve(process.cwd(), "test.db"))
     })
 })

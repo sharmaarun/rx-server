@@ -1,7 +1,9 @@
 import { EntitySchema } from "@reactive/commons";
-import { DBAdapter, DropDatabaseOptions, Entity, QueryInterface, SyncDatabaseOptions } from "../../../../"
+import { DBAdapter, DropDatabaseOptions, Entity, EntityHookFn, EntityHookFns, QueryInterface, SyncDatabaseOptions } from "../../../../"
 
 export default class MockDBAdapter extends DBAdapter {
+    public addHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string, fn: EntityHookFn<H, any>): void {
+    }
 
     public models: Entity[] = []
     connect(): void | Promise<void> {
@@ -11,7 +13,7 @@ export default class MockDBAdapter extends DBAdapter {
         return;
     }
     model<T = any>(schema: EntitySchema<any>): Entity<T> | Promise<Entity<T>> {
-        const e = new Entity()
+        const e: Entity = {} as any
         e.schema = schema
         this.models.push(e)
         return e
@@ -40,7 +42,7 @@ export default class MockDBAdapter extends DBAdapter {
 
             },
             removeEntity(schema, opts) {
-                
+
             },
         }
     }

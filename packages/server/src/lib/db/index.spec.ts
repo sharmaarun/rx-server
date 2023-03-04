@@ -220,4 +220,9 @@ describe('DB Manager', () => {
         expect(true)
     })
 
+    it("should add global hook",()=>{
+        db.addHook("beforeCreate","bc1",()=>{
+            console.log("done")
+        })
+    })
 })

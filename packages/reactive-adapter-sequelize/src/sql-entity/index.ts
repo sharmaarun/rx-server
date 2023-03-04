@@ -1,5 +1,5 @@
 import { BaseAttributeType, EntitySchema, Query, toPascalCase } from "@reactive/commons";
-import { Entity, ServerContext, UpdateReturnType, UpsertReturnType } from "@reactive/server";
+import { Entity, EntityHookFn, EntityHookFns, ServerContext, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { Model, ModelStatic, NonNullFindOptions, Sequelize, UpdateOptions } from "sequelize";
 import { OperatorsMap } from "../utils";
 
@@ -70,7 +70,7 @@ export class SQLEntity<T = any> extends Entity<T> {
             return obj as T
         } catch (e: any) {
             await trx.rollback()
-            throw new Error(e)
+            throw e
         }
     }
 
@@ -109,7 +109,7 @@ export class SQLEntity<T = any> extends Entity<T> {
             return ret as UpdateReturnType<FT>
         } catch (e: any) {
             await transaction?.rollback()
-            throw new Error(e)
+            throw e
         }
     }
 
@@ -142,5 +142,14 @@ export class SQLEntity<T = any> extends Entity<T> {
                 await (entry as any)?.[fnName](val, { transaction })
             }
         }
+    }
+
+    public addHook<H extends keyof EntityHookFns<any, any>>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string, fn: EntityHookFn<H, T>) {
+        return this.model.addHook(trigger as any, name, (data: any, opts: any) => {
+            fn(data, {
+                opts,
+                entity: this
+            })
+        })
     }
 }

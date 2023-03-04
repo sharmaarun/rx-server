@@ -1,3 +1,4 @@
+import { BaseError, BaseValidationError } from "@reactive/commons";
 import { injectable } from "inversify";
 import { ClientContext } from "../contexts";
 import { PluginClass } from "../plugins";
@@ -6,25 +7,6 @@ export type Method = "get" | "post" | "put" | "delete"
 
 export type NetworkManagerRequestOpts = RequestInit & {
 
-}
-
-export type BaseErrorConstructorOpts = {
-    status?: number
-    statusText?: string
-    ok?: boolean
-}
-
-export class BaseError extends Error {
-    public ok?: boolean
-    public statusText?: string
-    public status?: number
-    constructor(message: string, opts?: BaseErrorConstructorOpts) {
-        super(message)
-        this.status = opts?.status
-        this.statusText = opts?.statusText
-        this.ok = opts?.ok
-        Object.setPrototypeOf(this, new.target.prototype);
-    }
 }
 
 @injectable()
@@ -86,8 +68,18 @@ export class NetworkManager extends PluginClass {
     private processResponse = async (res: Response) => {
         const { ok, status, statusText } = res
         if (!ok || status >= 400) {
-            const { message }: any = await res.json()
-            throw new BaseError(message, { ok, status, statusText })
+            const data = await res.json()
+            const { message, errors }: any = data || {}
+            const opts = {
+                ok: data?.ok ?? ok,
+                status: data?.status ?? status,
+                statusText: data?.statusText ?? statusText
+            }
+            if (errors) {
+                throw new BaseValidationError(message, errors, opts)
+            } else {
+                throw new BaseError(message, opts)
+            }
         }
     }
 }

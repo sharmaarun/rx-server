@@ -1,4 +1,4 @@
-import { Attribute, BaseAttributeType, EntitySchema, Query, RelationType } from "@reactive/commons"
+import { Attribute, BaseAttributeType, BaseError, BaseValidationError, EntitySchema, Query, RelationType, validateEntity } from "@reactive/commons"
 import { inject, injectable } from "inversify"
 import { ServerContext } from "../context"
 import { EndpointManager } from "../endpoints"
@@ -82,6 +82,88 @@ export type SyncDatabaseOptions = {
 export type UpdateReturnType<T> = [number, T | T[]]
 export type UpsertReturnType<T> = [T | T[], boolean]
 
+export type HookOptions = {
+    entity: Entity
+    opts?: any
+}
+
+export type BeforeValidateOptions = HookOptions & {}
+export type AfterValidateOptions = HookOptions & {}
+export type ValidationFailedOptions = HookOptions & {}
+export type BeforeCreateOptions = HookOptions & {}
+export type AfterCreateOptions = HookOptions & {}
+export type BeforeDestroyOptions = HookOptions & {}
+export type AfterDestroyOptions = HookOptions & {}
+export type BeforeRestoreOptions = HookOptions & {}
+export type AfterRestoreOptions = HookOptions & {}
+export type BeforeUpdateOptions = HookOptions & {}
+export type AfterUpdateOptions = HookOptions & {}
+export type BeforeSaveOptions = HookOptions & {}
+export type AfterSaveOptions = HookOptions & {}
+export type BeforeUpsertOptions = HookOptions & {}
+export type AfterUpsertOptions = HookOptions & {}
+export type BeforeBulkCreateOptions = HookOptions & {}
+export type AfterBulkCreateOptions = HookOptions & {}
+export type BeforeBulkDestroyOptions = HookOptions & {}
+export type AfterBulkDestroyOptions = HookOptions & {}
+export type BeforeBulkRestoreOptions = HookOptions & {}
+export type AfterBulkRestoreOptions = HookOptions & {}
+export type BeforeFindOptions = HookOptions & {}
+export type BeforeFindAfterExpandIncludeAllOptions = HookOptions & {}
+export type BeforeFindAfterOptionsOptions = HookOptions & {}
+export type AfterFindOptions = HookOptions & {}
+export type BeforeCountOptions = HookOptions & {}
+export type BeforeAssociateOptions = HookOptions & {}
+export type AfterAssociateOptions = HookOptions & {}
+export type BeforeSyncOptions = HookOptions & {}
+export type AfterSyncOptions = HookOptions & {}
+export type BeforeBulkSyncOptions = HookOptions & {}
+export type AfterBulkSyncOptions = HookOptions & {}
+export type BeforeQueryOptions = HookOptions & {}
+export type AfterQueryOptions = HookOptions & {}
+export interface EntityHookFns<T = any, O = any> {
+    beforeValidate: (instance: T, options: BeforeValidateOptions) => void | Promise<void>
+    afterValidate: (instance: T, options: AfterValidateOptions) => void | Promise<void>
+    validationFailed: (instance: T, options: ValidationFailedOptions) => void | Promise<void>
+    beforeCreate: (instance: T, options: BeforeCreateOptions) => void | Promise<void>
+    afterCreate: (instance: T, options: AfterCreateOptions) => void | Promise<void>
+    beforeDestroy: (instance: T, options: BeforeDestroyOptions) => void | Promise<void>
+    afterDestroy: (instance: T, options: AfterDestroyOptions) => void | Promise<void>
+    beforeRestore: (instance: T, options: BeforeRestoreOptions) => void | Promise<void>
+    afterRestore: (instance: T, options: AfterRestoreOptions) => void | Promise<void>
+    beforeUpdate: (instance: T, options: BeforeUpdateOptions) => void | Promise<void>
+    afterUpdate: (instance: T, options: AfterUpdateOptions) => void | Promise<void>
+    beforeSave: (instance: T, options: BeforeSaveOptions) => void | Promise<void>
+    afterSave: (instance: T, options: AfterSaveOptions) => void | Promise<void>
+    beforeUpsert: (instance: T, options: BeforeUpsertOptions) => void | Promise<void>
+    afterUpsert: (instance: T, options: AfterUpsertOptions) => void | Promise<void>
+    beforeBulkCreate: (instances: T[], options: BeforeBulkCreateOptions) => void | Promise<void>
+    afterBulkCreate: (instances: T[], options: AfterBulkCreateOptions) => void | Promise<void>
+    beforeBulkDestroy: (options: BeforeBulkDestroyOptions) => void | Promise<void>
+    afterBulkDestroy: (options: AfterBulkDestroyOptions) => void | Promise<void>
+    beforeBulkRestore: (options: BeforeBulkRestoreOptions) => void | Promise<void>
+    afterBulkRestore: (options: AfterBulkRestoreOptions) => void | Promise<void>
+    beforeFind: (options: BeforeFindOptions) => void | Promise<void>
+    beforeFindAfterExpandIncludeAll: (options: BeforeFindAfterExpandIncludeAllOptions) => void | Promise<void>
+    beforeFindAfterOptions: (options: BeforeFindAfterOptionsOptions) => void | Promise<void>
+    afterFind: (instanceOrInstances: T | T[], options: AfterFindOptions) => void | Promise<void>
+    beforeCount: (options: BeforeCountOptions) => void | Promise<void>
+    beforeAssociate: (options: BeforeAssociateOptions) => void | Promise<void>
+    afterAssociate: (options: AfterAssociateOptions) => void | Promise<void>
+    beforeSync: (options: BeforeSyncOptions) => void | Promise<void>
+    afterSync: (options: AfterSyncOptions) => void | Promise<void>
+    beforeBulkSync: (options: BeforeBulkSyncOptions) => void | Promise<void>
+    afterBulkSync: (options: AfterBulkSyncOptions) => void | Promise<void>
+    beforeQuery: (options: BeforeQueryOptions, query: Query<T>) => void | Promise<void>
+    afterQuery: (options: AfterQueryOptions, query: Query<T>) => void | Promise<void>
+}
+
+export type EntityHookFnOptions<T = any> = {
+    instance?: T,
+    options?: any
+}
+export type EntityHookFn<H extends keyof EntityHookFns, T = any> = EntityHookFns<T>[H]
+
 /**
  * Abtract DB Adapter class
  */
@@ -123,6 +205,14 @@ export abstract class DBAdapter extends PluginClass {
      * Returns the underlying transaction mechanism
      */
     abstract transaction(opts?: TransactionOptions): Transaction | Promise<Transaction>
+
+    /**
+         * Add global entity event hook
+         * @param trigger Trigger name
+         * @param name Unique name for this trigger hook
+         * @param fn Hook function callback
+         */
+    public abstract addHook<H extends keyof EntityHookFns = any>(trigger: H extends H ? keyof EntityHookFns : H, name: string, fn: EntityHookFn<H, any>): void
 
 }
 
@@ -170,7 +260,7 @@ export abstract class QueryInterface {
 /**
  * Base entity class. Don't use it directly [DB Adapter returns it instantiaed for yor you]
  */
-export class Entity<T = any> {
+export abstract class Entity<T = any> {
     /**
      * Attached raw schema (passed during registration)
      */
@@ -180,54 +270,54 @@ export class Entity<T = any> {
      * @param filters 
      * @returns 
      */
-    public findOne<FT extends T>(filters?: Query<FT>): (T | null | Promise<T>) { return null as T }
+    public abstract findOne<FT extends T>(filters?: Query<FT>): (T | null | Promise<T>)
     /**
      * Find All matching entries
      * @param filters 
      * @returns 
      */
-    public findAll<FT extends T>(filters?: Query<FT>): (T[] | Promise<T[]>) { return [] as T[] }
+    public abstract findAll<FT extends T>(filters?: Query<FT>): (T[] | Promise<T[]>)
     /**
      * Create new entry
      * @param body 
      * @returns 
      */
-    public create(body?: Partial<T>): (T | Promise<T>) { return body as T }
+    public abstract create(body?: Partial<T>): (T | Promise<T>)
     /**
      * Create entries in bulk
      * @param body 
      * @returns 
      */
-    public createMany(body?: Partial<T>[]): (T[] | Promise<T[]>) { return body as T[] }
+    public abstract createMany(body?: Partial<T>[]): (T[] | Promise<T[]>)
     /**
      * Update existing entry in the database
      * @param filters 
      * @param update 
      * @returns 
      */
-    public update<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>) {
-        return [0, null] as UpdateReturnType<FT>
-    }
+    public abstract update<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>)
     /**
      * Insert or Update the entry
      * @param filters 
      * @param body 
      * @returns 
      */
-    public upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>): (UpsertReturnType<FT> | Promise<UpsertReturnType<FT>>) {
-        return [null, false] as UpsertReturnType<FT>
-
-    }
+    public abstract upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>): (UpsertReturnType<FT> | Promise<UpsertReturnType<FT>>)
     /**
      * Remove an entry from the db matching the filters
      * @param filters 
      * @returns 
      */
-    public delete<FT extends T>(filters?: Query<FT>): (number | Promise<number>) {
-        return 0
-    }
-}
+    public abstract delete<FT extends T>(filters?: Query<FT>): (number | Promise<number>)
 
+    /**
+     * Add local event hooks for this entity
+     * @param trigger Trigger name
+     * @param name Unique name for this trigger hook
+     * @param fn Hook function callback
+     */
+    public abstract addHook<H extends keyof EntityHookFns>(trigger: H extends H ? keyof EntityHookFns : H, name: string, fn: EntityHookFn<H, T>): void
+}
 
 
 export const ReverseRelationsMap = {
@@ -401,7 +491,7 @@ export class DBManager extends PluginClass {
             if (attributes.length && attributes.find(attr => attr.type === BaseAttributeType.relation)) {
                 throw new Error(`Can't remove the data type! There are more than one relational attributes present.`)
             }
-            
+
             res = await this.adapter.getQueryInterface().removeEntity(schema, { transaction: trx })
             if (!transaction) await trx.commit()
             return res
@@ -436,6 +526,18 @@ export class DBManager extends PluginClass {
     public override async start() {
         // load database related components
         await this.loadDBEntities()
+        // Add entity validation hook
+        this.addHook("beforeValidate", "GLOBAL_BEFORE_CREATE_HOOK", (m, { entity }) => {
+            const errors = validateEntity(entity.schema, m)
+            if (errors?.length) {
+                throw new BaseValidationError("Validation failed", errors, {
+                    ok: false,
+                    status: 400,
+                    statusText: "Client side error"
+                })
+            }
+        })
+
         // start the db connection
         await this.adapter.start()
     }
@@ -627,6 +729,19 @@ export class DBManager extends PluginClass {
         return refSchema
 
     }
+
+    /**
+     * Add global entity event hook
+     * @param trigger Trigger name
+     * @param name Unique name for this trigger hook
+     * @param fn Hook function callback
+     */
+    public addHook<H extends keyof EntityHookFns = any>(trigger: H extends H ? keyof EntityHookFns : H, name: string, fn: EntityHookFn<H, any>) {
+        this.adapter.addHook(trigger, name, fn)
+        return true;
+    }
+
+
 
     public get schemas() {
         return this.entities.map(e => e.schema)

@@ -90,10 +90,10 @@ export function Form({ children, ...props }: FormContext) {
 
 
 
-    // useEffect(() => {
-    //     if (errs)
-    //         setErrors(errs)
-    // }, [errs])
+    useEffect(() => {
+        if (errs)
+            setErrors([...(errors || []), ...errs])
+    }, [errs])
 
     useEffect(() => {
         props?.onFormChange?.(form)
@@ -164,7 +164,7 @@ export function Form({ children, ...props }: FormContext) {
             validationErrors = await validate(plainToInstance(validationClass_, form))
         }
         console.log(validationErrors, mwErrors)
-        if (validationErrors.length || mwErrors.length || errs?.length) {
+        if (validationErrors.length || mwErrors.length) {
             setErrors([...validationErrors, ...mwErrors, ...(errs || [])])
             handleErrors()
             return;

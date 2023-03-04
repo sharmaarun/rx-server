@@ -1,11 +1,11 @@
-import { DBAdapter, DropDatabaseOptions, QueryInterface, ServerContext, SyncDatabaseOptions, TransactionOptions } from "@reactive/server";
-import { Model, ModelAttributes, ModelStatic, Sequelize, SyncOptions } from "sequelize";
+import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons";
+import { DBAdapter, DropDatabaseOptions, EntityHookFn, EntityHookFns, QueryInterface, ServerContext, SyncDatabaseOptions, TransactionOptions } from "@reactive/server";
+import { ModelAttributes, Sequelize, SyncOptions } from "sequelize";
 import { SQLEntity } from "../sql-entity";
 import { SQLiteQueryInterfaceAdapter } from "../sqlite-query-interface";
-import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons";
+import { extractNameFromSquelizeInstance } from "../utils";
 
 export class SequelizeAdapter extends DBAdapter {
-
     public dataSource!: Sequelize
     public models!: SQLEntity<any>[]
     private queryInterface!: SQLiteQueryInterfaceAdapter;
@@ -25,6 +25,7 @@ export class SequelizeAdapter extends DBAdapter {
 
         this.queryInterface = new SQLiteQueryInterfaceAdapter(this)
         this.dataSource
+        this.models = []
 
         await this.connect()
         console.info("Connected to DB!")
@@ -84,6 +85,11 @@ export class SequelizeAdapter extends DBAdapter {
             this.dataSource
         )
         entity.schema = schema
+        //push it to current models
+        const exists = this.models.find(m => m.schema.name === schema.name)
+        if (!exists) {
+            this.models.push(entity)
+        }
         return entity
     }
 
@@ -196,5 +202,23 @@ export class SequelizeAdapter extends DBAdapter {
      */
     public getSchema(name: string) {
         return this.models?.find(m => m.schema?.name === name)
+    }
+
+    /**
+     * Add global entity event hook
+     * @param trigger 
+     * @param name 
+     * @param fn 
+     */
+    addHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string, fn: EntityHookFn<H, any>) {
+        return this.dataSource.addHook(trigger as any, name, (data: any, opts: any) => {
+            const name = extractNameFromSquelizeInstance(data)
+            const entity = this.models.find(m => m.schema.name === name)
+            if (!entity) throw new Error(`Entity model not found for the trigger hook : ${name} -> ${trigger}`)
+            fn(data, {
+                entity: entity as any,
+                opts
+            })
+        })
     }
 }

@@ -221,43 +221,44 @@ export class EndpointManager extends PluginClass {
         return ctx;
     }
 
-    public prepareRequestHandler = (path: string, ep: Endpoint, route: APIRoute) => async (req: Request, res: Response) => {
-        //log the request
-        console.log(route.method?.toUpperCase(), path, "=>", route.handler)
+    public prepareRequestHandler = (path: string, ep: Endpoint, route: APIRoute) =>
+        async (req: Request, res: Response) => {
+            //log the request
+            console.log(route.method?.toUpperCase(), path, "=>", route.handler)
 
-        if (route.handler) {
-            // prepare the context
-            const ctx = this.prepareRequestContext(ep, route, req, res)
+            if (route.handler) {
+                // prepare the context
+                const ctx = this.prepareRequestContext(ep, route, req, res)
 
-            // process any middlewares here
-            const middlewares = this.middlewares.filter(m => {
-                const epName = typeof m.endpointName === "string" ? new RegExp(m.endpointName) : m.endpointName
-                const method = typeof m.route.method === "string" ? new RegExp(m.route.method) : m.route.method
-                const path = typeof m.route.path === "string" ? new RegExp(m.route.path) : m.route.path
-                return (
-                    (ep.schema?.name && epName.test(ep.schema?.name)) &&
-                    (route?.method && method.test(route.method)) &&
-                    (route?.path && path.test(route.path))
-                )
-            }
-            )
-            if (middlewares?.length) {
-                for (let m of middlewares) {
-                    await m.handler?.(ctx)
+                // process any middlewares here
+                const middlewares = this.middlewares.filter(m => {
+                    const epName = typeof m.endpointName === "string" ? new RegExp(m.endpointName) : m.endpointName
+                    const method = typeof m.route.method === "string" ? new RegExp(m.route.method) : m.route.method
+                    const path = typeof m.route.path === "string" ? new RegExp(m.route.path) : m.route.path
+                    return (
+                        (ep.schema?.name && epName.test(ep.schema?.name)) &&
+                        (route?.method && method.test(route.method)) &&
+                        (route?.path && path.test(route.path))
+                    )
                 }
+                )
+                if (middlewares?.length) {
+                    for (let m of middlewares) {
+                        await m.handler?.(ctx)
+                    }
+                }
+
+
+                // setup response headers
+                res.header("content-type", "application/json")
+
+                // call the route handler
+                await ep.controllers?.[route.handler]?.(ctx)
+
+            } else {
+                console.error("No request handler(s) found for this route!")
             }
-
-
-            // setup response headers
-            res.header("content-type", "application/json")
-
-            // call the route handler
-            await ep.controllers?.[route.handler]?.(ctx)
-
-        } else {
-            console.error("No request handler(s) found for this route!")
         }
-    }
 
     /**
      * Add a request middleware, that will be called on each endpoint request for a particular route.

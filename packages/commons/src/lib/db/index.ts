@@ -1,3 +1,5 @@
+import { contains, isEmpty, IsNotEmpty, max, min, ValidationError } from "class-validator"
+
 export type DBConfig = {
     adapter: string
     options: DBConnectionOpts
@@ -79,7 +81,7 @@ export enum RelationType {
 
 
 export enum BasicAttributeValidation {
-    "matches"="matches",
+    "matches" = "matches",
     "is" = "is",
     "not" = "not",
     "isEmail" = "isEmail",
@@ -97,7 +99,7 @@ export enum BasicAttributeValidation {
     "isUppercase" = "isUppercase",
     // "notNull" = "notNull",
     // "isNull" = "isNull",
-    // "notEmpty" = "notEmpty",
+    "notEmpty" = "notEmpty",
     "equals" = "equals",
     "contains" = "contains",
     "notIn" = "notIn",
@@ -109,7 +111,9 @@ export enum BasicAttributeValidation {
     "isAfter" = "isAfter",
     "isBefore" = "isBefore",
     "max" = "max",
+    "maxLen" = "maxLen",
     "min" = "min",
+    "minLen" = "minLen",
     "isCreditCard" = "isCreditCard",
 }
 
@@ -236,4 +240,85 @@ export type Query<T = any> = {
     pagination?: QueryPagination
     group?: QueryGroup
     order?: QueryOrder
+}
+
+export type ValidateEntityOptions = {
+
+}
+
+/**
+ * Validates the data based on the attribute validations present in the specified schema
+ * @param schema Schema to use for validation
+ * @param data Data to validate
+ * @param opts (optional)
+ */
+export const validateEntity = (schema: EntitySchema, data?: any, opts?: ValidateEntityOptions) => {
+    const errors: ValidationError[] = []
+    // for all the attributes
+    for (let attr of Object.values(schema.attributes || {})) {
+        // for each validation existing in this attribute
+        const constraints: any = {}
+        const value = data?.[attr.name]
+
+        // check for attribute.isRequired
+        if (attr.isRequired) {
+            const msg = validateValue(value, { type: BasicAttributeValidation.notEmpty, value: "" })
+            if (msg?.length) {
+                constraints[BasicAttributeValidation.notEmpty] = msg
+            }
+        }
+        //check for custom validations
+        for (let validation of (attr.validations || [])) {
+            // validate the data property
+            const msg = validateValue(value, validation)
+            if (msg?.length) {
+                constraints[validation.type] = msg
+            }
+        }
+        if (Object.keys(constraints).length) {
+            const error = new ValidationError()
+            error.property = attr.name
+            error.constraints = constraints
+            error.target = data
+            error.value = value
+            errors.push(error)
+        }
+    }
+    return errors
+}
+
+/**
+ * Validates a single value for specified validation type
+ * @param value 
+ * @param validation 
+ */
+export const validateValue = (value: any, { type, value: tvalue }: BasicAttributeValidationType) => {
+    let msg;
+    switch (type) {
+        case BasicAttributeValidation.notEmpty:
+            msg = isEmpty(value) ? `Is required` : ""
+            break;
+        case BasicAttributeValidation.contains:
+            msg = !contains(value, tvalue) ? `Should contain ${tvalue}` : ""
+            break;
+        case BasicAttributeValidation.min:
+            msg = !min(value, tvalue) ? `Should be more than ${tvalue}` : ""
+            break;
+        case BasicAttributeValidation.max:
+            msg = !max(value, tvalue) ? `Should be less than ${tvalue}` : ""
+            break;
+        case BasicAttributeValidation.minLen:
+            msg = !min(value, tvalue) ? `Length should be more than ${tvalue} characters` : ""
+            break;
+        case BasicAttributeValidation.maxLen:
+            msg = !max(value, tvalue) ? `Length should be less than ${tvalue} characters` : ""
+            break;
+        case BasicAttributeValidation.matches:
+            msg = !new RegExp(tvalue).test(value) ? `Invalid value` : ""
+            break;
+        default:
+            break;
+    }
+
+    return msg
 }

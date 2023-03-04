@@ -88,7 +88,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
         try {
             await obj.get(id,query)
         } catch (e: any) {
-            throw new Error(e)
+            throw e
         } finally {
             setIsLoading(false)
         }
@@ -98,7 +98,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
         try {
             await obj.save(data, opts)
         } catch (e: any) {
-            throw new Error(e)
+            throw e
         } finally {
             setIsSaving(false)
         }
@@ -108,7 +108,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
         try {
             return obj.list(query)
         } catch (e: any) {
-            throw new Error(e)
+            throw e
         } finally {
             setIsLoading(false)
         }
@@ -118,7 +118,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
         try {
             return obj.list()
         } catch (e: any) {
-            throw new Error(e)
+            throw e
         } finally {
             setIsRemoving(false)
         }

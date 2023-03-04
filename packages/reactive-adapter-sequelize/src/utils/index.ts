@@ -97,3 +97,15 @@ export const OperatorsMap: any = {
     "placeholder": Op.placeholder,
     "match": Op.match,
 }
+
+/**
+ * Returns the name of the model from the string representation of instance of
+ * sequelize model
+ * @param instance 
+ * @returns 
+ */
+export const extractNameFromSquelizeInstance = (instance: any) => {
+    const str = instance?.toString?.()
+    const match = str?.match(/\:(.+)]/)
+    return match?.[1]
+}

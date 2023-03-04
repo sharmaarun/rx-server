@@ -1,6 +1,7 @@
 import { Obj, useAttributes, useEntityObj } from "@reactive/client"
 import { Attribute, BaseAttributeType, NumberAttributeSubType, RelationType, toPascalCase } from "@reactive/commons"
 import { ActionButton, Card, Field, FieldControl, FieldLabel, Form, Heading, HStack, Input, JumboAlert, Page, PageBackButton, PageBody, PageContent, PageFooter, PageHeader, PageToolbar, Spinner, Stack, StackProps, useToast } from "@reactive/ui"
+import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { ListSchemaOutletContext } from "../index"
@@ -13,7 +14,7 @@ export interface EditorPageProps extends StackProps {
 export function EditorPage({ children, mode = "update", ...props }: EditorPageProps) {
     const { id, name } = useParams() || {}
     const { obj, get, save, isLoading, isSaving } = useEntityObj({ name })
-
+    const [errors, setErrors] = useState<ValidationError[]>([])
     const toast = useToast({
         position: "top",
         status: "success"
@@ -64,6 +65,7 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
 
     const onSave = async (data?: any) => {
         try {
+            setErrors([])
             await save(data, { mode })
             if (mode === "create") {
                 navigate(`/admin/explorer/${name}/` + obj?.attributes?.id, { replace: true })
@@ -73,8 +75,12 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                 description: "Entry saved successfully"
             })
         } catch (e) {
+            if (e.errors?.length) {
+                setErrors(e.errors)
+            }
             toast({
                 title: "Error",
+                status: "error",
                 description: e.message || "Server erorr occured"
             })
 
@@ -123,7 +129,10 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                         overflow: "hidden",
                         flexDirection: "column"
                     }}
-                    {...({ onFormChange: console.log })} defaultValue={defaultValue} onSubmit={onSave}
+                    {...({ onFormChange: console.log, errors })}
+                    defaultValue={defaultValue}
+                    onSubmit={onSave}
+
                 >
                     <PageBody flex={1} >
                         <>

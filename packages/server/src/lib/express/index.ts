@@ -65,11 +65,7 @@ export class ExpressManager extends PluginClass {
                     try {
                         return await handler(req, res)
                     } catch (e: any) {
-                        console.log(e)
-                        res.status(e.statusCode || 500).send({
-                            message: e.message,
-                            statusCode: e.statusCode
-                        })
+                        res.status(e.status || 500).send({ ...e, message: e.message })
                     }
                 })
         }

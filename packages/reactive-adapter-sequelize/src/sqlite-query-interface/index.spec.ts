@@ -1039,7 +1039,7 @@ describe('Sequelize Adapter :: Query Interface', () => {
         const desc = await qi.describe("test")
         console.log(desc)
         expect(desc?.["memId"]).toBeDefined()
-
+        await qi.removeEntity(schema)
     })
 
 
