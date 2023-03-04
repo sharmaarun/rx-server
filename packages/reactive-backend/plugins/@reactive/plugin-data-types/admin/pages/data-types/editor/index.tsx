@@ -1,7 +1,7 @@
 import { confirmDelete, RegisteredAttribute, useAttributes } from "@reactive/client"
 import { EntitySchema, Attribute, toPascalCase } from "@reactive/commons"
 import { RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
-import { ActionButton, ActionListItem, Box, Button, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, Stack, StackProps, Text, useDisclosure } from "@reactive/ui"
+import { ActionButton, ActionListItem, Box, Button, Card, DeleteAlertModal, FormContext, Heading, HStack, Icon, IconButton, JumboAlert, List, ListItem, Page, PageBody, PageFooter, PageHeader, PageToolbar, Stack, StackProps, Text, useDisclosure, useToast } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { useEffect, useState } from "react"
 import { useOutletContext, useParams } from "react-router-dom"
@@ -22,7 +22,9 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
     const [errors, setErrors] = useState<ValidationError[]>([])
     const [newAttribute, setNewAttribute] = useState<Attribute>()
     const [schema, setSchema] = useState<EntitySchema>()
-
+    const toast = useToast({
+        position: "top",
+    })
     useEffect(() => {
         const ep = getSchema(name)
         if (ep) {
@@ -46,7 +48,14 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
         if (schema && attribute.name) {
             schema.attributes = schema.attributes || {}
             const exists = schema.attributes?.[attribute.name]
-            if (mode === "edit" && !exists) throw new Error("Can't edit a attribute that doesn't exist!")
+            if (mode === "edit" && !exists) {
+                toast({
+                    title: "Error",
+                    description: "Can't edit a attribute that doesn't exist!",
+                    status: "error"
+                })
+                throw new Error("Can't edit a attribute that doesn't exist!")
+            }
             if (exists) {
                 Object.assign(exists, attribute)
             } else {

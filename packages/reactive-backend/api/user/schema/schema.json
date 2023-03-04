@@ -5,8 +5,7 @@
       "type": "string",
       "customType": "string",
       "name": "name",
-      "subType": "text",
-      "isRequired": false
+      "subType": "text"
     },
     "popa": {
       "type": "number",
@@ -40,8 +39,7 @@
         "two",
         "three",
         "four"
-      ],
-      "isRequired": false
+      ]
     },
     "json": {
       "type": "json",
@@ -53,17 +51,16 @@
       "type": "number",
       "customType": "number",
       "name": "age",
-      "subType": "integer",
-      "isRequired": false
+      "subType": "integer"
     },
-    "tmp": {
+    "popo": {
       "type": "relation",
-      "ref": "temp",
-      "name": "tmp",
-      "relationType": "1:1",
       "customType": "relation",
-      "foreignKey": "usr",
-      "isTarget": true
+      "name": "popo",
+      "relationType": "1:1",
+      "ref": "temp",
+      "foreignKey": "user",
+      "isTarget": false
     }
   }
 }

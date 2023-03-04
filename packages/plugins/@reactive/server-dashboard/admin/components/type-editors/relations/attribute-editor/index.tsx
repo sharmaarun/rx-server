@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass, useServerContext } from "@reactive/client"
-import { Attribute, pluralize, RelationType } from "@reactive/commons"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormContext, FormStage, HStack, Icon, Input, Select, SelectOption, SpreadSelect, SpreadSelectOption, SpreadSelectProps, Stack, useFormContext } from "@reactive/ui"
+import { Attribute, pluralize, RelationType, toPascalCase } from "@reactive/commons"
+import { Field, FieldControl, FieldDescription, FieldLabel, FormContext, FormStage, HStack, Icon, Input, Select, SelectOption, SpreadSelect, SpreadSelectOption, SpreadSelectProps, Stack, Text, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 import { useEffect, useState } from "react"
 import { RelationTypes } from "../../../../utils"
@@ -18,14 +18,15 @@ export class RelationTypeValidationClass extends DefaultAttributesValidationClas
 }
 const tid: any = {}
 export function RelationsAttributeEditor({ children, attribute, schema, ...props }: RelationsAttributeEditorProps) {
-    const { value, defaultValue, onChange, addMiddleware } = useFormContext()
+    const { value, defaultValue, onChange, errors, addMiddleware } = useFormContext()
     const { endpoints } = useServerContext()
     const [middlewareAdded, setMiddlewareAdded] = useState(false)
 
     useEffect(() => {
         if (addMiddleware && !middlewareAdded) {
             addMiddleware?.((ctx) => {
-                const exists = endpoints?.find(e => Object.values(e.schema?.attributes || {}).find(a => a.name === ctx.value?.["foreignKey"]))
+                const ep = endpoints?.find(e => e.schema?.name === ctx.value.ref)
+                const exists = Object.values(ep?.schema?.attributes || {}).find(a => a.name === ctx.value?.["foreignKey"])
                 if (exists) {
                     const errors = [{ property: "foreignKey", constraints: { "exists": "Already exists!" } }]
                     console.error("Validation Error", errors)
@@ -57,7 +58,7 @@ export function RelationsAttributeEditor({ children, attribute, schema, ...props
             onChange?.("foreignKey", generateForeignKeyName(schema?.name))
         }
     }
-
+    console.log(JSON.stringify(errors))
     return (
         <FormStage onSubmit={onSubmit} validationClass={RelationTypeValidationClass}>
             <HStack alignItems="flex-start">
@@ -65,12 +66,14 @@ export function RelationsAttributeEditor({ children, attribute, schema, ...props
                     <FieldLabel>
                         Current Data Type
                     </FieldLabel>
-                    <Input value={schema?.name} />
+                    <Input isDisabled value={schema?.name} />
                     <FieldLabel>
                         Attribute Name
                     </FieldLabel>
                     <Field name="name">
-                        <Input isDisabled={defaultValue?.name?.length} />
+                        <Input
+                            isDisabled={defaultValue?.name?.length}
+                        />
                     </Field>
                 </Stack>
                 <FieldControl w="50%">
@@ -93,7 +96,21 @@ export function RelationsAttributeEditor({ children, attribute, schema, ...props
                         </SpreadSelect>
                     </Field>
                     <FieldDescription textAlign="center">
-                        {(RelationTypes as any)?.[value?.relationType]?.title}
+                        <HStack
+                            justifyContent="center"
+                            alignItems="center"
+                            flexDir={["column", "column", "row"]}
+                        >
+                            <Text fontWeight="bold">
+                                {toPascalCase(schema?.name || "")}
+                            </Text>
+                            <Text color="purple.500">
+                                {(RelationTypes as any)?.[value?.relationType]?.title}
+                            </Text>
+                            <Text fontWeight="bold">
+                                {toPascalCase(value?.ref || "")}
+                            </Text>
+                        </HStack>
                     </FieldDescription>
                 </FieldControl>
                 <Stack w="25%">
@@ -111,7 +128,10 @@ export function RelationsAttributeEditor({ children, attribute, schema, ...props
                         Attribute Name
                     </FieldLabel>
                     <Field name="foreignKey" display={value?.ref?.length ? "block" : "none"}>
-                        <Input isDisabled={defaultValue?.foreignKey?.length} placeholder={generateForeignKeyName(value)} />
+                        <Input
+                            // isDisabled={defaultValue?.foreignKey?.length}
+                            placeholder={generateForeignKeyName(value)}
+                        />
                     </Field>
                 </Stack>
             </HStack>

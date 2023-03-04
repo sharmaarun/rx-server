@@ -1,5 +1,5 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
-import { Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps, useFormContext } from "@reactive/ui"
+import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps, useFormContext } from "@reactive/ui"
 import { ArrayMinSize, IsNotEmpty } from "class-validator"
 import { ChangeEvent, useEffect, useState } from "react"
 
@@ -31,9 +31,7 @@ export interface EnumAttributeEditorProps extends StackProps, AttributeEditorCon
 export function EnumAttributeEditor({ children, ...props }: EnumAttributeEditorProps) {
     const { defaultValue } = useFormContext()
     return (
-        <FormStage validationClass={EnumValidation}>
-            <Stack {...props}>
-
+        <FormStage validationClass={EnumValidation} {...props}>
                 <FieldControl>
                     <FieldLabel>Name</FieldLabel>
                     <Field name="name">
@@ -50,7 +48,34 @@ export function EnumAttributeEditor({ children, ...props }: EnumAttributeEditorP
                         <EnumValueInput placeholder={"Enter one value per line"} />
                     </Field>
                 </FieldControl>
-            </Stack>
+                <HStack alignItems="flex-start">
+                    <FieldControl w={["100%", "100%", "50%"]}>
+                        <FieldLabel>
+                            Required
+                        </FieldLabel>
+                        <HStack>
+                            <Field name="isRequired" type="boolean">
+                                <Checkbox />
+                            </Field>
+                            <FieldDescription>
+                                Make it required in the database
+                            </FieldDescription>
+                        </HStack>
+                    </FieldControl>
+                    <FieldControl w={["100%", "100%", "50%"]}>
+                        <FieldLabel>
+                            Unique
+                        </FieldLabel>
+                        <HStack>
+                            <Field name="isUnique" type="boolean">
+                                <Checkbox />
+                            </Field>
+                            <FieldDescription>
+                                Make it unique field in the database
+                            </FieldDescription>
+                        </HStack>
+                    </FieldControl>
+                </HStack>
         </FormStage>
     )
 }

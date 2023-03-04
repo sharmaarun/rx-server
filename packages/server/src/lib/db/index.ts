@@ -462,30 +462,42 @@ export class DBManager extends PluginClass {
             return refSchemas
         }
 
+        const addIfNotExist = (toAdd: any) => {
+            const exists = refSchemas?.find(rs => rs.name === toAdd?.name)
+            if (!exists && toAdd?.name) {
+                refSchemas.push(toAdd);
+            }
+        }
+
 
         // for all new 
         for (let refAttribute of add) {
             if (refAttribute.type === BaseAttributeType.relation) {
+                const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
+                if (oldAttr && oldAttr.foreignKey !== refAttribute.foreignKey) {
+                    const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
+                    addIfNotExist(oldRefSchema)
+                }
                 // add foreign key to ref schema
                 const refSchema = this.createOrUpdateForeignKey(newSchema, { refAttribute, schemas: allSchemas })
+                addIfNotExist(refSchema)
                 // add this schema to refSchemas array if not already exists
-                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
-                if (!exists && refSchema?.name) {
-                    refSchemas.push(refSchema);
-                }
+
             }
         }
 
         // for changed
         for (let refAttribute of change) {
             if (refAttribute.type === BaseAttributeType.relation) {
+                const oldAttr = Object.values(oldSchema?.attributes || {}).find(attr => attr.name === refAttribute.name)
+                if (oldAttr && oldAttr.foreignKey !== refAttribute.foreignKey) {
+                    const oldRefSchema = this.removeForeignKey({ refAttribute: oldAttr, schemas: allSchemas })
+                    addIfNotExist(oldRefSchema)
+                }
                 // add or update foreign key to ref schema
                 const refSchema = this.createOrUpdateForeignKey(newSchema, { refAttribute, schemas: allSchemas })
                 // add this schema to refSchemas array if not already exists
-                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
-                if (!exists && refSchema?.name) {
-                    refSchemas.push(refSchema);
-                }
+                addIfNotExist(refSchema)
             }
         }
 
@@ -495,17 +507,12 @@ export class DBManager extends PluginClass {
                 // remove foreign key to ref schema
                 const refSchema = this.removeForeignKey({ refAttribute, schemas: allSchemas })
                 // add this schema to refSchemas array if not already exists
-                const exists = refSchemas?.find(rs => rs.name === refSchema?.name)
-                if (!exists && refSchema?.name) {
-                    refSchemas.push(refSchema);
-                }
+                addIfNotExist(refSchema)
             }
         }
 
         // push this schema if not already
-        if (!refSchemas?.find(rs => rs.name === newSchema.name)) {
-            refSchemas.push(newSchema)
-        }
+        addIfNotExist(newSchema)
 
 
         return refSchemas || []

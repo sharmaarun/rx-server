@@ -152,19 +152,19 @@ const attributeTypes: RegisteredAttribute[] = [
 export const RelationTypes = {
     [RelationType.ONE_TO_ONE]: {
         icon: <RXICO_RELATION_ONE_TO_ONE />,
-        title: "One To One"
+        title: "Has One And Belongs To One"
     },
     [RelationType.ONE_TO_MANY]: {
         icon: <RXICO_RELATION_ONE_TO_MANY />,
-        title: "One To Many"
+        title: "Has Many And Belongs To One"
     },
     [RelationType.MANY_TO_ONE]: {
         icon: <RXICO_RELATION_MANY_TO_ONE />,
-        title: "Many To One"
+        title: "Belongs To Many And Has One"
     },
     [RelationType.MANY_TO_MANY]: {
         icon: <RXICO_RELATION_MANY_TO_MANY />,
-        title: "Many To Many"
+        title: "Has Many And Belongs To Many"
     },
     [RelationType.HAS_ONE]: {
         icon: <RXICO_RELATION_HAS_ONE />,

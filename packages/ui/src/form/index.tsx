@@ -3,7 +3,7 @@ import { plainToInstance } from 'class-transformer'
 import { validate, ValidationError } from 'class-validator'
 import { Children, cloneElement, createContext, CSSProperties, useContext, useEffect, useState } from 'react'
 import { ActionButton, Button, ButtonProps } from '../button'
-import Stack from "../stack"
+import Stack, { StackProps } from "../stack"
 
 /**
  * Form Props
@@ -82,7 +82,7 @@ export function Form({ children, ...props }: FormContext) {
 
     const [fields, setFields] = useState<RegisteredFields>({})
     const [form, setForm] = useState<any>({ ...(defaultValue || {}) })
-    const [errors, setErrors] = useState<ValidationError[]>(errs || [])
+    const [errors, setErrors] = useState<ValidationError[]>([])
     const [formId] = useState("FORM" + formID++)
     const [stages, setStages] = useState<FormStageProps[]>([])
     const [active, setActive] = useState(0)
@@ -90,10 +90,10 @@ export function Form({ children, ...props }: FormContext) {
 
 
 
-    useEffect(() => {
-        if (errs)
-            setErrors(errs)
-    }, [errs])
+    // useEffect(() => {
+    //     if (errs)
+    //         setErrors(errs)
+    // }, [errs])
 
     useEffect(() => {
         props?.onFormChange?.(form)
@@ -124,7 +124,6 @@ export function Form({ children, ...props }: FormContext) {
         setErrors([])
         let mwErrors: ValidationError[] = []
         let validationErrors: ValidationError[] = []
-        console.log("current form stage", active)
         if (middlewares.length) {
             for (let middleware of middlewares) {
                 try {
@@ -164,9 +163,9 @@ export function Form({ children, ...props }: FormContext) {
         if (validationClass_) {
             validationErrors = await validate(plainToInstance(validationClass_, form))
         }
-        console.log(validationErrors,mwErrors)
-        if (validationErrors.length || mwErrors.length) {
-            setErrors([...validationErrors, ...mwErrors])
+        console.log(validationErrors, mwErrors)
+        if (validationErrors.length || mwErrors.length || errs?.length) {
+            setErrors([...validationErrors, ...mwErrors, ...(errs || [])])
             handleErrors()
             return;
         }
@@ -306,7 +305,7 @@ export function Field({
     </>)
 }
 
-export interface FormStageProps extends Partial<FormProps> {
+export interface FormStageProps extends Partial<FormProps & StackProps> {
     children?: any
 }
 
