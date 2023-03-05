@@ -14,10 +14,12 @@ export type SaveOpts = {
 export class Obj<T = any> implements ObjInitOpts {
     private net!: NetworkManager
     public attributes!: T & CoreAttributes
+    private name!: string
     objectIdKey: string = "id"
-    constructor(private name: string, opts?: ObjInitOpts) {
+    constructor(name: string, opts?: ObjInitOpts) {
         Object.assign(this, opts)
         this.net = container.get<NetworkManager>("NetworkManager")
+        this.name = name
     }
 
     public set(attrs: T) {
@@ -86,7 +88,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
     const get = async (id?: string | number, query?: Query<T>) => {
         setIsLoading(true)
         try {
-            await obj.get(id,query)
+            await obj.get(id, query)
         } catch (e: any) {
             throw e
         } finally {

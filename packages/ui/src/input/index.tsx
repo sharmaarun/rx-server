@@ -72,11 +72,11 @@ export interface TextareaProps extends _TextareaProps {
 
 }
 
-export function Textarea(props: TextareaProps) {
+export const Textarea = forwardRef((props: TextareaProps, ref: any) => {
     return (
-        <_Textarea {...props} />
+        <_Textarea {...props} ref={ref} />
     )
-}
+})
 
 export default {
     Input,
