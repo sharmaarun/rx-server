@@ -53,7 +53,7 @@ export class NetworkManager extends PluginClass {
                 ...opts
             })
         await this.processResponse(res)
-        return await res.json();
+        return await this.processResponseData(res)
     }
     public async delete(path: string, opts?: NetworkManagerRequestOpts) {
         const res = await fetch(this.serverURL + "/" + path,
@@ -63,12 +63,12 @@ export class NetworkManager extends PluginClass {
                 ...opts
             })
         await this.processResponse(res)
-        return res.json()
+        return await this.processResponseData(res)
     }
     private processResponse = async (res: Response) => {
-        const { ok, status, statusText } = res
+        const { ok, status, statusText, text } = res
         if (!ok || status >= 400) {
-            const data = await res.json()
+            const data = await this.processResponseData(res)
             const { message, errors }: any = data || {}
             const opts = {
                 ok: data?.ok ?? ok,
@@ -80,6 +80,21 @@ export class NetworkManager extends PluginClass {
             } else {
                 throw new BaseError(message, opts)
             }
+        }
+    }
+
+    private processResponseData = async (res: Response) => {
+        let data: any;
+        try {
+            data = await res.text()
+            try {
+                return JSON.parse(data)
+            } catch (e) {
+                return data
+            }
+        } catch (e) {
+            console.log(e)
+            return data
         }
     }
 }

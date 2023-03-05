@@ -1,9 +1,11 @@
-import { Obj, useAttributes, useEntityObj } from "@reactive/client"
-import { Attribute, BaseAttributeType, NumberAttributeSubType, RelationType, toPascalCase } from "@reactive/commons"
-import { ActionButton, Card, Field, FieldControl, FieldLabel, Form, Heading, HStack, Input, JumboAlert, Page, PageBackButton, PageBody, PageContent, PageFooter, PageHeader, PageToolbar, Spinner, Stack, StackProps, useToast } from "@reactive/ui"
+import { confirmDelete, useAttributes, useEntityObj } from "@reactive/client"
+import { Attribute, BaseAttributeType, NumberAttributeSubType, toPascalCase } from "@reactive/commons"
+import { RXICO_CALENDAR, RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
+import { ActionButton, Card, Field, Anchor, FieldControl, FieldLabel, Form, Heading, HStack, Icon, Input, LinkListItem, Page, PageBackButton, PageBody, PageContent, PageFooter, PageHeader, Spinner, Stack, StackProps, Tag, Text, useToast, DeleteAlertModal } from "@reactive/ui"
 import { ValidationError } from "class-validator"
+import { format, formatDistance } from "date-fns"
 import { useEffect, useState } from "react"
-import { useNavigate, useOutletContext, useParams } from "react-router-dom"
+import { Link, useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { ListSchemaOutletContext } from "../index"
 export interface EditorPageProps extends StackProps {
     children?: any
@@ -13,15 +15,17 @@ export interface EditorPageProps extends StackProps {
 
 export function EditorPage({ children, mode = "update", ...props }: EditorPageProps) {
     const { id, name } = useParams() || {}
-    const { obj, get, save, isLoading, isSaving } = useEntityObj({ name })
+    const { obj, get, save, remove, isRemoving, isLoading, isSaving } = useEntityObj({ name })
     const [errors, setErrors] = useState<ValidationError[]>([])
     const toast = useToast({
-        position: "top",
-        status: "success"
+        position: "top-right",
+        status: "success",
+        isClosable: true
     })
     const navigate = useNavigate()
     const { attributes } = useAttributes()
     const { schemas } = useOutletContext<ListSchemaOutletContext>()
+
     const currentSchema = schemas?.find(s => s.name === name)
 
     useEffect(() => {
@@ -87,10 +91,34 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
         }
     }
 
+    const onRemoveClick = () => {
+        confirmDelete(onRemove)
+    }
+
+    const onRemove = async () => {
+        try {
+            await remove()
+            toast({
+                title: "Success",
+                description: "Entry was deleted"
+            })
+            navigate(`/admin/explorer/${name}`)
+        } catch (e) {
+            if (e.errors?.length) {
+                setErrors(e.errors)
+            }
+            toast({
+                title: "Error",
+                status: "error",
+                description: e.message || "Server erorr occured"
+            })
+            console.error(e)
+        }
+    }
+
     const defaultValue: any = {}
     for (let key in obj?.attributes || {}) {
         const attr = Object.values(currentSchema?.attributes)?.find(a => a.name === key)
-        console.log("attr is : ", attr?.type)
         if (attr && attr.type === BaseAttributeType.relation && attr.name) {
             const ev = obj?.attributes?.[attr.name]
             defaultValue[attr.name] =
@@ -101,8 +129,6 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
         }
         defaultValue[attr?.name || key] = obj?.attributes?.[attr?.name || key]
     }
-
-    console.log(defaultValue)
 
     return (
         <Page>
@@ -137,7 +163,7 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                     <PageBody flex={1} >
                         <>
                             <HStack alignItems="flex-start">
-                                <Card shadow="base" p={4} w="80%">
+                                <Card shadow="base" p={4} flex={1}>
                                     <HStack flexWrap="wrap" spacing={0} alignItems="flex-start" justifyContent="space-between">
                                         {Object.values(currentSchema?.attributes || {})?.map((attr, ind) => {
                                             const rattr = getRegisteredAttribute(attr)
@@ -153,10 +179,66 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                                         )}
                                     </HStack>
                                 </Card>
-                                <Card p={4} w="20%">
-
-                                    <Input />
-                                </Card>
+                                <Stack w="25%">
+                                    <Card p={4} >
+                                        <Stack spacing={6}>
+                                            {obj?.attributes?.id ? <>
+                                                <Stack>
+                                                    <HStack alignItems="flex-start">
+                                                        <Icon>
+                                                            <RXICO_CALENDAR />
+                                                        </Icon>
+                                                        <Stack>
+                                                            <Heading size="sm">Creation Date</Heading>
+                                                            <Text fontSize="xs">{format(new Date(obj?.attributes?.createdAt), "dd-MM-yyyy HH:mm a")} ({formatDistance(new Date(obj?.attributes?.createdAt), new Date())})</Text>
+                                                        </Stack>
+                                                    </HStack>
+                                                </Stack>
+                                                <Stack>
+                                                    <HStack alignItems="flex-start">
+                                                        <Icon>
+                                                            <RXICO_CALENDAR />
+                                                        </Icon>
+                                                        <Stack>
+                                                            <Heading size="sm">Last Updated</Heading>
+                                                            <Text fontSize="xs">{format(new Date(obj?.attributes?.updatedAt), "dd-MM-yyyy HH:mm a")} ({formatDistance(new Date(obj?.attributes?.updatedAt), new Date())})</Text>
+                                                        </Stack>
+                                                    </HStack>
+                                                </Stack>
+                                                <Stack>
+                                                    <HStack alignItems="flex-start">
+                                                        <Icon color="red.500">
+                                                            <RXICO_TRASH />
+                                                        </Icon>
+                                                        <Stack>
+                                                            <Heading size="sm">
+                                                                <Anchor onClick={onRemoveClick}>Delete Entry</Anchor>
+                                                            </Heading>
+                                                            <Text fontSize="xs">
+                                                                Remove this entry from DB
+                                                            </Text>
+                                                        </Stack>
+                                                    </HStack>
+                                                </Stack>
+                                            </> : ""}
+                                            <Stack>
+                                                <HStack alignItems="flex-start">
+                                                    <Icon color="purple.500">
+                                                        <RXICO_EDIT />
+                                                    </Icon>
+                                                    <Stack>
+                                                        <Heading size="sm">
+                                                            <Anchor onClick={() => navigate(`/admin/data-types/${name}`)}>Edit Data Type</Anchor>
+                                                        </Heading>
+                                                        <Text fontSize="xs">
+                                                            Edit `{name}` data type
+                                                        </Text>
+                                                    </Stack>
+                                                </HStack>
+                                            </Stack>
+                                        </Stack>
+                                    </Card>
+                                </Stack>
                             </HStack>
                             <ActionButton type="submit" hidden={true} />
                         </>

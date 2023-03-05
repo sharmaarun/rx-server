@@ -38,6 +38,7 @@ export async function bootstrap(opts?: BootstrapOpts) {
     server: (await import(opts?.appDir + "/config/app"))?.default,
     db: (await import(opts?.appDir + "/config/db"))?.default,
     plugins: (await import(opts?.appDir + "/config/plugins"))?.default,
+    logger: (await import(opts?.appDir + "/config/logger"))?.default,
   }
 
 
@@ -80,10 +81,10 @@ export async function bootstrap(opts?: BootstrapOpts) {
 
 
 
-  
+
   // start db
   await db.start()
-  
+
   // Starting
   await endpoints.start()
 

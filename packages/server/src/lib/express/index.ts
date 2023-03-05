@@ -6,7 +6,7 @@ import { resolve } from "path";
 import { ServerContext } from "../context";
 import { PluginClass } from "../plugin";
 import bodyParser from "body-parser"
-
+import chalk from "chalk"
 export type CreateRouteOpts = {
     route: APIRoute,
     handler?: (req: Express.Request, res: Express.Response) => any | Promise<any>
@@ -66,6 +66,7 @@ export class ExpressManager extends PluginClass {
                         return await handler(req, res)
                     } catch (e: any) {
                         res.status(e.status || 500).send({ ...e, message: e.message })
+                        this.ctx.logger.error(e)
                     }
                 })
         }

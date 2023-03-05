@@ -8,6 +8,52 @@
       "subType": "varchar",
       "validations": [],
       "isRequired": true
+    },
+    "age": {
+      "type": "number",
+      "customType": "number",
+      "name": "age",
+      "subType": "integer"
+    },
+    "description": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "description"
+    },
+    "isConfirmed": {
+      "type": "boolean",
+      "customType": "boolean",
+      "name": "isConfirmed"
+    },
+    "dob": {
+      "type": "date",
+      "customType": "date",
+      "name": "dob",
+      "subType": "date"
+    },
+    "gender": {
+      "type": "enum",
+      "customType": "enum",
+      "name": "gender",
+      "values": [
+        "Male",
+        "Female"
+      ]
+    },
+    "meta": {
+      "type": "json",
+      "customType": "json",
+      "name": "meta"
+    },
+    "cats": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "cats",
+      "relationType": "1:m",
+      "ref": "cat",
+      "foreignKey": "owner",
+      "isTarget": false
     }
   }
 }

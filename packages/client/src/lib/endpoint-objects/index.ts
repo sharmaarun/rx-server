@@ -116,7 +116,7 @@ export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
     const remove = async () => {
         setIsRemoving(true)
         try {
-            return obj.list()
+            return obj.delete()
         } catch (e: any) {
             throw e
         } finally {

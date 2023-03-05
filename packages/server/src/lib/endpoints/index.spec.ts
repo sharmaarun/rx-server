@@ -1,14 +1,17 @@
 import { APIRoute, BaseValidationError, Endpoint } from "@reactive/commons";
 import { EndpointManager } from "."
 import { ExpressManager } from "../express"
+import { Logger } from "../logger";
 
 describe('Endpoints Manager', () => {
     const epMgr = new EndpointManager(new ExpressManager())
+    const logger = new Logger()
     let middlewareCalled = false;
 
     const res = { header: () => { }, send: () => { } }
 
     beforeAll(async () => {
+        await logger.init()
         await epMgr.init({
             appDir: __dirname,
             config: {
@@ -16,7 +19,8 @@ describe('Endpoints Manager', () => {
                     path: ".",
                     webRoot: "api"
                 }
-            }
+            },
+            logger
         } as any
         )
     })
@@ -84,5 +88,9 @@ describe('Endpoints Manager', () => {
         } catch (e) {
             console.log(e)
         }
+    })
+
+    it("should log the endpoint request in proper format", () => {
+        epMgr.logEndpointRequest("delete","/asd/:id","list")
     })
 })

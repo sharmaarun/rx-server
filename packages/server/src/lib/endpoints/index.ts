@@ -1,4 +1,6 @@
 import { APIRequestContext, APIRoute, APIRouteHandlersMap, APIRouteMiddleware, ContextNotFoundError, Endpoint, EndpointType, loadModule, PLUGINS_WEB_ROOT } from "@reactive/commons";
+import chalk from "chalk";
+import { format } from "date-fns";
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { inject, injectable } from "inversify";
 import { resolve } from "path";
@@ -26,7 +28,9 @@ export const createDefaultCRUDRouteHandlersMap = (ctx: ServerContext): APIRouteH
     },
     async delete(req: APIRequestContext) {
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
-        return req.send(await ctx.query(req?.endpoint?.schema?.name)?.delete(req.query))
+        const count = await ctx.query(req?.endpoint?.schema?.name)?.delete(req.query)
+        if (count === 0) console.warn("No requested entries were deleted", req.query)
+        return req.send({ count })
     }
 })
 
@@ -224,7 +228,7 @@ export class EndpointManager extends PluginClass {
     public prepareRequestHandler = (path: string, ep: Endpoint, route: APIRoute) =>
         async (req: Request, res: Response) => {
             //log the request
-            console.log(route.method?.toUpperCase(), path, "=>", route.handler)
+            this.logEndpointRequest(route.method?.toUpperCase(), path, route.handler)
 
             if (route.handler) {
                 // prepare the context
@@ -299,5 +303,11 @@ export class EndpointManager extends PluginClass {
                 })
             })
         }
+    }
+
+    public logEndpointRequest = (method: string, path: string, handler?: string) => {
+        method = method?.toUpperCase()
+        method = method === "DELETE" ? chalk.red(method) : chalk.green(method)
+        this.ctx.logger.log(method, chalk.yellow(path), "=>", chalk.blue(handler))
     }
 }

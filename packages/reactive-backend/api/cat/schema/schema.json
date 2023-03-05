@@ -1,0 +1,20 @@
+{
+  "name": "cat",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "subType": "varchar"
+    },
+    "owner": {
+      "type": "relation",
+      "ref": "test",
+      "name": "owner",
+      "relationType": "m:1",
+      "customType": "relation",
+      "foreignKey": "cats",
+      "isTarget": true
+    }
+  }
+}

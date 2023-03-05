@@ -6,6 +6,7 @@ export * from './box';
 export * from './button';
 export * from './calendar';
 export * from './card';
+export * from './anchor';
 export * from "./chakra-provider";
 export * from './checkbox';
 export * from './delete-alert-modal';

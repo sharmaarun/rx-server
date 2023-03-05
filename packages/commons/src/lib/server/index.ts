@@ -1,6 +1,7 @@
 
 import { APIConfig } from "../api";
 import { DBConfig } from "../db";
+import { LoggerConfig } from "../logger";
 import { PluginsConfig } from "../plugins";
 
 
@@ -19,5 +20,6 @@ export type Config = {
     plugins: PluginsConfig,
     server: ServerConfig,
     api: APIConfig
+    logger: LoggerConfig
 }
 
