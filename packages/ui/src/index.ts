@@ -12,6 +12,7 @@ export * from "./chakra-provider";
 export * from './checkbox';
 export * from './delete-alert-modal';
 export * from './editable';
+export * from './rich-text';
 export * from './form';
 export * from './form-modal';
 export * from './heading';

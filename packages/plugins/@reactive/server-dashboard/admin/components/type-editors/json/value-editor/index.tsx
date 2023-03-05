@@ -1,7 +1,8 @@
+import { ValueEditorContext } from "@reactive/client"
 import { JSONInput, JSONInputProps } from "@reactive/ui"
 import { useState } from "react"
 
-export interface JSONValueEditorProps extends JSONInputProps {
+export interface JSONValueEditorProps extends JSONInputProps, ValueEditorContext {
     children?: any
 }
 

@@ -130,6 +130,12 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
         defaultValue[attr?.name || key] = obj?.attributes?.[attr?.name || key]
     }
 
+    const sortBySpan = (a: Attribute, b: Attribute) => {
+        const aspan = getRegisteredAttribute(a)?.metadata?.components?.valueEditor?.span ?? 0
+        const bspan = getRegisteredAttribute(b)?.metadata?.components?.valueEditor?.span ?? 0
+        return aspan - bspan
+    }
+
     return (
         <Page>
             <PageHeader>
@@ -165,18 +171,20 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                             <HStack alignItems="flex-start">
                                 <Card shadow="base" p={4} flex={1}>
                                     <HStack flexWrap="wrap" spacing={0} alignItems="flex-start" justifyContent="space-between">
-                                        {Object.values(currentSchema?.attributes || {})?.map((attr, ind) => {
-                                            const rattr = getRegisteredAttribute(attr)
-                                            const { valueEditor: ValueEditor } = rattr?.metadata?.components || { valueEditor: Input }
+                                        {Object.values(currentSchema?.attributes || {})?.
+                                            sort(sortBySpan).map((attr, ind) => {
+                                                const rattr = getRegisteredAttribute(attr)
+                                                const { valueEditor } = rattr?.metadata?.components || {}
+                                                const { component: ValueEditor = Input, span = 6 } = valueEditor || {}
 
-                                            return <FieldControl py={2} key={ind} w={["full", "full", "49%"]}>
-                                                <FieldLabel>{toPascalCase(attr.name)}</FieldLabel>
-                                                <Field name={attr.name} type={getFieldType(attr)}>
-                                                    <ValueEditor attribute={attr} schema={currentSchema} autoFocus={ind === 0} />
-                                                </Field>
-                                            </FieldControl>
-                                        }
-                                        )}
+                                                return <FieldControl py={2} key={ind} w={["full", "full", (((span / 12) * 100) - 1) + "%"]}>
+                                                    <FieldLabel>{toPascalCase(attr.name)}</FieldLabel>
+                                                    <Field name={attr.name} type={getFieldType(attr)}>
+                                                        <ValueEditor attribute={attr} schema={currentSchema} autoFocus={ind === 0} />
+                                                    </Field>
+                                                </FieldControl>
+                                            }
+                                            )}
                                     </HStack>
                                 </Card>
                                 <Stack w="25%">

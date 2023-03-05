@@ -24,7 +24,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: StringValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: StringValueEditor
+                },
                 valueRenderer: StringValueRenderer,
                 attributeEditor: StringAttributeEditor
             },
@@ -38,7 +41,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: NumberValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: NumberValueEditor
+                },
                 valueRenderer: NumberValueRenderer,
                 attributeEditor: NumberAttributeEditor
             },
@@ -53,7 +59,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: RichTextValueEditor,
+                valueEditor: {
+                    span: 12,
+                    component: RichTextValueEditor
+                },
                 valueRenderer: RichTextValueRenderer,
                 attributeEditor: RichTextAttributeEditor
             },
@@ -67,7 +76,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: BooleanValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: BooleanValueEditor
+                },
                 valueRenderer: BooleanValueRenderer,
                 attributeEditor: BooleanAttributeEditor,
             },
@@ -81,7 +93,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: DateValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: DateValueEditor
+                },
                 valueRenderer: DateValueRenderer,
                 attributeEditor: DateTypeEditor
             },
@@ -95,7 +110,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: EnumValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: EnumValueEditor
+                },
                 valueRenderer: EnumValueRenderer,
                 attributeEditor: EnumAttributeEditor
             },
@@ -109,7 +127,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: JSONValueEditor,
+                valueEditor: {
+                    span: 12,
+                    component: JSONValueEditor
+                },
                 valueRenderer: JSONValueRenderer,
                 attributeEditor: JSONAttributeEditor
             },
@@ -123,7 +144,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: RelationValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: RelationValueEditor
+                },
                 valueRenderer: RelationValueRenderer,
                 attributeEditor: RelationsAttributeEditor
             },
@@ -137,7 +161,10 @@ const attributeTypes: RegisteredAttribute[] = [
         },
         metadata: {
             components: {
-                valueEditor: UUIDValueEditor,
+                valueEditor: {
+                    span: 6,
+                    component: UUIDValueEditor
+                },
                 valueRenderer: UUIDValueRenderer,
                 attributeEditor: UUIDAttributeEditor
             },

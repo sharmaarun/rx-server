@@ -24,7 +24,13 @@ export const AttributeEditorContext = createContext<AttributeEditorContext>({})
 export const useAttributeEditorContext = () => useContext(AttributeEditorContext)
 
 export type AttributeComponents = {
-    valueEditor?: (props: ValueEditorContext) => JSX.Element
+    valueEditor?: {
+        /**
+         * Indicates the number of columns, this component takes in the editor space
+         */
+        span?: number,
+        component: (props: ValueEditorContext) => JSX.Element
+    },
     valueRenderer?: (props: ValueRendererContext) => JSX.Element
     attributeEditor?: (props: AttributeEditorContext) => JSX.Element
 }
