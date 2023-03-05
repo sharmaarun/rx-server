@@ -1,7 +1,7 @@
 import { confirmDelete, useAttributes, useEntityObj } from "@reactive/client"
 import { Attribute, BaseAttributeType, NumberAttributeSubType, toPascalCase } from "@reactive/commons"
-import { RXICO_CALENDAR, RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
-import { ActionButton, Card, Field, Anchor, FieldControl, FieldLabel, Form, Heading, HStack, Icon, Input, LinkListItem, Page, PageBackButton, PageBody, PageContent, PageFooter, PageHeader, Spinner, Stack, StackProps, Tag, Text, useToast, DeleteAlertModal } from "@reactive/ui"
+import { RXICO_CALENDAR, RXICO_CHEVRON_RIGHT, RXICO_EDIT, RXICO_TRASH } from "@reactive/icons"
+import { ActionButton, Card, Field, Anchor, FieldControl, FieldLabel, Form, Heading, HStack, Icon, Input, LinkListItem, Page, PageBackButton, PageBody, PageContent, PageFooter, PageHeader, Spinner, Stack, StackProps, Tag, Text, useToast, DeleteAlertModal, TagCloseButton } from "@reactive/ui"
 import { ValidationError } from "class-validator"
 import { format, formatDistance } from "date-fns"
 import { useEffect, useState } from "react"
@@ -142,8 +142,10 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                 <HStack>
                     <PageBackButton variant="ghost" />
                     <Heading size="md">
-                        {mode === "create" ? "Add New " : "Edit "} {toPascalCase(name || id || "")}
+                        {mode === "create" ? "Add New " : "Edit "} {toPascalCase(name || "")}
                     </Heading>
+                    <Icon><RXICO_CHEVRON_RIGHT /></Icon>
+                    <Tag colorScheme="purple">ID : {toPascalCase(id || "")}</Tag>
                 </HStack>
             </PageHeader>
 
