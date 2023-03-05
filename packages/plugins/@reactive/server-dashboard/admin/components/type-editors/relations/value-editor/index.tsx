@@ -1,8 +1,9 @@
 import { getFirstAttributeByType, useEntityObj, useServerContext, ValueEditorContext } from "@reactive/client"
 import { EntitySchema, RelationType } from "@reactive/commons"
 import { RXICO_TRASH } from "@reactive/icons"
-import { Button, Card, HStack, Icon, IconButton, Input, InputGroup, LinkListItem, List, ListItem, SelectProps, Stack, Text } from "@reactive/ui"
+import { Anchor, Button, Card, HStack, Icon, IconButton, Input, InputGroup, LinkListItem, List, ListItem, SelectProps, Stack, Text } from "@reactive/ui"
 import { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
 
 export interface RelationValueEditorProps extends Omit<SelectProps, "defaultValue" | "onChange" | "value">, ValueEditorContext {
     children?: any
@@ -93,11 +94,16 @@ export function RelationValueEditor({ children, attribute, onChange, defaultValu
 
     const add = (item: any) => {
         const exists = value?.find(v => v === item)
-        !exists && setValue([...value, item])
+        if (!exists) {
+            const nvalue = [...value, item]
+            setValue(nvalue)
+            fetchExisting(nvalue)
+        }
     }
 
     const remove = (index: number) => {
-        setValue([...(value?.filter((_, i) => i !== index) || [])])
+        const nValue = [...(value?.filter((_, i) => i !== index) || [])]
+        setValue(nValue)
     }
 
     const removeAll = () => {
@@ -147,19 +153,27 @@ export function RelationValueEditor({ children, attribute, onChange, defaultValu
             >
                 <List
                     maxH="150px"
-                    overflowY="auto">
+                    overflowY="auto"
+                >
                     {value?.map?.((d: any, ind: number) => {
                         const val = existingList?.find((dd) => dd.id === d)
-                        return <ListItem alignItems="center" cursor="pointer" key={ind}>
-                            <Text flex={1}>
-                                {val?.[getKeyName()] || val?.id}
-                            </Text>
-                            <IconButton onClick={() => remove(ind)} variant="ghost" aria-label="">
-                                <Icon>
-                                    <RXICO_TRASH />
-                                </Icon>
-                            </IconButton>
-                        </ListItem>
+                        return (
+                            <ListItem alignItems="center" cursor="pointer" key={ind}>
+                                <Anchor flex={1}>
+                                    <Link to={`/admin/explorer/${ref}/${d}`} key={ind}>
+
+                                        <Text flex={1}>
+                                            {val?.[getKeyName()] || val?.id}
+                                        </Text>
+                                    </Link>
+                                </Anchor>
+                                <IconButton onClick={(e) => { remove(ind) }} variant="ghost" aria-label="">
+                                    <Icon>
+                                        <RXICO_TRASH />
+                                    </Icon>
+                                </IconButton>
+                            </ListItem>
+                        )
                     })}
                 </List>
                 <HStack pt={4} >
