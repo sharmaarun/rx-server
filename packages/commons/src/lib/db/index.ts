@@ -237,6 +237,7 @@ export type QueryIncludeOpts<T = any> = {
 export type Query<T = any> = {
     where?: WhereOptions<T>
     include?: (string | QueryIncludeOpts<T>)[]
+    attributes?: string[]
     pagination?: QueryPagination
     group?: QueryGroup
     order?: QueryOrder

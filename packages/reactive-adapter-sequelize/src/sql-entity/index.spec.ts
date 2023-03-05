@@ -144,10 +144,13 @@ describe('SQL Entity Model', () => {
 
     it("should find entry", async () => {
         await createEntry()
-        const existing = await model.findOne({ where: { name: "ola" } })
+        let existing = await model.findOne({ where: { name: "ola" } })
         expect(existing.name).toEqual("ola")
+        existing = await model.findOne({ where: { name: "ola" }, attributes: ["id"] })
+        expect(existing.name).toBeUndefined()
         await model.delete({ where: { name: obj.name } })
     })
+
     it("should not find entry", async () => {
         const existing = await model.findOne({ where: { name: "olaa" } })
         expect(existing).toBeNull()
@@ -269,11 +272,11 @@ describe('SQL Entity Model', () => {
 
     it("should add hook to the model", async () => {
         model.addHook("beforeCreate", "bc1", (m, opts) => {
-            console.log("Name is",m.name, opts)
-            m.name="lola"
+            console.log("Name is", m.name, opts)
+            m.name = "lola"
         })
         model.addHook("afterCreate", "ac1", (m, opts) => {
-            console.log("Name is",m.name, opts)
+            console.log("Name is", m.name, opts)
         })
         await createEntry()
         await model.delete({ where: { name: "lola" } })

@@ -17,6 +17,7 @@ export class SQLEntity<T = any> extends Entity<T> {
         const page = filters?.pagination?.page || 1
         const limit = filters?.pagination?.pageSize || 100
         const offset = ((page > 0 ? page : 1) - 1) * limit
+        const attributes = filters?.attributes
 
         // convert where operators
         const where: any = {}
@@ -38,6 +39,7 @@ export class SQLEntity<T = any> extends Entity<T> {
 
         const filters_: NonNullFindOptions<T> = {
             where,
+            attributes,
             limit,
             offset,
             include: filters?.include,

@@ -6,6 +6,7 @@ import { AttributesManager, RegisteredAttribute } from "../attributes"
 import { NetworkManager } from "../network"
 import { PluginsManager } from "../plugins/manager"
 import { RoutesManager } from "../routes"
+import { BaseAttributeType, EntitySchema } from "@reactive/commons"
 
 const { container }: { container: Container } = (global as any)
 
@@ -75,6 +76,10 @@ export const registerAttributeType = (cb: (ctx: ClientContext) => RegisteredAttr
     }, 0)
 }
 
+
+export const getFirstAttributeByType = (schema: EntitySchema, type: BaseAttributeType = BaseAttributeType.string) => {
+    return Object.values(schema.attributes || {}).find(attr => attr.type === type)
+}
 
 
 // Delete alert modal related
