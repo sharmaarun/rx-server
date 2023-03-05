@@ -4,6 +4,7 @@ import { ReactNode } from "react"
 import { ArrayOfInput } from "../array-of-input"
 import { Field, FieldControl, FieldLabel, useFormContext } from "../form"
 import { Input } from "../input"
+import NumberInput from "../number-input"
 import { Select, SelectOption } from "../select"
 import { HStack, StackProps } from "../stack"
 import { Tag } from "../tag"
@@ -25,32 +26,44 @@ export const BasicAttributeValidations: CustomBasicAttributeValidationType[] = [
     {
         title: "Contains",
         type: BasicAttributeValidation.contains,
-        valueEditor: (props: any) => <Input {...props} />
+        valueEditor: (props: any) => <Field name="value">
+            <Input {...props} />
+        </Field>
     },
     {
         title: "Min Value",
         type: BasicAttributeValidation.min,
-        valueEditor: (props: any) => <Input type="number" {...props} />
+        valueEditor: (props: any) => <Field name="value" type="number">
+            <NumberInput {...props} />
+        </Field>
     },
     {
-        title: "Min Value",
-        type: BasicAttributeValidation.min,
-        valueEditor: (props: any) => <Input type="number" {...props} />
+        title: "Max Value",
+        type: BasicAttributeValidation.max,
+        valueEditor: (props: any) => <Field name="value" type="number">
+            <NumberInput {...props} />
+        </Field>
     },
     {
         title: "Min Length",
-        type: BasicAttributeValidation.min,
-        valueEditor: (props: any) => <Input type="number" {...props} />
+        type: BasicAttributeValidation.minLen,
+        valueEditor: (props: any) => <Field name="value" type="number">
+            <NumberInput {...props} />
+        </Field>
     },
     {
         title: "Max Length",
-        type: BasicAttributeValidation.min,
-        valueEditor: (props: any) => <Input type="number" {...props} />
+        type: BasicAttributeValidation.maxLen,
+        valueEditor: (props: any) => <Field name="value" type="number">
+            <NumberInput {...props} />
+        </Field>
     },
     {
         title: "Matches Regular Expression",
         type: BasicAttributeValidation.matches,
-        valueEditor: (props: any) => <Input {...props} />
+        valueEditor: (props: any) => <Field name="value">
+            <Input {...props} />
+        </Field>
     },
 ]
 
@@ -83,9 +96,8 @@ export function AttributeValidationsEditorForm({ }: AttributeValidationsEditorPr
                     <FieldLabel>
                         Value
                     </FieldLabel>
-                    <Field name="value">
-                        {BasicAttributeValidations.find(bav => bav.type === value?.type)?.valueEditor?.({})}
-                    </Field>
+
+                    {BasicAttributeValidations.find(bav => bav.type === value?.type)?.valueEditor?.({})}
                 </FieldControl>
                 : ""}
         </>

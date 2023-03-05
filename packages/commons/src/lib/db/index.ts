@@ -1,4 +1,4 @@
-import { contains, isEmpty, IsNotEmpty, max, min, ValidationError } from "class-validator"
+import { contains, isEmpty, IsNotEmpty, max, maxLength, min, minLength, ValidationError } from "class-validator"
 
 export type DBConfig = {
     adapter: string
@@ -308,10 +308,10 @@ export const validateValue = (value: any, { type, value: tvalue }: BasicAttribut
             msg = !max(value, tvalue) ? `Should be less than ${tvalue}` : ""
             break;
         case BasicAttributeValidation.minLen:
-            msg = !min(value, tvalue) ? `Length should be more than ${tvalue} characters` : ""
+            msg = !minLength(value, tvalue) ? `Length should be more than ${tvalue} characters` : ""
             break;
         case BasicAttributeValidation.maxLen:
-            msg = !max(value, tvalue) ? `Length should be less than ${tvalue} characters` : ""
+            msg = !maxLength(value, tvalue) ? `Length should be less than ${tvalue} characters` : ""
             break;
         case BasicAttributeValidation.matches:
             msg = !new RegExp(tvalue).test(value) ? `Invalid value` : ""

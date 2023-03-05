@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
 import { DateAttributeSubType, toPascalCase } from "@reactive/commons"
-import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
+import { AttributeValidationsEditor, Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface DateTypeEditorProps extends StackProps, AttributeEditorContext {
@@ -69,6 +69,9 @@ export function DateTypeEditor({ children, attribute, ...props }: DateTypeEditor
                     </HStack>
                 </FieldControl>
             </HStack>
+            <Field name="validations">
+                <AttributeValidationsEditor />
+            </Field>
         </FormStage>
     )
 }

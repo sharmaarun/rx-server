@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
 import { NumberAttributeSubType, toPascalCase } from "@reactive/commons"
-import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
+import { AttributeValidationsEditor, Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface NumberAttributeEditorProps extends StackProps, AttributeEditorContext {
@@ -68,6 +68,9 @@ export function NumberAttributeEditor({ children, attribute, ...props }: NumberA
                     </HStack>
                 </FieldControl>
             </HStack>
+            <Field name="validations">
+                <AttributeValidationsEditor />
+            </Field>
         </FormStage>
     )
 }

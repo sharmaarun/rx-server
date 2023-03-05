@@ -1,7 +1,5 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
-import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Stack, StackProps, Textarea, TextareaProps, useFormContext } from "@reactive/ui"
-import { ArrayMinSize, IsNotEmpty } from "class-validator"
-import { ChangeEvent, useEffect, useState } from "react"
+import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, StackProps, Textarea, TextareaProps, useFormContext } from "@reactive/ui"
 
 export interface EnumValueInputProps extends Omit<TextareaProps, "onChange"> {
     value?: string[]
@@ -32,50 +30,50 @@ export function EnumAttributeEditor({ children, ...props }: EnumAttributeEditorP
     const { defaultValue } = useFormContext()
     return (
         <FormStage validationClass={EnumValidation} {...props}>
-                <FieldControl>
-                    <FieldLabel>Name</FieldLabel>
-                    <Field name="name">
-                        <Input isDisabled={defaultValue?.name?.length} />
-                    </Field>
-                    <FieldDescription>Enter a unique name</FieldDescription>
-                </FieldControl>
-                <FieldControl flex={1}>
+            <FieldControl>
+                <FieldLabel>Name</FieldLabel>
+                <Field name="name">
+                    <Input isDisabled={defaultValue?.name?.length} />
+                </Field>
+                <FieldDescription>Enter a unique name</FieldDescription>
+            </FieldControl>
+            <FieldControl flex={1}>
+                <FieldLabel>
+                    Values
+                </FieldLabel>
+                <Field name="values">
+                    {/* <Textarea placeholder={"Enter one value per line"} /> */}
+                    <EnumValueInput placeholder={"Enter one value per line"} />
+                </Field>
+            </FieldControl>
+            <HStack alignItems="flex-start">
+                <FieldControl w={["100%", "100%", "50%"]}>
                     <FieldLabel>
-                        Values
+                        Required
                     </FieldLabel>
-                    <Field name="values">
-                        {/* <Textarea placeholder={"Enter one value per line"} /> */}
-                        <EnumValueInput placeholder={"Enter one value per line"} />
-                    </Field>
+                    <HStack>
+                        <Field name="isRequired" type="boolean">
+                            <Checkbox />
+                        </Field>
+                        <FieldDescription>
+                            Make it required in the database
+                        </FieldDescription>
+                    </HStack>
                 </FieldControl>
-                <HStack alignItems="flex-start">
-                    <FieldControl w={["100%", "100%", "50%"]}>
-                        <FieldLabel>
-                            Required
-                        </FieldLabel>
-                        <HStack>
-                            <Field name="isRequired" type="boolean">
-                                <Checkbox />
-                            </Field>
-                            <FieldDescription>
-                                Make it required in the database
-                            </FieldDescription>
-                        </HStack>
-                    </FieldControl>
-                    <FieldControl w={["100%", "100%", "50%"]}>
-                        <FieldLabel>
-                            Unique
-                        </FieldLabel>
-                        <HStack>
-                            <Field name="isUnique" type="boolean">
-                                <Checkbox />
-                            </Field>
-                            <FieldDescription>
-                                Make it unique field in the database
-                            </FieldDescription>
-                        </HStack>
-                    </FieldControl>
-                </HStack>
+                <FieldControl w={["100%", "100%", "50%"]}>
+                    <FieldLabel>
+                        Unique
+                    </FieldLabel>
+                    <HStack>
+                        <Field name="isUnique" type="boolean">
+                            <Checkbox />
+                        </Field>
+                        <FieldDescription>
+                            Make it unique field in the database
+                        </FieldDescription>
+                    </HStack>
+                </FieldControl>
+            </HStack>
         </FormStage>
     )
 }

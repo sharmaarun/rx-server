@@ -1,6 +1,6 @@
 import { AttributeEditorContext, DefaultAttributesValidationClass } from "@reactive/client"
 import { toPascalCase } from "@reactive/commons"
-import { Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
+import { AttributeValidationsEditor, Checkbox, Field, FieldControl, FieldDescription, FieldLabel, FormStage, HStack, Input, Select, SelectOption, Stack, StackProps, useFormContext } from "@reactive/ui"
 import { IsNotEmpty } from "class-validator"
 
 export interface UUIDAttributeEditorProps extends StackProps, AttributeEditorContext {
@@ -55,6 +55,9 @@ export function UUIDAttributeEditor({ children, attribute, ...props }: UUIDAttri
                         </HStack>
                     </FieldControl>
                 </HStack>
+                <Field name="validations">
+                    <AttributeValidationsEditor />
+                </Field>
             </FormStage>
         </Stack>
     )

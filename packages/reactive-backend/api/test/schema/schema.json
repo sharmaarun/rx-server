@@ -6,14 +6,25 @@
       "customType": "string",
       "name": "name",
       "subType": "varchar",
-      "validations": [],
+      "validations": [
+        {
+          "type": "minLen",
+          "value": 3
+        }
+      ],
       "isRequired": true
     },
     "age": {
       "type": "number",
       "customType": "number",
       "name": "age",
-      "subType": "integer"
+      "subType": "integer",
+      "validations": [
+        {
+          "type": "min",
+          "value": 3
+        }
+      ]
     },
     "description": {
       "type": "string",

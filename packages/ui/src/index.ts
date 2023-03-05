@@ -6,6 +6,7 @@ export * from './box';
 export * from './button';
 export * from './calendar';
 export * from './card';
+export * from './number-input';
 export * from './json-input';
 export * from './anchor';
 export * from "./chakra-provider";

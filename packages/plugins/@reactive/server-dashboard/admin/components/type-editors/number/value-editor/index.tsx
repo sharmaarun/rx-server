@@ -1,16 +1,13 @@
-import React from "react"
-import { Input, InputProps } from "@reactive/ui"
 import { ValueEditorContext } from "@reactive/client"
+import { NumberInput, NumberInputProps } from "@reactive/ui"
 
-export interface NumberValueEditorProps extends InputProps, ValueEditorContext {
+export interface NumberValueEditorProps extends NumberInputProps, ValueEditorContext {
     children?: any
 }
 
 export function NumberValueEditor({ children, ...props }: NumberValueEditorProps) {
     return (
-        <Input type="number" {...props}>
-            {children}
-        </Input>
+        <NumberInput {...props} />
     )
 }
 
