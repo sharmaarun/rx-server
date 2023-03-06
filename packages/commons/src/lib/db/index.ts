@@ -117,7 +117,7 @@ export enum BasicAttributeValidation {
     "isCreditCard" = "isCreditCard",
 }
 
-export enum Operators {
+export enum Operator {
     "eq" = "eq",
     "ne" = "ne",
     "gte" = "gte",
@@ -141,23 +141,23 @@ export enum Operators {
     "notIRegexp" = "notIRegexp",
     "between" = "between",
     "notBetween" = "notBetween",
-    "overlap" = "overlap",
     "contains" = "contains",
-    "contained" = "contained",
-    "adjacent" = "adjacent",
-    "strictLeft" = "strictLeft",
-    "strictRight" = "strictRight",
-    "noExtendRight" = "noExtendRight",
-    "noExtendLeft" = "noExtendLeft",
+    "values" = "values",
     "and" = "and",
     "or" = "or",
     "any" = "any",
     "all" = "all",
-    "values" = "values",
-    "col" = "col",
-    "placeholder" = "placeholder",
-    "join" = "join",
-    "match" = "match",
+    // "overlap" = "overlap",
+    // "contained" = "contained",
+    // "adjacent" = "adjacent",
+    // "strictLeft" = "strictLeft",
+    // "strictRight" = "strictRight",
+    // "noExtendRight" = "noExtendRight",
+    // "noExtendLeft" = "noExtendLeft",
+    // "col" = "col",
+    // "placeholder" = "placeholder",
+    // "join" = "join",
+    // "match" = "match",
 }
 
 export type BasicAttributeValidationType = {
@@ -209,7 +209,7 @@ export class CoreAttributes {
 }
 
 export type WhereOptionsQuery = {
-    [key in Operators]?: any
+    [key in Operator]?: any
 }
 
 export type WhereOptionsAttrs = {

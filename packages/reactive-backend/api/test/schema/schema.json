@@ -48,8 +48,8 @@
       "customType": "enum",
       "name": "gender",
       "values": [
-        "Male",
-        "Female"
+        "male",
+        "female"
       ]
     },
     "meta": {

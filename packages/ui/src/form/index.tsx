@@ -16,6 +16,7 @@ export type FormProps = {
     onSubmit?: (value: any) => void | Promise<void>
     onFormChange?: (value: any) => void
     defaultValue?: any
+    updateOnDefaultValueChange?: boolean
     style?: CSSProperties
 }
 
@@ -76,7 +77,7 @@ const tids: any = {
     regStage: -1,
 }
 export function Form({ children, ...props }: FormContext) {
-    const { validationClass, middlewares: mws, errors: errs, defaultValue, onSubmit } = props || {}
+    const { validationClass, middlewares: mws, errors: errs, defaultValue, updateOnDefaultValueChange, onSubmit } = props || {}
     const fields_: RegisteredFields = {};
     const stages_: FormStageProps[] = [];
 
@@ -88,7 +89,13 @@ export function Form({ children, ...props }: FormContext) {
     const [active, setActive] = useState(0)
     const [middlewares, setMiddlewares] = useState<FormMiddleware[]>(mws || [])
 
-
+    useEffect(() => {
+        if (updateOnDefaultValueChange) {
+            if (JSON.stringify(form) !== JSON.stringify(defaultValue)) {
+                setForm({ ...(defaultValue || {}) })
+            }
+        }
+    }, [defaultValue])
 
     useEffect(() => {
         if (errs)
@@ -150,7 +157,6 @@ export function Form({ children, ...props }: FormContext) {
 
 
         if (preSubmit_) {
-            console.log("presubmit")
             try {
                 await preSubmit_(ctx)
             } catch (e) {
@@ -163,7 +169,6 @@ export function Form({ children, ...props }: FormContext) {
         if (validationClass_) {
             validationErrors = await validate(plainToInstance(validationClass_, form))
         }
-        console.log(validationErrors, mwErrors)
         if (validationErrors.length || mwErrors.length) {
             setErrors([...validationErrors, ...mwErrors, ...(errs || [])])
             handleErrors()
@@ -290,7 +295,7 @@ export function Field({
                 {
                     cloneElement(child, {
                         onChange: onChange_(name),
-                        value,
+                        value: form?.[name],
                         defaultValue: form?.[name] || defaultValue,
                         defaultChecked: form?.[name] || defaultValue
                     })

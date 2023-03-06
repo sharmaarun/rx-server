@@ -76,14 +76,22 @@ export type UseEntityObjProps = {
     name: string
 }
 
-export const useEntityObj = <T = any>(props: UseEntityObjProps) => {
-    const [obj, setObj] = useState(new Obj<T>(props.name))
+export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
+    const [obj, setObj] = useState(new Obj<T>(name))
+    const [entityName, setEntityName] = useState(name)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isSaving, setIsSaving] = useState<boolean>(false)
     const [isRemoving, setIsRemoving] = useState<boolean>(false)
     useEffect(() => {
         setIsLoading(false)
     }, [])
+
+    useEffect(() => {
+        if (name !== entityName) {
+            setEntityName(name)
+            setObj(new Obj<T>(name))
+        }
+    }, [name])
 
     const get = async (id?: string | number, query?: Query<T>) => {
         setIsLoading(true)

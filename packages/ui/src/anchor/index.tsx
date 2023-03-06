@@ -7,7 +7,7 @@ export interface AnchorProps extends LinkProps {
 
 export function Anchor({children, ...props}: AnchorProps) {
     return (
-        <Link {...props}>
+        <Link color="purple.500" display="inline" {...props}>
             {children}
         </Link>
     )
