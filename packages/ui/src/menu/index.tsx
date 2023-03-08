@@ -38,7 +38,7 @@ export interface MenuButtonProps extends _MenuButtonProps {
 
 export const MenuButton = forwardRef((props: MenuButtonProps, ref: any) => {
     return (
-        <_MenuButton ref={ref} {...props} />
+        <_MenuButton  {...props} ref={ref}/>
     )
 })
 

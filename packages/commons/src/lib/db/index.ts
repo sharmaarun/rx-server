@@ -223,7 +223,11 @@ export type QueryPagination = {
     pageSize?: number
 }
 
-export type QueryOrderItem = string | [string, string]
+export type QueryOrderItemDirection<T = any> = T extends T ? "DESC" | "ASC" | "desc" | "asc" : T
+/**
+ * [attribute name,order]
+ */
+export type QueryOrderItem = string | [string, QueryOrderItemDirection]
 export type QueryOrder = string | string[] | QueryOrderItem[]
 
 export type QueryGroup = string | string[]
@@ -242,6 +246,12 @@ export type Query<T = any> = {
     group?: QueryGroup
     order?: QueryOrder
 }
+
+export type FindAndCountAllReturnType<T = any> = {
+    rows: T[],
+    count: number
+}
+
 
 export type ValidateEntityOptions = {
 

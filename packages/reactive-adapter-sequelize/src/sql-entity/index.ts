@@ -1,4 +1,4 @@
-import { BaseAttributeType, EntitySchema, Query, toPascalCase } from "@reactive/commons";
+import { BaseAttributeType, EntitySchema, FindAndCountAllReturnType, Query, toPascalCase } from "@reactive/commons";
 import { Entity, EntityHookFn, EntityHookFns, ServerContext, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { Model, ModelStatic, NonNullFindOptions, Sequelize, UpdateOptions } from "sequelize";
 import { OperatorsMap } from "../utils";
@@ -61,6 +61,11 @@ export class SQLEntity<T = any> extends Entity<T> {
         return await this.model.findAll(query) as T[]
     }
 
+    public override async findAndCountAll<FT extends T>(filters?: Query<FT>) {
+        const query = this.convertQuery(filters)
+        return await this.model.findAndCountAll(query) as FindAndCountAllReturnType<FT>
+    }
+
     public override async create(body?: Partial<T>) {
         const trx = await this.ds.transaction()
         try {
@@ -115,12 +120,46 @@ export class SQLEntity<T = any> extends Entity<T> {
         }
     }
 
+    public override async updateMany<FT extends T>(filters?: Query<FT>, update?: Partial<T>) {
+        const query = this.convertQuery(filters)
+        const filters_: UpdateOptions = {
+            ...(query as any || {})
+        }
+
+        let { id, ...update_ }: any = { ...(update || {}) }
+        if (!id) {
+            id = (filters?.where as any)?.id
+        }
+
+        if (!id) throw new Error("No id specified")
+        const transaction = await this.ds.transaction({});
+
+        try {
+            const ret = await this.model.update(update_, { ...(filters_ || {}), transaction }) as any
+            const entry = await this.model.findByPk(id, { transaction })
+            if (entry) {
+                await this.updateRelationalData(entry, update_, transaction)
+            }
+            await entry?.save?.({ transaction })
+            await transaction.commit()
+            return ret as UpdateReturnType<FT>
+        } catch (e: any) {
+            await transaction?.rollback()
+            throw e
+        }
+    }
+
     public override async upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>) {
         const query = this.convertQuery(filters)
         return (this.model.upsert(body as any, query as any) as any) as UpsertReturnType<FT>
     }
 
     public override async delete<FT extends T>(filters?: Query<FT>) {
+        const query = this.convertQuery(filters)
+        return this.model.destroy(query)
+    }
+
+    public override async deleteMany<FT extends T>(filters?: Query<FT>) {
         const query = this.convertQuery(filters)
         return this.model.destroy(query)
     }

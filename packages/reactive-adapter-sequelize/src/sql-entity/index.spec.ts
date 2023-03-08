@@ -165,6 +165,15 @@ describe('SQL Entity Model', () => {
         await model.delete({ where: { name: obj.name } })
 
     })
+    it("should findAndCountAll of the matching entries", async () => {
+        await createEntry()
+        await createEntry()
+        let res = await model.findAndCountAll()
+        expect(res.rows?.length).toBeGreaterThanOrEqual(2)
+        expect(res.count).toBeGreaterThanOrEqual(2)
+        await model.delete({ where: { name: obj.name } })
+
+    })
     const Ops = {
         like: Symbol("like")
     }

@@ -14,6 +14,10 @@ export const createDefaultCRUDRouteHandlersMap = (ctx: ServerContext): APIRouteH
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
         return req.send(await ctx.query(req?.endpoint?.schema?.name)?.findAll(req.query))
     },
+    async listWithCount(req: APIRequestContext) {
+        if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
+        return req.send(await ctx.query(req?.endpoint?.schema?.name)?.findAndCountAll(req.query))
+    },
     async read(req: APIRequestContext) {
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
         return req.send(await ctx.query(req?.endpoint?.schema?.name)?.findOne(req.query))
@@ -26,9 +30,19 @@ export const createDefaultCRUDRouteHandlersMap = (ctx: ServerContext): APIRouteH
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
         return req.send(await ctx.query(req?.endpoint?.schema?.name)?.update(req.query, req.body))
     },
+    async updateMany(req: APIRequestContext) {
+        if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
+        return req.send(await ctx.query(req?.endpoint?.schema?.name)?.updateMany(req.query, req.body))
+    },
     async delete(req: APIRequestContext) {
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
-        const count = await ctx.query(req?.endpoint?.schema?.name)?.delete(req.query)
+        const count = await ctx.query(req?.endpoint?.schema?.name)?.deleteMany(req.query)
+        if (count === 0) console.warn("No requested entries were deleted", req.query)
+        return req.send({ count })
+    },
+    async deleteMany(req: APIRequestContext) {
+        if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
+        const count = await ctx.query(req?.endpoint?.schema?.name)?.deleteMany(req.query)
         if (count === 0) console.warn("No requested entries were deleted", req.query)
         return req.send({ count })
     }
@@ -39,6 +53,11 @@ export const createDefaultCRUDRoutes = (ctx: ServerContext): APIRoute[] => ([
         method: "get",
         path: "/",
         handler: "list",
+    },
+    {
+        method: "get",
+        path: "/list-with-count",
+        handler: "listWithCount",
     },
     {
         method: "get",
@@ -56,9 +75,19 @@ export const createDefaultCRUDRoutes = (ctx: ServerContext): APIRoute[] => ([
         handler: "update",
     },
     {
+        method: "put",
+        path: "/many",
+        handler: "updateMany",
+    },
+    {
         method: "delete",
         path: "/:id",
         handler: "delete",
+    },
+    {
+        method: "delete",
+        path: "/many",
+        handler: "deleteMany",
     }
 ])
 

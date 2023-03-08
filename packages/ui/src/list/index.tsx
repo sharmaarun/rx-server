@@ -1,4 +1,3 @@
-import React from "react"
 import { List as _List, ListProps as _ListProps } from "@chakra-ui/react"
 export interface ListProps extends _ListProps {
 
@@ -11,7 +10,10 @@ export function List(props: ListProps) {
 }
 
 import { ListItem as _ListItem, ListItemProps as _ListItemProps } from "@chakra-ui/react"
+import { RXICO_CHECKMARK } from "@reactive/icons"
+import Box from "../box"
 import Card from "../card"
+import Icon from "../icon"
 export interface ListItemProps extends _ListItemProps {
     isActive?: boolean
 }
@@ -40,7 +42,12 @@ export function LinkListItem({ isActive, ...props }: ListItemProps) {
             {...props} />
     )
 }
-export function ActionListItem({ isActive, children, ...props }: ListItemProps) {
+
+export interface ActionListItemProps extends ListItemProps {
+    leftItem?: any
+}
+
+export function ActionListItem({ isActive, children, leftItem, ...props }: ActionListItemProps) {
     return (
         <_ListItem
             borderRadius={8}
@@ -54,8 +61,18 @@ export function ActionListItem({ isActive, children, ...props }: ListItemProps) 
             p={4}
             w="100%"
             as={Card}
+            display="flex"
+            spacing={4}
+            flexDir="row"
             {...props} >
-            {children}
+            {leftItem ||
+                <Icon color={isActive ? "purple.500" : "gray.50"} >
+                    <RXICO_CHECKMARK />
+                </Icon>
+            }
+            <Box pl={2} flex={1}>
+                {children}
+            </Box>
         </_ListItem>
     )
 }

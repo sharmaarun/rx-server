@@ -1,4 +1,4 @@
-import { Attribute, BaseAttributeType, BaseError, BaseValidationError, EntitySchema, Query, RelationType, validateEntity } from "@reactive/commons"
+import { Attribute, BaseAttributeType, BaseError, BaseValidationError, EntitySchema, FindAndCountAllReturnType, Query, RelationType, validateEntity } from "@reactive/commons"
 import { inject, injectable } from "inversify"
 import { ServerContext } from "../context"
 import { EndpointManager } from "../endpoints"
@@ -278,6 +278,12 @@ export abstract class Entity<T = any> {
      */
     public abstract findAll<FT extends T>(filters?: Query<FT>): (T[] | Promise<T[]>)
     /**
+     * Find All matching entries
+     * @param filters 
+     * @returns 
+     */
+    public abstract findAndCountAll<FT extends T>(filters?: Query<FT>): (FindAndCountAllReturnType<FT> | Promise<FindAndCountAllReturnType<FT>>)
+    /**
      * Create new entry
      * @param body 
      * @returns 
@@ -297,6 +303,13 @@ export abstract class Entity<T = any> {
      */
     public abstract update<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>)
     /**
+     * Update one or more existing entries in the database
+     * @param filters 
+     * @param update 
+     * @returns 
+     */
+    public abstract updateMany<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>)
+    /**
      * Insert or Update the entry
      * @param filters 
      * @param body 
@@ -309,6 +322,12 @@ export abstract class Entity<T = any> {
      * @returns 
      */
     public abstract delete<FT extends T>(filters?: Query<FT>): (number | Promise<number>)
+    /**
+     * Remove one or more entries from the db matching the filters
+     * @param filters 
+     * @returns 
+     */
+    public abstract deleteMany<FT extends T>(filters?: Query<FT>): (number | Promise<number>)
 
     /**
      * Add local event hooks for this entity

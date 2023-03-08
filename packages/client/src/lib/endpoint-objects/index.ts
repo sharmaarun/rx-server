@@ -1,4 +1,4 @@
-import { CoreAttributes, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
+import { CoreAttributes, FindAndCountAllReturnType, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
 import { useEffect, useState } from "react";
 import { container } from "../../container";
 import NetworkManager, { Method } from "../network";
@@ -30,6 +30,10 @@ export class Obj<T = any> implements ObjInitOpts {
         return await this.net.get(this.name + (query ? `?${stringify(query)}` : "")) as T[]
     }
 
+    public async listWithCount(query?: Query<T>) {
+        return await this.net.get(this.name + (query ? `/list-with-count?${stringify(query)}` : "")) as FindAndCountAllReturnType<T>
+    }
+
     public async get(id?: string | number, query?: Query<T>) {
         if (!this.id && !id) throw new Error("No ID specified")
         const data = await this.net.get((this.name + "/" + (this.id ?? id)) + (query ? `?${stringify(query)}` : ""))
@@ -54,9 +58,16 @@ export class Obj<T = any> implements ObjInitOpts {
     public async delete(id?: string) {
         // create new if no id present
         const res = await this.net.delete(this.name + "/" + (id || this.id))
-        return res as T
+        return res
 
     }
+
+    public async deleteMany(ids?: string[]) {
+        // create new if no id present
+        const res = await this.net.delete(this.name + "/many", { body: JSON.stringify(ids) })
+        return res
+    }
+
     public async call(path: string, data?: any, method: Method = "get") {
         return this.net?.[method]?.(this.name + "/" + path, data)
     }

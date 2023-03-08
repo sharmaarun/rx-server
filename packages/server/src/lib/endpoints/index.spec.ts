@@ -28,20 +28,26 @@ describe('Endpoints Manager', () => {
     it("should create router with default routes attached", () => {
         const router = epMgr.createRouter("test", ctx => ([]))
         expect(router.find(r => r.handler === "list")).toBeTruthy()
+        expect(router.find(r => r.handler === "listWithCount")).toBeTruthy()
         expect(router.find(r => r.handler === "read")).toBeTruthy()
         expect(router.find(r => r.handler === "create")).toBeTruthy()
         expect(router.find(r => r.handler === "update")).toBeTruthy()
+        expect(router.find(r => r.handler === "updateMany")).toBeTruthy()
         expect(router.find(r => r.handler === "delete")).toBeTruthy()
+        expect(router.find(r => r.handler === "deleteMany")).toBeTruthy()
     })
 
     it("should create controller with default routes attached", () => {
         const controller = epMgr.createController("test", ctx => ({}))
         const keys = Object.keys(controller)
         expect(keys.includes("list")).toBeTruthy()
+        expect(keys.includes("listWithCount")).toBeTruthy()
         expect(keys.includes("read")).toBeTruthy()
         expect(keys.includes("create")).toBeTruthy()
         expect(keys.includes("update")).toBeTruthy()
         expect(keys.includes("delete")).toBeTruthy()
+        expect(keys.includes("updateMany")).toBeTruthy()
+        expect(keys.includes("deleteMany")).toBeTruthy()
     })
 
     it("should add middleware", async () => {
@@ -91,6 +97,6 @@ describe('Endpoints Manager', () => {
     })
 
     it("should log the endpoint request in proper format", () => {
-        epMgr.logEndpointRequest("delete","/asd/:id","list")
+        epMgr.logEndpointRequest("delete", "/asd/:id", "list")
     })
 })

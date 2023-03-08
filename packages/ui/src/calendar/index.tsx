@@ -20,7 +20,7 @@ export interface ITaggedCalendarDate {
     dateRange?: Date[];
 }
 
-interface Props {
+export interface CalendarProps {
     value?: Date | Date[];
     onChange?: (dateRange: Date | Date[]) => void;
     mode?: "single" | "range";
@@ -108,7 +108,7 @@ export const Calendar = ({
         },
 
     ]
-}: Props): ReactElement => {
+}: CalendarProps): ReactElement => {
 
     const [_dates, setDates] = React.useState(value ? (!Array.isArray(value) ? [value] : value) : []);
     const [cDate, setCDate] = React.useState(new Date());
