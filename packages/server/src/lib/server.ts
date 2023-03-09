@@ -65,10 +65,10 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await logger.init()
   // Load Database
   await db.init(serverContext)
-  // Load App
-  await app.init(serverContext)
   // Load APIs
   await endpoints.init(serverContext)
+  // Load App
+  await app.init(serverContext)
   // Load settings
   await settings.init(serverContext)
   // Initialize generators

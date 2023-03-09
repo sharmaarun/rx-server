@@ -1,4 +1,4 @@
-import { Attribute, BaseAttributeType, BaseError, BaseValidationError, EntitySchema, FindAndCountAllReturnType, Query, RelationType, validateEntity } from "@reactive/commons"
+import { Attribute, BaseAttributeType, BaseValidationError, DefaultEntityAttributes, EntitySchema, FindAndCountAllReturnType, Query, RelationType, validateEntity } from "@reactive/commons"
 import { inject, injectable } from "inversify"
 import { ServerContext } from "../context"
 import { EndpointManager } from "../endpoints"
@@ -84,78 +84,113 @@ export type UpsertReturnType<T> = [T | T[], boolean]
 
 export type HookOptions = {
     entity: Entity
-    opts?: any
+    query?: Query<any>
 }
 
-export type BeforeValidateOptions = HookOptions & {}
-export type AfterValidateOptions = HookOptions & {}
-export type ValidationFailedOptions = HookOptions & {}
-export type BeforeCreateOptions = HookOptions & {}
-export type AfterCreateOptions = HookOptions & {}
-export type BeforeDestroyOptions = HookOptions & {}
-export type AfterDestroyOptions = HookOptions & {}
-export type BeforeRestoreOptions = HookOptions & {}
-export type AfterRestoreOptions = HookOptions & {}
-export type BeforeUpdateOptions = HookOptions & {}
-export type AfterUpdateOptions = HookOptions & {}
-export type BeforeSaveOptions = HookOptions & {}
-export type AfterSaveOptions = HookOptions & {}
-export type BeforeUpsertOptions = HookOptions & {}
-export type AfterUpsertOptions = HookOptions & {}
-export type BeforeBulkCreateOptions = HookOptions & {}
-export type AfterBulkCreateOptions = HookOptions & {}
-export type BeforeBulkDestroyOptions = HookOptions & {}
-export type AfterBulkDestroyOptions = HookOptions & {}
-export type BeforeBulkRestoreOptions = HookOptions & {}
-export type AfterBulkRestoreOptions = HookOptions & {}
-export type BeforeFindOptions = HookOptions & {}
-export type BeforeFindAfterExpandIncludeAllOptions = HookOptions & {}
-export type BeforeFindAfterOptionsOptions = HookOptions & {}
-export type AfterFindOptions = HookOptions & {}
-export type BeforeCountOptions = HookOptions & {}
-export type BeforeAssociateOptions = HookOptions & {}
-export type AfterAssociateOptions = HookOptions & {}
-export type BeforeSyncOptions = HookOptions & {}
-export type AfterSyncOptions = HookOptions & {}
-export type BeforeBulkSyncOptions = HookOptions & {}
-export type AfterBulkSyncOptions = HookOptions & {}
-export type BeforeQueryOptions = HookOptions & {}
-export type AfterQueryOptions = HookOptions & {}
+export type EntityHook = {
+    name: string
+    trigger: keyof EntityHookFns
+    fn: EntityHookFn<any, any>
+}
+
+export type BeforeValidateOptions = HookOptions & {
+    previous?: any
+}
+export type AfterValidateOptions = HookOptions & {
+    previous?: any
+}
+export type ValidationFailedOptions = HookOptions & {
+    previous?: any
+}
+export type BeforeCreateOptions = HookOptions & {
+    previous?: any
+}
+export type AfterCreateOptions = HookOptions & {
+    previous?: any
+}
+export type BeforeDestroyOptions = HookOptions & {
+    previous?: any
+}
+export type AfterDestroyOptions = HookOptions & {
+    previous?: any
+}
+export type BeforeUpdateOptions = HookOptions & {
+    previous?: any
+}
+export type AfterUpdateOptions = HookOptions & {
+    previous?: any
+}
+export type BeforeUpsertOptions = HookOptions & {
+    previous?: any
+}
+export type AfterUpsertOptions = HookOptions & {
+    previous?: any
+}
+export type BeforeBulkCreateOptions = HookOptions & {
+    previous?: any[]
+}
+export type AfterBulkCreateOptions = HookOptions & {
+    previous?: any[]
+}
+export type BeforeBulkUpdateOptions = HookOptions & {
+    previous?: any[]
+}
+export type AfterBulkUpdateOptions = HookOptions & {
+    previous?: any[]
+}
+export type BeforeBulkDestroyOptions = HookOptions & {
+    previous?: any[]
+}
+export type AfterBulkDestroyOptions = HookOptions & {
+    previous?: any[]
+}
+export type BeforeFindOptions = HookOptions & {
+}
+export type AfterFindOptions = HookOptions & {
+}
+export type BeforeCountOptions = HookOptions & {
+}
+export type AfterCountOptions = HookOptions & {
+}
+export type BeforeAssociateOptions = HookOptions & {
+}
+export type AfterAssociateOptions = HookOptions & {
+}
+export type BeforeQueryOptions = HookOptions & {
+}
+export type AfterQueryOptions = HookOptions & {
+}
 export interface EntityHookFns<T = any, O = any> {
-    beforeValidate: (instance: T, options: BeforeValidateOptions) => void | Promise<void>
-    afterValidate: (instance: T, options: AfterValidateOptions) => void | Promise<void>
-    validationFailed: (instance: T, options: ValidationFailedOptions) => void | Promise<void>
-    beforeCreate: (instance: T, options: BeforeCreateOptions) => void | Promise<void>
-    afterCreate: (instance: T, options: AfterCreateOptions) => void | Promise<void>
-    beforeDestroy: (instance: T, options: BeforeDestroyOptions) => void | Promise<void>
-    afterDestroy: (instance: T, options: AfterDestroyOptions) => void | Promise<void>
-    beforeRestore: (instance: T, options: BeforeRestoreOptions) => void | Promise<void>
-    afterRestore: (instance: T, options: AfterRestoreOptions) => void | Promise<void>
-    beforeUpdate: (instance: T, options: BeforeUpdateOptions) => void | Promise<void>
-    afterUpdate: (instance: T, options: AfterUpdateOptions) => void | Promise<void>
-    beforeSave: (instance: T, options: BeforeSaveOptions) => void | Promise<void>
-    afterSave: (instance: T, options: AfterSaveOptions) => void | Promise<void>
-    beforeUpsert: (instance: T, options: BeforeUpsertOptions) => void | Promise<void>
-    afterUpsert: (instance: T, options: AfterUpsertOptions) => void | Promise<void>
-    beforeBulkCreate: (instances: T[], options: BeforeBulkCreateOptions) => void | Promise<void>
-    afterBulkCreate: (instances: T[], options: AfterBulkCreateOptions) => void | Promise<void>
+    beforeValidate: (options: BeforeValidateOptions, bodyOrUpdate: T | Partial<T>) => void | Promise<void>
+    afterValidate: (options: AfterValidateOptions, bodyOrUpdate: T | Partial<T>) => void | Promise<void>
+    validationFailed: (options: ValidationFailedOptions, bodyOrUpdate: T | Partial<T>) => void | Promise<void>
+    beforeCreate: (options: BeforeCreateOptions, body: T) => void | Promise<void>
+    afterCreate: (options: AfterCreateOptions, instance: T) => void | Promise<void>
+    beforeUpdate: (options: BeforeUpdateOptions, update: Partial<T>) => void | Promise<void>
+    afterUpdate: (options: AfterUpdateOptions, instance: Partial<T>) => void | Promise<void>
+    beforeUpsert: (options: BeforeUpsertOptions, body: Partial<T>) => void | Promise<void>
+    afterUpsert: (options: AfterUpsertOptions, result: UpsertReturnType<T>) => void | Promise<void>
+    afterDestroy: (options: AfterDestroyOptions, count: number) => void | Promise<void>
+
+    afterFindOne: (options: AfterFindOptions, instance: T) => void | Promise<void>
+    afterFindAll: (options: AfterFindOptions, instanceOrInstances: T | T[]) => void | Promise<void>
+    afterQuery: (options: AfterQueryOptions, result: any) => void | Promise<void>
+    afterCount: (options: AfterCountOptions, count: number) => void | Promise<void>
+
+    beforeBulkCreate: (options: BeforeBulkCreateOptions, body: T[]) => void | Promise<void>
+    afterBulkCreate: (options: AfterBulkCreateOptions, instances: T[]) => void | Promise<void>
+    beforeBulkUpdate: (options: BeforeBulkCreateOptions, update: Partial<T>[]) => void | Promise<void>
+    afterBulkUpdate: (options: AfterBulkCreateOptions, result: UpdateReturnType<T>) => void | Promise<void>
+    afterBulkDestroy: (options: AfterBulkDestroyOptions, count: number) => void | Promise<void>
+
     beforeBulkDestroy: (options: BeforeBulkDestroyOptions) => void | Promise<void>
-    afterBulkDestroy: (options: AfterBulkDestroyOptions) => void | Promise<void>
-    beforeBulkRestore: (options: BeforeBulkRestoreOptions) => void | Promise<void>
-    afterBulkRestore: (options: AfterBulkRestoreOptions) => void | Promise<void>
-    beforeFind: (options: BeforeFindOptions) => void | Promise<void>
-    beforeFindAfterExpandIncludeAll: (options: BeforeFindAfterExpandIncludeAllOptions) => void | Promise<void>
-    beforeFindAfterOptions: (options: BeforeFindAfterOptionsOptions) => void | Promise<void>
-    afterFind: (instanceOrInstances: T | T[], options: AfterFindOptions) => void | Promise<void>
+    beforeDestroy: (options: BeforeDestroyOptions) => void | Promise<void>
+    beforeFindOne: (options: BeforeFindOptions) => void | Promise<void>
+    beforeFindAll: (options: BeforeFindOptions) => void | Promise<void>
     beforeCount: (options: BeforeCountOptions) => void | Promise<void>
     beforeAssociate: (options: BeforeAssociateOptions) => void | Promise<void>
     afterAssociate: (options: AfterAssociateOptions) => void | Promise<void>
-    beforeSync: (options: BeforeSyncOptions) => void | Promise<void>
-    afterSync: (options: AfterSyncOptions) => void | Promise<void>
-    beforeBulkSync: (options: BeforeBulkSyncOptions) => void | Promise<void>
-    afterBulkSync: (options: AfterBulkSyncOptions) => void | Promise<void>
-    beforeQuery: (options: BeforeQueryOptions, query: Query<T>) => void | Promise<void>
-    afterQuery: (options: AfterQueryOptions, query: Query<T>) => void | Promise<void>
+    beforeQuery: (options: BeforeQueryOptions) => void | Promise<void>
 }
 
 export type EntityHookFnOptions<T = any> = {
@@ -213,6 +248,18 @@ export abstract class DBAdapter extends PluginClass {
          * @param fn Hook function callback
          */
     public abstract addHook<H extends keyof EntityHookFns = any>(trigger: H extends H ? keyof EntityHookFns : H, name: string, fn: EntityHookFn<H, any>): void
+    /**
+     * Remove a hook
+     * @param trigger 
+     * @param name 
+     */
+    public abstract removeHook<H extends keyof EntityHookFns = any>(trigger: H extends H ? keyof EntityHookFns : H, name: string): void
+    /**
+     * Check if hook exists
+     * @param trigger 
+     * @param name 
+     */
+    public abstract hookExists<H extends keyof EntityHookFns = any>(trigger: H extends H ? keyof EntityHookFns : H, name: string): EntityHook | undefined
 
 }
 
@@ -257,6 +304,10 @@ export abstract class QueryInterface {
     public abstract removeEntity(schema: EntitySchema, opts?: QueryInterfaceOptions): void | Promise<void>
 }
 
+export type QueryOptions = QueryInterfaceOptions & {
+
+}
+
 /**
  * Base entity class. Don't use it directly [DB Adapter returns it instantiaed for yor you]
  */
@@ -270,64 +321,70 @@ export abstract class Entity<T = any> {
      * @param filters 
      * @returns 
      */
-    public abstract findOne<FT extends T>(filters?: Query<FT>): (T | null | Promise<T>)
+    public abstract findOne<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): ((FT & DefaultEntityAttributes) | null | Promise<FT & DefaultEntityAttributes>)
     /**
      * Find All matching entries
      * @param filters 
      * @returns 
      */
-    public abstract findAll<FT extends T>(filters?: Query<FT>): (T[] | Promise<T[]>)
+    public abstract findAll<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): ((FT & DefaultEntityAttributes)[] | Promise<(FT & DefaultEntityAttributes)[]>)
     /**
      * Find All matching entries
      * @param filters 
      * @returns 
      */
-    public abstract findAndCountAll<FT extends T>(filters?: Query<FT>): (FindAndCountAllReturnType<FT> | Promise<FindAndCountAllReturnType<FT>>)
+    public abstract findAndCountAll<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): (FindAndCountAllReturnType<FT & DefaultEntityAttributes> | Promise<FindAndCountAllReturnType<FT & DefaultEntityAttributes>>)
     /**
      * Create new entry
      * @param body 
      * @returns 
      */
-    public abstract create(body?: Partial<T>): (T | Promise<T>)
+    public abstract create<FT extends T>(body?: Partial<FT>, opts?: QueryOptions): (FT & DefaultEntityAttributes) | Promise<(FT & DefaultEntityAttributes)>
     /**
      * Create entries in bulk
      * @param body 
      * @returns 
      */
-    public abstract createMany(body?: Partial<T>[]): (T[] | Promise<T[]>)
+    public abstract createMany<FT extends T>(body?: Partial<FT>[], opts?: QueryOptions): ((FT & DefaultEntityAttributes)[] | Promise<(FT & DefaultEntityAttributes)[]>)
     /**
      * Update existing entry in the database
      * @param filters 
      * @param update 
      * @returns 
      */
-    public abstract update<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>)
+    public abstract update<FT extends T>(filters?: Query<FT>, update?: Partial<T>, opts?: QueryOptions): (UpdateReturnType<FT & DefaultEntityAttributes> | Promise<UpdateReturnType<FT & DefaultEntityAttributes>>)
     /**
      * Update one or more existing entries in the database
      * @param filters 
      * @param update 
      * @returns 
      */
-    public abstract updateMany<FT extends T>(filters?: Query<FT>, update?: Partial<T>): (UpdateReturnType<FT> | Promise<UpdateReturnType<FT>>)
+    public abstract updateMany<FT extends T>(filters?: Query<FT>, update?: Partial<T>, opts?: QueryOptions): (UpdateReturnType<FT & DefaultEntityAttributes> | Promise<UpdateReturnType<FT & DefaultEntityAttributes>>)
     /**
      * Insert or Update the entry
      * @param filters 
      * @param body 
      * @returns 
      */
-    public abstract upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>): (UpsertReturnType<FT> | Promise<UpsertReturnType<FT>>)
+    public abstract upsert<FT extends T>(filters?: Query<FT>, body?: Partial<T>, opts?: QueryOptions): (UpsertReturnType<FT & DefaultEntityAttributes> | Promise<UpsertReturnType<FT & DefaultEntityAttributes>>)
     /**
      * Remove an entry from the db matching the filters
      * @param filters 
      * @returns 
      */
-    public abstract delete<FT extends T>(filters?: Query<FT>): (number | Promise<number>)
+    public abstract delete<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): (number | Promise<number>)
     /**
      * Remove one or more entries from the db matching the filters
      * @param filters 
      * @returns 
      */
-    public abstract deleteMany<FT extends T>(filters?: Query<FT>): (number | Promise<number>)
+    public abstract deleteMany<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): (number | Promise<number>)
+
+    /**
+     * Count number of entries in the db matching the fillters
+     * @param filters 
+     */
+    public abstract count<FT extends T>(filters?: Query<FT>, opts?: QueryOptions): (number | Promise<number>)
 
     /**
      * Add local event hooks for this entity
@@ -336,6 +393,20 @@ export abstract class Entity<T = any> {
      * @param fn Hook function callback
      */
     public abstract addHook<H extends keyof EntityHookFns>(trigger: H extends H ? keyof EntityHookFns : H, name: string, fn: EntityHookFn<H, T>): void
+
+    /**
+     * Remove a hook
+     * @param trigger 
+     * @param name 
+     */
+    public abstract removeHook<H extends keyof EntityHookFns>(trigger: H extends H ? keyof EntityHookFns : H, name: string): void
+
+    /**
+     * Check if hook exists
+     * @param trigger 
+     * @param name 
+     */
+    public abstract hookExists<H extends keyof EntityHookFns>(trigger: H extends H ? keyof EntityHookFns : H, name: string): EntityHook | undefined
 }
 
 
@@ -546,14 +617,23 @@ export class DBManager extends PluginClass {
         // load database related components
         await this.loadDBEntities()
         // Add entity validation hook
-        this.addHook("beforeValidate", "GLOBAL_BEFORE_CREATE_HOOK", (m, { entity }) => {
-            const errors = validateEntity(entity.schema, m)
-            if (errors?.length) {
-                throw new BaseValidationError("Validation failed", errors, {
-                    ok: false,
-                    status: 400,
-                    statusText: "Client side error"
-                })
+        this.addHook("beforeCreate", "GLOBAL_BEFORE_CREATE_HOOK", ({ entity }, m) => {
+            this.validate(entity, m)
+        })
+        this.addHook("beforeUpdate", "GLOBAL_BEFORE_UPDATE_HOOK", ({ entity }, m) => {
+            this.validate(entity, m)
+        })
+        this.addHook("beforeUpsert", "GLOBAL_BEFORE_UPSERT_HOOK", ({ entity }, m) => {
+            this.validate(entity, m)
+        })
+        this.addHook("beforeBulkCreate", "GLOBAL_BEFORE_BULK_CREATE_HOOK", ({ entity }, ms) => {
+            for (let m of ms) {
+                this.validate(entity, m)
+            }
+        })
+        this.addHook("beforeBulkUpdate", "GLOBAL_BEFORE_BULK_UPDATE_HOOK", ({ entity }, ms) => {
+            for (let m of ms) {
+                this.validate(entity, m)
             }
         })
 
@@ -764,6 +844,17 @@ export class DBManager extends PluginClass {
 
     public get schemas() {
         return this.entities.map(e => e.schema)
+    }
+
+    private validate(entity: Entity, m: any) {
+        const errors = validateEntity(entity.schema, m)
+        if (errors?.length) {
+            throw new BaseValidationError("Validation failed", errors, {
+                ok: false,
+                status: 400,
+                statusText: "Client side error"
+            })
+        }
     }
 }
 

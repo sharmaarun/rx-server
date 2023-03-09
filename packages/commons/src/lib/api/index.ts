@@ -16,6 +16,7 @@ export interface APIRequestContext<P = any, Q = any, B = any> {
     body: B
     send: (data?: any) => void
     header: (key: string, value: string) => void
+    headers: any,
     endpoint: Endpoint
     route: APIRoute
 }

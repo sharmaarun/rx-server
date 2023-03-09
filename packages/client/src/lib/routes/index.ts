@@ -4,8 +4,12 @@ import { ClientContext } from "../contexts";
 import { Route } from "../contexts/routes";
 import { PluginClass } from "../plugins";
 
+
 @injectable()
 export class RoutesManager extends PluginClass {
+    public override async init(ctx: ClientContext) {
+        super.ctx = ctx
+    }
 
     public createRoute = (cb: (ctx: ClientContext) => Route) => {
         return cb(this.ctx)
@@ -25,5 +29,13 @@ export class RoutesManager extends PluginClass {
             })
 
         }
+    }
+
+    public registerRootRoute = (route: Route) => {
+        this.ctx.routes.raw.push(route)
+        this.ctx.routes.rootRoutes.push({
+            ...route,
+            path: `/${route.path?.replace(/\//, '')}`,
+        })
     }
 }

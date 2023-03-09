@@ -14,9 +14,10 @@ export interface NumberInputProps extends _NumberInputProps {
 }
 
 export function NumberInput({ children, ...props }: NumberInputProps) {
+    props.value = props.value ?? "0"
     return (
         <_NumberInput placeholder="0" {...props} >
-            <NumberInputField placeholder="0"/>
+            <NumberInputField placeholder="0" />
             <NumberInputStepper>
                 <NumberIncrementStepper />
                 <NumberDecrementStepper />

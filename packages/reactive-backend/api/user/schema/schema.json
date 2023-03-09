@@ -1,0 +1,145 @@
+{
+  "name": "user",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "subType": "varchar",
+      "validations": [
+        {
+          "type": "minLen",
+          "value": 3
+        }
+      ],
+      "isRequired": true
+    },
+    "email": {
+      "type": "string",
+      "customType": "email",
+      "name": "email",
+      "subType": "varchar",
+      "isRequired": true
+    },
+    "password": {
+      "type": "string",
+      "customType": "password",
+      "name": "password",
+      "subType": "varchar"
+    },
+    "description": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "description"
+    },
+    "isConfirmed": {
+      "type": "boolean",
+      "customType": "boolean",
+      "name": "isConfirmed"
+    },
+    "isBlocked": {
+      "type": "boolean",
+      "customType": "boolean",
+      "name": "isBlocked"
+    },
+    "dob": {
+      "type": "date",
+      "customType": "date",
+      "name": "dob",
+      "subType": "date"
+    },
+    "gender": {
+      "type": "enum",
+      "customType": "enum",
+      "name": "gender",
+      "values": [
+        "male",
+        "female"
+      ]
+    },
+    "roles": {
+      "type": "relation",
+      "relationType": "m:m",
+      "ref": "role",
+      "foreignKey": "users",
+      "name": "roles",
+      "customType": "relation"
+    },
+    "meta": {
+      "type": "json",
+      "customType": "json",
+      "name": "meta"
+    }
+    
+  },
+  "default": {
+    "name": "user",
+    "attributes": {
+      "name": {
+        "type": "string",
+        "customType": "string",
+        "name": "name",
+        "subType": "varchar",
+        "validations": [
+          {
+            "type": "minLen",
+            "value": 3
+          }
+        ],
+        "isRequired": true
+      },
+      "email": {
+        "type": "string",
+        "customType": "email",
+        "name": "email",
+        "subType": "varchar",
+        "isRequired": true
+      },
+      "password": {
+        "type": "string",
+        "customType": "password",
+        "name": "password",
+        "subType": "varchar"
+      },
+      "description": {
+        "type": "string",
+        "customType": "rich-text",
+        "subType": "text",
+        "name": "description"
+      },
+      "isConfirmed": {
+        "type": "boolean",
+        "customType": "boolean",
+        "name": "isConfirmed"
+      },
+      "dob": {
+        "type": "date",
+        "customType": "date",
+        "name": "dob",
+        "subType": "date"
+      },
+      "gender": {
+        "type": "enum",
+        "customType": "enum",
+        "name": "gender",
+        "values": [
+          "male",
+          "female"
+        ]
+      },
+      "roles": {
+        "type": "relation",
+        "relationType": "m:m",
+        "ref": "role",
+        "foreignKey": "users",
+        "name": "roles"
+      },
+      "meta": {
+        "type": "json",
+        "customType": "json",
+        "name": "meta"
+      }
+    }
+  }
+}

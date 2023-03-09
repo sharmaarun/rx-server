@@ -61,17 +61,17 @@ describe('TypeORM DB Adapter', () => {
         let local = false;
         model.addHook("beforeCreate", "bc2", (m, { entity }) => {
             local = true
-            console.log("called for", entity?.schema?.name)
+            console.log("called local for", entity?.schema?.name)
         })
-        adapter.addHook("beforeValidate", "bc1", (m, { entity }) => {
-            console.log("called for", entity?.schema?.name)
+        adapter.addHook("beforeCreate", "bc2", (m, { entity }) => {
             global = true
+            console.log("called global for", entity?.schema?.name)
         })
         await model.create({ name: "tst" })
         await model2.create({ name: "tst2" })
         expect(global).toBeTruthy()
         expect(local).toBeTruthy()
-        expect(true).toBeTruthy()
+
     })
 
     afterAll(async () => {

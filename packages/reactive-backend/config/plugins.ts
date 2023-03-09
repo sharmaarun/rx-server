@@ -10,6 +10,13 @@ export default {
         },
         {
             name: "@reactive/plugin-data-types",
+        },
+        {
+            name: "@reactive/plugin-auth",
+            options: {
+                hashRounds: 10,
+                jsonSecret: "abrakadabra"
+            }
         }
     ]
 }

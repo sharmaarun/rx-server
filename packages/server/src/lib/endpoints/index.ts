@@ -249,7 +249,8 @@ export class EndpointManager extends PluginClass {
             header: res.header.bind(res),
             send: res.send.bind(res),
             endpoint,
-            route
+            route,
+            headers: req.headers
         }
         return ctx;
     }

@@ -55,6 +55,9 @@ export class DefaultAttributesValidationClass {
 
 @injectable()
 export class AttributesManager extends PluginClass {
+    init(ctx: ClientContext): void | Promise<void> {
+        super.ctx = ctx
+    }
 
     public register(cb: (ctx: ClientContext) => RegisteredAttribute) {
         const attribute = cb(this.ctx)

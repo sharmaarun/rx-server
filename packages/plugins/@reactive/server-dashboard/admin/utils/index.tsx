@@ -3,16 +3,22 @@ import { BaseAttributeType, RelationType, StringAttributeSubType } from "@reacti
 import { RXICO_CALENDAR, RXICO_FIELD_BOOLEAN, RXICO_FIELD_ENUM, RXICO_FIELD_JSON, RXICO_FIELD_NUMBER, RXICO_FIELD_RELATION, RXICO_FIELD_RICH_TEXT, RXICO_FIELD_STRING, RXICO_FIELD_UUID, RXICO_RELATION_HAS_MANY, RXICO_RELATION_HAS_ONE, RXICO_RELATION_MANY_TO_MANY, RXICO_RELATION_MANY_TO_ONE, RXICO_RELATION_ONE_TO_MANY, RXICO_RELATION_ONE_TO_ONE } from "@reactive/icons"
 import { Route } from "react-router-dom"
 import { BooleanAttributeEditor, BooleanValueEditor, BooleanValueRenderer, DateTypeEditor, DateValueEditor, DateValueRenderer, EnumAttributeEditor, EnumValueEditor, EnumValueRenderer, JSONAttributeEditor, JSONValueEditor, JSONValueRenderer, NumberAttributeEditor, NumberValueEditor, NumberValueRenderer, RelationsAttributeEditor, RelationValueEditor, RelationValueRenderer, RichTextAttributeEditor, RichTextValueEditor, RichTextValueRenderer, StringAttributeEditor, StringValueEditor, StringValueRenderer, UUIDAttributeEditor, UUIDValueEditor, UUIDValueRenderer } from "../components/type-editors"
-export const buildRouter = (routes?: IRoute[]) => {
+
+export const buildRouter = (routes: IRoute[], Wrapper?: any) => {
+    Wrapper = Wrapper || ((props: any) => props.children)
     return routes?.map((r, ind) => {
-        const Ele = r.element || (() => <></>)
-        return <Route
-            key={ind}
-            path={r.path}
-            element={< Ele />}
-        >
-            {buildRouter(r?.children)}
-        </Route >
+        const Ele = Wrapper ? (props: any) => <Wrapper>
+            <r.element {...props} />
+        </Wrapper> : r.element
+        return (
+            <Route
+                key={ind}
+                path={r.path}
+                element={<Ele />}
+            >
+                {buildRouter(r?.children || [], Wrapper)}
+            </Route >
+        )
     })
 }
 

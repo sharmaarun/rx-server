@@ -1,12 +1,12 @@
 
+import { BaseAttributeType, EntitySchema, Plugin } from "@reactive/commons"
 import { Container } from "inversify"
+import { AttributesManager, RegisteredAttribute } from "../attributes"
 import { ClientContext, UtilitiesContext } from "../contexts"
 import { Route } from "../contexts/routes"
-import { AttributesManager, RegisteredAttribute } from "../attributes"
-import { NetworkManager } from "../network"
-import { PluginsManager } from "../plugins/manager"
+import { NetworkManager, NetworkRequestMiddleware, NetworkResponseMiddleware } from "../network"
+import { PluginClass, PluginsManager } from "../plugins"
 import { RoutesManager } from "../routes"
-import { BaseAttributeType, EntitySchema } from "@reactive/commons"
 
 const { container }: { container: Container } = (global as any)
 
@@ -56,7 +56,8 @@ export const registerRoute = (cb?: (ctx: ClientContext) => Route) => {
 }
 
 /**
- * Register core route
+ * Register core route (starts with /admin)
+ * `isCore` is set to true
  * @param cb 
  * @returns 
  */
@@ -70,12 +71,47 @@ export const registerCoreRoute = (cb?: (ctx: ClientContext) => Route) => {
     }, 0)
 }
 
+/**
+ * Register root route (starts with /).
+ * `isCore` is set to true
+ * @param cb 
+ * @returns 
+ */
+export const registerRootRoute = (cb?: (ctx: ClientContext) => Route) => {
+    if (!cb) return;
+    setTimeout(() => {
+        routes.registerRootRoute({
+            ...(routes.createRoute(cb)),
+            isCore: true
+        })
+    }, 0)
+}
+
+export const registerPlugin = (cb: (ctx: ClientContext) => (PluginClass | Plugin)) => {
+    if (!cb) return;
+    setTimeout(() => {
+        plugins.registerPlugin(plugins.createPlugin(cb))
+    }, 0)
+}
+
 export const registerAttributeType = (cb: (ctx: ClientContext) => RegisteredAttribute) => {
     setTimeout(() => {
         attributes?.register(cb)
     }, 0)
 }
 
+
+export const registerNetworkMiddleware = (cb?: (ctx: ClientContext) => NetworkRequestMiddleware) => {
+    setTimeout(() => {
+        network.registerMiddleware(cb)
+    }, 0)
+}
+
+export const registerNetworkResponseMiddleware = (cb?: (ctx: ClientContext) => NetworkResponseMiddleware) => {
+    setTimeout(() => {
+        network.registerResponseMiddleware(cb)
+    }, 0)
+}
 
 export const getFirstAttributeByType = (schema: EntitySchema, type: BaseAttributeType = BaseAttributeType.string) => {
     return Object.values(schema.attributes || {}).find(attr => attr.type === type)

@@ -1,15 +1,17 @@
-import "reflect-metadata"
 import { isClass, loadModule, PluginClass as PluginClassType } from "@reactive/commons"
 import { moduleExists } from "@reactive/server-helpers"
 import { injectable } from "inversify"
 import { resolve } from "path"
+import "reflect-metadata"
 import { ServerContext } from "../context"
 
 @injectable()
-export abstract class PluginClass<T = ServerContext> implements PluginClassType<T> {
+export abstract class PluginClass<O = any, T = ServerContext> implements PluginClassType<O, T> {
     ctx!: T
-    public async init(ctx: T) {
+    options?: O
+    public async init(ctx: T, options?: O) {
         this.ctx = ctx
+        this.options = options
     }
 
     public async start() { }
@@ -41,12 +43,12 @@ export class PluginsManager extends PluginClass {
             // initialise the adapter and pass the config
             if (isClass(plugin)) {
                 const pluginObj = new plugin()
-                await pluginObj?.init(ctx)
+                await pluginObj?.init(ctx, options)
                 this.plugins.push(pluginObj)
             } else {
                 await plugin({
                     ...ctx
-                })
+                }, options)
                 this.plugins.push(plugin)
             }
             logger?.info?.("Loaded plugin " + name)

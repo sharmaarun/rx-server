@@ -1,0 +1,32 @@
+{
+    "name": "role",
+    "attributes": {
+        "name": {
+            "type": "string",
+            "customType": "string",
+            "name": "name",
+            "subType": "varchar",
+            "validations": [
+                {
+                    "type": "minLen",
+                    "value": 3
+                }
+            ],
+            "isRequired": true
+        },
+        "endpoints": {
+            "type": "json",
+            "customType": "json",
+            "name": "endpoints"
+        },
+        "users": {
+            "type": "relation",
+            "customType": "relation",
+            "relationType": "m:m",
+            "ref": "user",
+            "foreignKey": "roles",
+            "name": "users",
+            "isTarget": true
+        }
+    }
+}

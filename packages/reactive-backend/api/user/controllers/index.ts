@@ -1,3 +1,3 @@
 import { createControllers } from "@reactive/server";
 
-export default createControllers("cat")
+export default createControllers("user")

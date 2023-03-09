@@ -11,7 +11,7 @@ export type UtilitiesContext = {
 }
 
 
-export const UtilitiesContext = proxy<UtilitiesContext>({
+export const UtilitiesContext:UtilitiesContext = proxy<UtilitiesContext>({
     deleteAlertModal: {
         isOpen: false,
         onClose: () => {

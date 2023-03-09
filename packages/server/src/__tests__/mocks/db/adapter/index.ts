@@ -1,8 +1,13 @@
 import { EntitySchema } from "@reactive/commons";
-import { DBAdapter, DropDatabaseOptions, Entity, EntityHookFn, EntityHookFns, QueryInterface, SyncDatabaseOptions } from "../../../../"
+import { DBAdapter, DropDatabaseOptions, Entity, EntityHook, EntityHookFn, EntityHookFns, QueryInterface, SyncDatabaseOptions } from "../../../../"
 
 export default class MockDBAdapter extends DBAdapter {
     public addHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string, fn: EntityHookFn<H, any>): void {
+    }
+    public removeHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string): void {
+    }
+    public hookExists<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string): EntityHook {
+        return {} as EntityHook
     }
 
     public models: Entity[] = []

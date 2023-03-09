@@ -5,7 +5,7 @@ export type AttributesContext = {
     attributes: RegisteredAttribute[]
 }
 
-export const AttributesContext = proxy<AttributesContext>({
+export const AttributesContext:AttributesContext = proxy<AttributesContext>({
     attributes: []
 })
 

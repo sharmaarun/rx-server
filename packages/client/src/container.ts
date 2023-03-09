@@ -1,7 +1,7 @@
 import { Container } from "inversify";
 import { AttributesManager } from "./lib/attributes";
 import NetworkManager from "./lib/network";
-import { PluginsManager } from "./lib/plugins/manager";
+import { PluginsManager } from "./lib/plugins";
 import { RoutesManager } from "./lib/routes";
 
 export const container = new Container()

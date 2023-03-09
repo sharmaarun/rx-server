@@ -257,6 +257,17 @@ export type ValidateEntityOptions = {
 
 }
 
+export type DefaultEntityAttributes = {
+    id?: number | string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+}
+
+
+/**
+ * ============= Impls
+ */
+
 /**
  * Validates the data based on the attribute validations present in the specified schema
  * @param schema Schema to use for validation

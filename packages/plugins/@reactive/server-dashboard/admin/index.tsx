@@ -14,13 +14,15 @@ registerCoreAttributeTypes()
 
 
 // Render the app
-ReactDOM.render(
-    <App />
-    , document.getElementById("root"))
-const module_ = module as any
-if (module_.hot) {
-    module_.hot.accept('./pages/_app', () => {
-        const NextRootContainer = require('./pages/_app').default;
-        ReactDOM.render(<NextRootContainer />, document.getElementById('root'));
-    })
-}
+setTimeout(() => {
+    ReactDOM.render(
+        <App />
+        , document.getElementById("root"))
+    const module_ = module as any
+    if (module_.hot) {
+        module_.hot.accept('./pages/_app', () => {
+            const NextRootContainer = require('./pages/_app').default;
+            ReactDOM.render(<NextRootContainer />, document.getElementById('root'));
+        })
+    }
+}, 100)

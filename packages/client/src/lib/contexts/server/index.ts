@@ -6,5 +6,5 @@ export type ServerContext = {
     endpoints?: Endpoint[]
 }
 
-export const ServerContext = proxy<ServerContext>({})
+export const ServerContext: ServerContext = proxy<ServerContext>({})
 export const useServerContext = () => useSnapshot(ServerContext)

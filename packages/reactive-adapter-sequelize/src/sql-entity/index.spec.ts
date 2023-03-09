@@ -195,7 +195,7 @@ describe('SQL Entity Model', () => {
 
     it("should update matching entries", async () => {
         const { id } = await createEntry() || {}
-        const res = await model.update({ where: { id, name: obj.name } }, { name: "ad" })
+        const res = await model.update({ where: { id: id as string, name: obj.name } }, { name: "ad" })
         expect(res[0]).toEqual(1)
         await model.delete({ where: { name: obj.name } })
     })
@@ -205,7 +205,7 @@ describe('SQL Entity Model', () => {
         const entry2 = await model2.create({
             name: "tester",
         })
-        const res = await model2.update({ where: { id: entry2?.id } }, { name: "tst", tests: entry.id })
+        const res = await model2.update({ where: { id: entry2?.id as string } }, { name: "tst", tests: entry.id })
         expect(res[0]).toEqual(1)
         await model.delete({ where: { name: obj.name } })
         await model2.delete({ where: { name: "tst" } })
@@ -248,8 +248,8 @@ describe('SQL Entity Model', () => {
         expect(dbEntry2?.[0]?.testnms?.length).toBe(1)
         expect(dbEntry2?.[0]?.tester?.length).toBe(1)
 
-        await model.delete({ where: { id: entry2.id } })
-        await model.delete({ where: { id: entry.id } })
+        await model.delete({ where: { id: entry2.id as string } })
+        await model.delete({ where: { id: entry.id as string } })
     })
 
     it("should update entry with relations", async () => {
@@ -260,13 +260,13 @@ describe('SQL Entity Model', () => {
             name: "entry4",
         })
 
-        await model.update({ where: { id: entry3.id } }, {
+        await model.update({ where: { id: entry3.id as string } }, {
             test2: entry4.id,
             tester2: [entry4.id],
             test2nms: [entry4.id]
         })
 
-        const entry3updated = await model.findOne({ where: { name: "entry3" }, include: ["test2", "tester2", "test2nms"] })
+        const entry3updated: any = await model.findOne({ where: { name: "entry3" }, include: ["test2", "tester2", "test2nms"] })
 
         expect(entry3updated).toBeDefined()
         expect(entry3updated.test2).toBeDefined()
@@ -275,20 +275,42 @@ describe('SQL Entity Model', () => {
         expect(entry3updated.test2nms).toBeDefined()
         expect(entry3updated.test2nms.length).toBe(1)
 
-        await model.delete({ where: { id: entry3.id } })
-        await model.delete({ where: { id: entry4.id } })
+        await model.delete({ where: { id: entry3.id as string } })
+        await model.delete({ where: { id: entry4.id as string } })
     })
 
     it("should add hook to the model", async () => {
-        model.addHook("beforeCreate", "bc1", (m, opts) => {
-            console.log("Name is", m.name, opts)
-            m.name = "lola"
+        let called: any[] = [];
+        model.addHook("beforeCreate", "bc1", (opts, m) => {
+            called.push(true)
         })
-        model.addHook("afterCreate", "ac1", (m, opts) => {
-            console.log("Name is", m.name, opts)
+        model.addHook("afterCreate", "ac1", (opts, m) => {
+            called.push(true)
         })
         await createEntry()
+        expect(called.length).toBe(2)
         await model.delete({ where: { name: "lola" } })
+    })
+    it("should get the previous value when update hook is called", async () => {
+        let bprev: any;
+        let bm: any;
+        let aprev: any;
+        let am: any;
+        model.addHook("beforeUpdate", "bc1", async ({ previous }, m) => {
+            bm = m;
+            bprev = previous;
+        })
+        model.addHook("afterUpdate", "bc1", async ({ previous }, m) => {
+            am = m;
+            aprev = previous;
+        })
+        const entry = await createEntry()
+
+        await model.update({ where: { id: entry.id as string } }, { name: "pola" })
+        expect(bprev?.name).toBe("ola")
+        expect(bm?.name).toBe("pola")
+        expect(bprev?.name).toBe("ola")
+        expect(bm?.name).toBe("pola")
     })
 
     afterAll(async () => {

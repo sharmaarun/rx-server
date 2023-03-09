@@ -1,13 +1,15 @@
 import { BaseAttributeType, EntitySchema, RelationType } from "@reactive/commons";
-import { DBAdapter, DropDatabaseOptions, EntityHookFn, EntityHookFns, QueryInterface, ServerContext, SyncDatabaseOptions, TransactionOptions } from "@reactive/server";
+import { DBAdapter, DropDatabaseOptions, EntityHook, EntityHookFn, EntityHookFns, HookOptions, QueryInterface, ServerContext, SyncDatabaseOptions, TransactionOptions } from "@reactive/server";
 import { ModelAttributes, Sequelize, SyncOptions } from "sequelize";
 import { SQLEntity } from "../sql-entity";
 import { SQLiteQueryInterfaceAdapter } from "../sqlite-query-interface";
 import { extractNameFromSquelizeInstance } from "../utils";
 
 export class SequelizeAdapter extends DBAdapter {
+
     public dataSource!: Sequelize
     public models!: SQLEntity<any>[]
+    private hooks_: EntityHook[] = []
     private queryInterface!: SQLiteQueryInterfaceAdapter;
     public override async init(ctx: ServerContext) {
         this.ctx = ctx
@@ -82,7 +84,8 @@ export class SequelizeAdapter extends DBAdapter {
         const entity = new SQLEntity<T>(
             model,
             this.ctx,
-            this.dataSource
+            this.dataSource,
+            this
         )
         entity.schema = schema
         //push it to current models
@@ -211,14 +214,33 @@ export class SequelizeAdapter extends DBAdapter {
      * @param fn 
      */
     addHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string, fn: EntityHookFn<H, any>) {
-        return this.dataSource.addHook(trigger as any, name, (data: any, opts: any) => {
-            const name = extractNameFromSquelizeInstance(data)
-            const entity = this.models.find(m => m.schema.name === name)
-            if (!entity) throw new Error(`Entity model not found for the trigger hook : ${name} -> ${trigger}`)
-            fn(data, {
-                entity: entity as any,
-                opts
-            })
+        this.hooks_.push({
+            name,
+            trigger,
+            fn
         })
     }
+
+    /**
+     * Remove global entity event hook
+     * @param trigger 
+     * @param name 
+     */
+    removeHook<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string): void {
+        this.hooks_ = this.hooks_.filter(h => h.name !== name && h.trigger !== trigger)
+    }
+
+    /**
+     * Check if global hook exists
+     * @param trigger 
+     * @param name 
+     */
+    hookExists<H extends keyof EntityHookFns<any, any> = any>(trigger: H extends H ? keyof EntityHookFns<any, any> : H, name: string): EntityHook | undefined {
+        return this.hooks_.find(h => h.name === name && h.trigger === trigger)
+    }
+
+    get hooks() {
+        return this.hooks_
+    }
+
 }
