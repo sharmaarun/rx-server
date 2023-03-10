@@ -1,6 +1,7 @@
 import { useRoutes } from "@reactive/client"
 import { RXICO_CHEVRON_LEFT, RXICO_CHEVRON_RIGHT } from "@reactive/icons"
 import { Heading, HStack, Icon, IconButton, Stack, StackProps } from "@reactive/ui"
+import { ActionsMenu } from "../../components/actions-menu"
 import { useState } from "react"
 import { BrowserRouter } from "react-router-dom"
 import MainMenu, { MainMenuMode } from "../../components/main-menu"
@@ -42,6 +43,7 @@ export function RouterLayout({ children, ...props }: AdminLayoutProps) {
                         <Heading flex={1} size="md" textAlign="center">RS</Heading>
                     </HStack>
                     <MainMenu flex={1} mode={mode} />
+                    <ActionsMenu mode={mode} />
                     <IconButton onClick={toggleMode} variant="ghost" aria-label="">
                         <Icon>
                             {mode === "collapsed" ? <RXICO_CHEVRON_RIGHT /> : <RXICO_CHEVRON_LEFT />}

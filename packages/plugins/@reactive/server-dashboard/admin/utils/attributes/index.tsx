@@ -1,26 +1,9 @@
-import { registerAttributeType, RegisteredAttribute, Route as IRoute } from "@reactive/client"
+import { registerAttributeType, RegisteredAttribute } from "@reactive/client"
 import { BaseAttributeType, RelationType, StringAttributeSubType } from "@reactive/commons"
 import { RXICO_CALENDAR, RXICO_FIELD_BOOLEAN, RXICO_FIELD_ENUM, RXICO_FIELD_JSON, RXICO_FIELD_NUMBER, RXICO_FIELD_RELATION, RXICO_FIELD_RICH_TEXT, RXICO_FIELD_STRING, RXICO_FIELD_UUID, RXICO_RELATION_HAS_MANY, RXICO_RELATION_HAS_ONE, RXICO_RELATION_MANY_TO_MANY, RXICO_RELATION_MANY_TO_ONE, RXICO_RELATION_ONE_TO_MANY, RXICO_RELATION_ONE_TO_ONE } from "@reactive/icons"
-import { Route } from "react-router-dom"
-import { BooleanAttributeEditor, BooleanValueEditor, BooleanValueRenderer, DateTypeEditor, DateValueEditor, DateValueRenderer, EnumAttributeEditor, EnumValueEditor, EnumValueRenderer, JSONAttributeEditor, JSONValueEditor, JSONValueRenderer, NumberAttributeEditor, NumberValueEditor, NumberValueRenderer, RelationsAttributeEditor, RelationValueEditor, RelationValueRenderer, RichTextAttributeEditor, RichTextValueEditor, RichTextValueRenderer, StringAttributeEditor, StringValueEditor, StringValueRenderer, UUIDAttributeEditor, UUIDValueEditor, UUIDValueRenderer } from "../components/type-editors"
+import { BooleanAttributeEditor, BooleanValueEditor, BooleanValueRenderer, DateTypeEditor, DateValueEditor, DateValueRenderer, EnumAttributeEditor, EnumValueEditor, EnumValueRenderer, JSONAttributeEditor, JSONValueEditor, JSONValueRenderer, NumberAttributeEditor, NumberValueEditor, NumberValueRenderer, RelationsAttributeEditor, RelationValueEditor, RelationValueRenderer, RichTextAttributeEditor, RichTextValueEditor, RichTextValueRenderer, StringAttributeEditor, StringValueEditor, StringValueRenderer, UUIDAttributeEditor, UUIDValueEditor, UUIDValueRenderer } from "../../components/type-editors"
 
-export const buildRouter = (routes: IRoute[], Wrapper?: any) => {
-    Wrapper = Wrapper || ((props: any) => props.children)
-    return routes?.map((r, ind) => {
-        const Ele = Wrapper ? (props: any) => <Wrapper>
-            <r.element {...props} />
-        </Wrapper> : r.element
-        return (
-            <Route
-                key={ind}
-                path={r.path}
-                element={<Ele />}
-            >
-                {buildRouter(r?.children || [], Wrapper)}
-            </Route >
-        )
-    })
-}
+//======== ATTRIBUTES RELATED
 
 const attributeTypes: RegisteredAttribute[] = [
     {
@@ -180,8 +163,6 @@ const attributeTypes: RegisteredAttribute[] = [
 ]
 
 
-
-
 export const RelationTypes = {
     [RelationType.ONE_TO_ONE]: {
         icon: <RXICO_RELATION_ONE_TO_ONE />,
@@ -209,6 +190,9 @@ export const RelationTypes = {
     },
 }
 
+/**
+ * Register basic attribute types
+ */
 export const registerCoreAttributeTypes = () => {
     attributeTypes.forEach((t) => {
         registerAttributeType(ctx => (t))

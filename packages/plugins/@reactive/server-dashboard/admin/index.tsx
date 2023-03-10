@@ -4,7 +4,7 @@ import { bootstrap } from "@reactive/client";
 import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./pages/_app";
-import { registerCoreAttributeTypes } from "./utils";
+import { registerCoreAttributeTypes, registerCoreSettingsMenuItems, registerCoreSettingsRoutes } from "./utils";
 
 // Initialize the app
 bootstrap()
@@ -12,6 +12,10 @@ bootstrap()
 // Register all the basic attribute types
 registerCoreAttributeTypes()
 
+// Register all core settings menu items
+registerCoreSettingsMenuItems()
+// Register all core settings routes
+registerCoreSettingsRoutes()
 
 // Render the app
 setTimeout(() => {

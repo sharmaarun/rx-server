@@ -41,17 +41,18 @@ export default class AuthManager extends PluginClass<AuthManagerOptions> {
         }))()
 
         // create user endpoint in the local project api directory
-        
+
         if (!process.env["NODE_ENV"] || process.env["NODE_ENV"] === "development") {
             try {
                 // try to generate the api in local fs
                 await ctx.apiGen.generateAPI(userSchema as EntitySchema)
                 // explorer routes
+                const { name, attributes } = userSchema || {}
                 registerEndpoint(ctx => ({
                     name: "user",
                     routes: userRoutes(),
                     controllers: userController(),
-                    schema: userSchema as EntitySchema
+                    schema: { name, attributes } as EntitySchema
                 }))()
                 await ctx.db.defineSchema(userSchema as any)
                 ctx.logger.log("Generated user api...")

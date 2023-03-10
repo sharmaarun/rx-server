@@ -1,5 +1,6 @@
 import { Container } from "inversify";
 import { AttributesManager } from "./lib/attributes";
+import { MenusManager } from "./lib/menu";
 import NetworkManager from "./lib/network";
 import { PluginsManager } from "./lib/plugins";
 import { RoutesManager } from "./lib/routes";
@@ -9,5 +10,6 @@ container.bind<PluginsManager>("PluginsManager").to(PluginsManager).inSingletonS
 container.bind<RoutesManager>("RoutesManager").to(RoutesManager).inSingletonScope();
 container.bind<NetworkManager>("NetworkManager").to(NetworkManager).inSingletonScope();
 container.bind<AttributesManager>("AttributesManager").to(AttributesManager).inSingletonScope();
+container.bind<MenusManager>("MenusManager").to(MenusManager).inSingletonScope();
 
 (global as any).container = (global as any).container || container;

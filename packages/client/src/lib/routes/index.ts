@@ -17,25 +17,32 @@ export class RoutesManager extends PluginClass {
 
     public registerRoute = (route: Route) => {
         this.ctx.routes.raw.push(route)
-        if (route.isCore) {
-            this.ctx.routes.coreRoutes.push({
-                ...route,
-                path: `/admin/${route.path?.replace(/\//, '')}`,
-            })
-        } else {
-            this.ctx.routes.pluginRoutes.push({
-                ...route,
-                path: `/admin/${PLUGINS_WEB_ROOT}/${route.path?.replace(/\//, '')}`
-            })
-
-        }
+        this.ctx.routes.coreRoutes.push({
+            ...route,
+            path: `${route.path?.replace(/\//, '')}`,
+        })
+    }
+    public registerPluginRoute = (route: Route) => {
+        this.ctx.routes.raw.push(route)
+        this.ctx.routes.pluginRoutes.push({
+            ...route,
+            path: `${PLUGINS_WEB_ROOT}/${route.path?.replace(/\//, '')}`,
+        })
     }
 
     public registerRootRoute = (route: Route) => {
         this.ctx.routes.raw.push(route)
         this.ctx.routes.rootRoutes.push({
             ...route,
-            path: `/${route.path?.replace(/\//, '')}`,
+            path: `${route.path?.replace(/\//, '')}`,
+        })
+    }
+
+    public registerSettingsRoute = (route: Route) => {
+        this.ctx.routes.raw.push(route)
+        this.ctx.routes.settingsRoutes.push({
+            ...route,
+            path: `${route.path?.replace(/\//, '')}`,
         })
     }
 }

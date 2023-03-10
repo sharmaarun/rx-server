@@ -1,10 +1,10 @@
-import { registerCoreRoute } from "@reactive/client"
+import { registerRoute } from "@reactive/client"
 import { RXICO_FOLDER } from "@reactive/icons"
 import { EditorPage, ListSchemas } from "./pages"
 import CreatePage from "./pages/explorer/create"
 import { ListViewPage } from "./pages/explorer/viewer"
 
-registerCoreRoute(ctx => ({
+registerRoute(ctx => ({
     title: "Data Explorer",
     path: "/explorer",
     element: () => <ListSchemas />

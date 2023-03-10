@@ -1,23 +1,18 @@
 import { proxy, useSnapshot } from "valtio"
 import { AttributesContext } from "../attributes"
+import { MenusContext } from "../menu"
 import { PluginsContext } from "../plugins"
 import { RoutesContext } from "../routes"
 import { ServerContext } from "../server"
-import { useNavigate, useLocation, Routes, useRoutes, NavigateFunction, Location } from "react-router-dom"
+
 export type ClientContext = {
     name: string,
     routes: RoutesContext
     attributes: AttributesContext
     server: ServerContext
     plugins: PluginsContext
-    utils: {
-        router: {
-            navigate?: NavigateFunction,
-            location?: Location,
-            routes?: typeof Routes,
-        }
+    menus: MenusContext
 
-    }
 }
 
 export const ClientContext: ClientContext = proxy<ClientContext>({
@@ -26,11 +21,7 @@ export const ClientContext: ClientContext = proxy<ClientContext>({
     attributes: AttributesContext,
     server: ServerContext,
     plugins: PluginsContext,
-    utils: {
-        router: {
-
-        }
-    }
+    menus: MenusContext
 })
 
 export const useClientContext = () => useSnapshot(ClientContext)

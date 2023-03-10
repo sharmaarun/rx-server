@@ -1,5 +1,5 @@
-import { ClientContext, registerAttributeType, registerNetworkMiddleware, registerNetworkResponseMiddleware, registerPlugin, registerRootRoute } from "@reactive/client"
-import { RXICO_ENVELOP, RXICO_EYE, RXICO_FOLDER } from "@reactive/icons"
+import { ClientContext, registerAttributeType, registerNetworkMiddleware, registerNetworkResponseMiddleware, registerPlugin, registerRootRoute, registerSettingsRoute } from "@reactive/client"
+import { RXICO_ENVELOP, RXICO_EYE, RXICO_FOLDER, RXICO_USER_LOCK } from "@reactive/icons"
 import { extractAuthTokenFromCookies } from "./utils"
 
 import { BaseAttributeType, getCookie, StringAttributeSubType } from "@reactive/commons"
@@ -8,6 +8,7 @@ import LoginPage from "./pages/login"
 import RegisterPage from "./pages/register"
 import { useLocation, useNavigate } from "react-router-dom"
 import { useEffect } from "react"
+import RolesPage from "./pages/roles"
 
 
 
@@ -18,12 +19,19 @@ registerRootRoute(ctx => ({
     ,
     icon: () => <RXICO_FOLDER />,
 }))
+
 registerRootRoute(ctx => ({
     title: "Authentication/Register",
     path: "/register",
-    element: () => <RegisterPage />
-    ,
+    element: RegisterPage,
     icon: () => <RXICO_FOLDER />,
+}))
+
+registerSettingsRoute(ctx => ({
+    title: "Roles",
+    element: RolesPage,
+    icon: () => <RXICO_USER_LOCK />,
+    path: "roles"
 }))
 
 registerAttributeType(ctx => ({

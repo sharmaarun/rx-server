@@ -1,8 +1,7 @@
-import { ClientContext, PluginClass, useClientContext } from "@reactive/client";
-import { Plugin } from "@reactive/commons";
+import { useClientContext } from "@reactive/client";
 import { ChakraProvider, extendTheme, withDefaultColorScheme, withDefaultProps } from "@reactive/ui";
-import { useEffect } from "react";
-import { BrowserRouter, createBrowserRouter, Outlet, Route, Router, Routes, useLocation, useNavigate, useRoutes } from "react-router-dom";
+import SettingsLayout from "../layouts/settings";
+import { BrowserRouter, Outlet, Route, Routes } from "react-router-dom";
 import RootLayout from "../layouts/root";
 import RouterLayout from "../layouts/router";
 import { buildRouter } from "../utils";
@@ -10,10 +9,8 @@ import { buildRouter } from "../utils";
 function App() {
     const ctx = useClientContext()
     const { plugins: { plugins }, routes } = ctx || {}
-    const { coreRoutes, pluginRoutes, rootRoutes } = routes || {}
-    const allRoutes = [...(coreRoutes || []), ...(pluginRoutes || [])]
+    const { coreRoutes, pluginRoutes, rootRoutes, settingsRoutes } = routes || {}
 
-    console.log("allRoutes", allRoutes, "rootRoutes", rootRoutes)
     return (
         <ChakraProvider theme={extendTheme(
             withDefaultColorScheme({
@@ -35,16 +32,26 @@ function App() {
                     </Routes>
 
                     <Routes>
+                        <Route path={"/admin/settings"} element={
+                            <RouterLayout>
+                                <SettingsLayout>
+                                    <Outlet />
+                                </SettingsLayout>
+                            </RouterLayout>
+                        } >
+                            {buildRouter(settingsRoutes as any)}
+                            {/* {buildRouter(pluginRoutes as any)} */}
+                        </Route>
+                    </Routes>
+                    <Routes>
                         <Route path={"/admin"} element={
                             <RouterLayout>
                                 <Outlet />
                             </RouterLayout>
                         } >
-                            {buildRouter(allRoutes as any)}
+                            {buildRouter(coreRoutes as any)}
+                            {buildRouter(pluginRoutes as any)}
                         </Route>
-                        {/* <Route path={"/"} element={<Outlet />} >
-                            {buildRouter(rootRoutes as any )}
-                        </Route> */}
                     </Routes>
                 </RootLayout>
             </BrowserRouter>

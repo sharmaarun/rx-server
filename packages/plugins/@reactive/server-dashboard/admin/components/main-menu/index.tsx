@@ -1,10 +1,10 @@
 import { useRoutes } from "@reactive/client"
-import { HStack, Icon, List, ListItem, Stack, StackProps, Text } from "@reactive/ui"
+import { HStack, Icon, List, ListItem, Stack, ListProps, Text } from "@reactive/ui"
 import { Link, useLocation } from "react-router-dom"
 
 export type MainMenuMode = "collapsed" | "open"
 
-export interface MainMenuProps extends StackProps {
+export interface MainMenuProps extends ListProps {
     children?: any
     mode?: MainMenuMode
 }
@@ -17,12 +17,12 @@ export function MainMenu({ children, mode = "open", ...props }: MainMenuProps) {
         <>
             <List flexWrap="nowrap" p={4} spacing={2} {...props}>
                 <Stack spacing={2}>
-                    {allRoutes?.map((r, ind) => {
-                        const isActive = pathname?.startsWith(r.path)
+                    {allRoutes?.filter?.(r => !r.isCore)?.map((r, ind) => {
+                        const isActive = pathname?.startsWith("/admin/" + r.path)
                         const Ico = r.icon || (() => <></>)
                         return <Link
                             key={ind}
-                            to={r.path}
+                            to={"/admin/" + r.path}
 
                         >
                             <ListItem p={2}
