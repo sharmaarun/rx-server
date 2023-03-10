@@ -91,10 +91,14 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
     const [obj, setObj] = useState(new Obj<T>(name))
     const [entityName, setEntityName] = useState(name)
     const [isLoading, setIsLoading] = useState<boolean>(true)
+    const [isGetting, setIsGetting] = useState<boolean>(false)
     const [isSaving, setIsSaving] = useState<boolean>(false)
     const [isRemoving, setIsRemoving] = useState<boolean>(false)
     useEffect(() => {
-        setIsLoading(false)
+        setTimeout(() =>
+            setIsLoading(false),
+            50
+        )
     }, [])
 
     useEffect(() => {
@@ -105,13 +109,13 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
     }, [name])
 
     const get = async (id?: string | number, query?: Query<T>) => {
-        setIsLoading(true)
+        setIsGetting(true)
         try {
             await obj.get(id, query)
         } catch (e: any) {
             throw e
         } finally {
-            setIsLoading(false)
+            setIsGetting(false)
         }
     }
     const save = async (data?: T, opts?: SaveOpts) => {
@@ -125,13 +129,13 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
         }
     }
     const list = async (query?: any) => {
-        setIsLoading(true)
+        setIsGetting(true)
         try {
             return obj.list(query)
         } catch (e: any) {
             throw e
         } finally {
-            setIsLoading(false)
+            setIsGetting(false)
         }
     }
     const remove = async () => {
@@ -153,7 +157,8 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
         obj,
         isLoading,
         isSaving,
-        isRemoving
+        isRemoving,
+        isGetting
     }
 
 }

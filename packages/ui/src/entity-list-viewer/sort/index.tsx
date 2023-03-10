@@ -25,14 +25,13 @@ export const SortMenu = forwardRef(({ children, schema, onChange, value, default
             sortList_.push([attr.name, "DESC"])
             sortList_.push([attr.name, "ASC"])
         }
-        console.log("changed")
         if (JSON.stringify(sortList) !== JSON.stringify(sortList_)) {
             setSortList([...sortList_])
         }
         // }
     }, [attributes])
 
-    const onChange_ = (val) => {
+    const onChange_ = (val: any) => {
         onChange?.(val)
     }
     return (

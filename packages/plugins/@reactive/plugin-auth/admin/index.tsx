@@ -6,9 +6,10 @@ import { BaseAttributeType, getCookie, StringAttributeSubType } from "@reactive/
 import { Input, useToast } from "@reactive/ui"
 import LoginPage from "./pages/login"
 import RegisterPage from "./pages/register"
-import { useLocation, useNavigate } from "react-router-dom"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useEffect } from "react"
 import RolesPage from "./pages/roles"
+import RolesEditorPage from "./pages/roles/editor"
 
 
 
@@ -21,7 +22,7 @@ registerRootRoute(ctx => ({
 }))
 
 registerRootRoute(ctx => ({
-    title: "Authentication/Register",
+    title: "Auth :: Register",
     path: "/register",
     element: RegisterPage,
     icon: () => <RXICO_FOLDER />,
@@ -29,9 +30,29 @@ registerRootRoute(ctx => ({
 
 registerSettingsRoute(ctx => ({
     title: "Roles",
-    element: RolesPage,
+    element: Outlet,
     icon: () => <RXICO_USER_LOCK />,
-    path: "roles"
+    path: "roles",
+    children: [
+        {
+            title: "Roles Editor",
+            element: RolesPage,
+            icon: () => <RXICO_USER_LOCK />,
+            path: "",
+        },
+        {
+            title: "Add New Role",
+            element: RolesEditorPage,
+            icon: () => <RXICO_USER_LOCK />,
+            path: "new",
+        },
+        {
+            title: "Edit existing role",
+            element: RolesEditorPage,
+            icon: () => <RXICO_USER_LOCK />,
+            path: ":id",
+        }
+    ]
 }))
 
 registerAttributeType(ctx => ({

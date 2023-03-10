@@ -1,6 +1,7 @@
 
 import { BaseAttributeType, EntitySchema, Plugin } from "@reactive/commons"
 import { Container } from "inversify"
+import { parse, stringify } from "qs"
 import { AttributesManager, RegisteredAttribute } from "../attributes"
 import { ClientContext, UtilitiesContext } from "../contexts"
 import { Route } from "../contexts/routes"
@@ -185,4 +186,16 @@ export const confirmDelete = (fn?: (() => void | Promise<void>)) => {
         UtilitiesContext.deleteAlertModal.onClose()
     }
 
+}
+
+
+
+//======== query string related
+export const parseQueryString = (str: string) => {
+    const queryStr = str
+    const queryObj = parse(queryStr?.startsWith("?") ? queryStr?.substring(1) : (queryStr || "")) || {}
+    return queryObj
+}
+export const stringifyQuery = (query: any) => {
+    return stringify(query)
 }

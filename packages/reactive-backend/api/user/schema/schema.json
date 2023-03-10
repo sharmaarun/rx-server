@@ -70,8 +70,16 @@
       "type": "json",
       "customType": "json",
       "name": "meta"
+    },
+    "posts": {
+      "type": "relation",
+      "ref": "post",
+      "name": "posts",
+      "relationType": "1:m",
+      "customType": "relation",
+      "foreignKey": "author",
+      "isTarget": false
     }
-    
   },
   "default": {
     "name": "user",

@@ -1,0 +1,26 @@
+{
+  "name": "post",
+  "attributes": {
+    "title": {
+      "type": "string",
+      "customType": "string",
+      "name": "title",
+      "subType": "varchar"
+    },
+    "content": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "content"
+    },
+    "author": {
+      "type": "relation",
+      "customType": "relation",
+      "name": "author",
+      "relationType": "m:1",
+      "ref": "user",
+      "foreignKey": "posts",
+      "isTarget": true
+    }
+  }
+}

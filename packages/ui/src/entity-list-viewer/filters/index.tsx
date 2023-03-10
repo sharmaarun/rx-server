@@ -122,14 +122,14 @@ export interface EntityFiltersProps extends Omit<StackProps, "defaultValue" | "o
     children?: any
     schema?: EntitySchema
     defaultValue?: FilterDTO[]
-    onChange?: (filters?: FilterDTO[]) => void
+    onChange?: (filters: FilterDTO[]) => void
 }
 
 export const QueryFilterFormFields = ({ schema, ...props }: Omit<EntityFiltersProps & FormProps, "children">) => {
     const { value } = useFormContext()
     const attribute = Object.values(schema?.attributes || {}).find(attr => attr.name === value?.attributeName)
-    const queryOperators = Object.values(QueryOperatorsMap).filter(qo => qo.attributeTypes.includes(attribute?.type))
-    const InputRenderer = QueryOperatorsMap?.[value?.key]?.inputComponent || Input;
+    const queryOperators = Object.values(QueryOperatorsMap).filter(qo => attribute?.type && qo?.attributeTypes?.includes(attribute?.type))
+    const InputRenderer = (QueryOperatorsMap as any)?.[value?.key]?.inputComponent || Input;
     return <HStack alignItems="flex-start">
         <FieldControl flex={1}>
             <FieldLabel>Attribute</FieldLabel>
@@ -170,7 +170,7 @@ export const QueryFilterFormFields = ({ schema, ...props }: Omit<EntityFiltersPr
 
 export function EntityFilters({ children, defaultValue, onChange, schema, ...props }: EntityFiltersProps) {
     const defaultFilter = {
-        attributeName: Object.values(schema.attributes || {})?.[0]?.name,
+        attributeName: Object.values(schema?.attributes || {})?.[0]?.name,
     }
     const [filters, setFilters] = useState<FilterDTO[]>(defaultValue || [])
     const [errors, setErrors] = useState<ValidationError[][]>([])
@@ -181,7 +181,7 @@ export function EntityFilters({ children, defaultValue, onChange, schema, ...pro
         }
     }, [defaultValue])
 
-    const add = (filter?: FilterDTO) => {
+    const add = (filter: FilterDTO) => {
         filters.push(filter)
         setFilters([...filters])
     }

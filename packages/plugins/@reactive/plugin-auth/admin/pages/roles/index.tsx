@@ -1,24 +1,61 @@
-import React from "react"
-import { Box, Heading, Page, PageBody, PageHeader, PageProps } from "@reactive/ui"
+import React, { useEffect, useState } from "react"
+import { Box, EntityListViewer, EntityListViewerAddNewButton, EntityListViewerBody, Heading, Page, PageBody, PageHeader, PageProps, PageToolbar } from "@reactive/ui"
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
+import { Obj, parseQueryString } from "@reactive/client"
+import { Query } from "@reactive/commons"
 
 export interface RolesPageProps extends PageProps {
     children?: any
 }
 
+let tids: any = {
+    search: 0
+}
 export function RolesPage({ children, ...props }: RolesPageProps) {
+
+    const obj = new Obj("role")
+
+    const [result, setResult] = useState<any>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        clearTimeout(tids.search)
+        tids.search = setTimeout(async () => {
+            try {
+                setLoading(true)
+                const res = await obj?.listWithCount({})
+                setResult(res)
+            } catch (e) {
+                setLoading(false)
+            } finally {
+                setLoading(false)
+            }
+
+        }, 200)
+    }, [])
+
     return (
-        <Page {...props}>
-            <PageHeader>
-                <Heading size="md">
-                    Roles
-                </Heading>
-            </PageHeader>
-            <PageBody>
-                <Box>
-                    Placeholder
-                </Box>
-            </PageBody>
-        </Page>
+        <EntityListViewer
+            entityName="role"
+            data={result?.rows}
+            count={result.count}
+        >
+            <Page {...props}>
+                <PageHeader>
+                    <Heading size="md">
+                        Roles
+                    </Heading>
+                </PageHeader>
+                <PageToolbar>
+                    <Link to="new">
+                        <EntityListViewerAddNewButton />
+                    </Link>
+                </PageToolbar>
+                <PageBody>
+                    <EntityListViewerBody />
+                </PageBody>
+            </Page>
+        </EntityListViewer>
     )
 }
 
