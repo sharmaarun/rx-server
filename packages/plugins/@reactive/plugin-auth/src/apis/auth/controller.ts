@@ -2,7 +2,7 @@ import { BaseError, BaseValidationError } from "@reactive/commons";
 import { createCoreControllers } from "@reactive/server";
 import { plainToInstance } from "class-transformer";
 import { validate } from "class-validator";
-import { LoginValidationClass, RegisterValidationClass } from "../../../commons";
+import { LoginValidationClass, RegisterValidationClass, UnauthorizedAccessError } from "../../../commons";
 import { compareSync } from "bcrypt"
 import { AuthManagerOptions } from "../../index";
 import { sign } from "jsonwebtoken"
@@ -23,14 +23,20 @@ export default ({ jsonSecret }: AuthManagerOptions) => createCoreControllers("au
 
         const { email, password }: LoginValidationClass = req.body || {}
         // fetch user
-        const user: any = await ctx.query("user").findOne({ where: { email } })
-        if (!user) throw new BaseError(`Invalid credentials provided`)
+        let user: any = await ctx.query("superuser").findOne({ where: { email } })
+        if (!user) {
+            user = await ctx.query("user").findOne({ where: { email } })
+            if (!user) throw new BaseError(`Invalid credentials provided`)
+
+            if (!user.isConfirmed) throw new UnauthorizedAccessError(`Account is not verified. Please check your email id and click on the verification link sent at the time of registration`)
+            if (user.isBlocked) throw new UnauthorizedAccessError(`Account is Blocked`)
+        }
 
         if (!compareSync(password, user?.["password"])) throw new BaseError(`Invalid credentials provided`)
 
         // sign token
         const { name, id } = user || {}
-        const token = signJWT({ name, id }, jsonSecret || "abrakadabra")
+        const token = signJWT({ name, email, id }, jsonSecret || "abrakadabra")
 
         return req.send({
             token,
@@ -59,8 +65,8 @@ export default ({ jsonSecret }: AuthManagerOptions) => createCoreControllers("au
         ])
 
         // fetch user
-        const exists = await ctx.query("user").findOne({ where: { email } })
-        if (exists) throw new BaseError(`User is already registered`)
+        const exists = await ctx.query("superuser").count()
+        if (exists) throw new BaseError(`Super user already registered!`)
 
         const user: any = {
             email,
@@ -70,11 +76,11 @@ export default ({ jsonSecret }: AuthManagerOptions) => createCoreControllers("au
         }
 
         // create new user
-        const created: any = await ctx.query("user").create(user)
+        const created: any = await ctx.query("superuser").create(user)
         // sign token
 
         const { id } = created || {}
-        const token = signJWT({ name, id }, jsonSecret || "abrakadabra")
+        const token = signJWT({ name, email, id }, jsonSecret || "abrakadabra")
         return req.send({
             token,
             user: created

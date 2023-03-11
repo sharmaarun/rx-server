@@ -1,15 +1,17 @@
-import { ClientContext, registerAttributeType, registerNetworkMiddleware, registerNetworkResponseMiddleware, registerPlugin, registerRootRoute, registerSettingsRoute } from "@reactive/client"
-import { RXICO_ENVELOP, RXICO_EYE, RXICO_FOLDER, RXICO_USER_LOCK } from "@reactive/icons"
-import { extractAuthTokenFromCookies } from "./utils"
+import { ClientContext, registerAttributeType, registerNetworkMiddleware, registerNetworkResponseMiddleware, registerPlugin, registerRootRoute, registerSettingsMenuItem, registerSettingsRoute } from "@reactive/client"
+import { RXICO_ENVELOP, RXICO_EYE, RXICO_FOLDER, RXICO_LOGOUT, RXICO_USER_LOCK } from "@reactive/icons"
+import { extractAuthTokenFromCookies, removeAuthToken } from "./utils"
 
 import { BaseAttributeType, getCookie, StringAttributeSubType } from "@reactive/commons"
 import { Input, useToast } from "@reactive/ui"
+import { useEffect } from "react"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import LoginPage from "./pages/login"
 import RegisterPage from "./pages/register"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { useEffect } from "react"
 import RolesPage from "./pages/roles"
 import RolesEditorPage from "./pages/roles/editor"
+import { setAuthToken } from "./utils"
+import APiPermissionInput from "./components/api-permissions-input"
 
 
 
@@ -89,6 +91,23 @@ registerAttributeType(ctx => ({
     }
 }))
 
+registerAttributeType(ctx => ({
+    attribute: {
+        type: BaseAttributeType.json,
+        customType: "api-permissions"
+    },
+    metadata: {
+        components: {
+            valueEditor: {
+                span: 12,
+                component: (props: any) => <APiPermissionInput {...props} />
+            }
+        },
+        icon: () => <RXICO_EYE />,
+        private: true
+    }
+}))
+
 registerNetworkMiddleware((ctx) => ({
     name: "APPEND_AUTHROIZATION_HEADERS",
     fn(path, opts) {
@@ -132,3 +151,13 @@ registerPlugin(() => (ctx: ClientContext) => {
     }, [pathname])
 })
 
+
+registerSettingsMenuItem(ctx => ({
+    name: "logout",
+    icon: RXICO_LOGOUT,
+    onClick: () => {
+        removeAuthToken()
+        window.location.href = "/login"
+    },
+    title: "Logout",
+}))

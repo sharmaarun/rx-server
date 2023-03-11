@@ -173,17 +173,52 @@ export class Attribute {
     public name!: string
     public type!: BaseAttributeType
     public subType?: StringAttributeSubType | NumberAttributeSubType | DateAttributeSubType
+    /**
+     * Custom type is used by frontend for mapping to
+     * corresponding attribute type
+     */
     public customType?: string
     public defaultValue?: string
     public isUnique?: boolean
     public validations?: BasicAttributeValidationType[]
+    /**
+     * Name of the referered entity
+     */
     public ref?: string
     public relationType?: RelationType
+    /**
+     * Indicated the attribute name in the ref entity
+     * pointing to this entity
+     */
     public foreignKey?: string
     public autoIncrement?: boolean
     public values?: string[]
     public isRequired?: boolean
     public isTarget?: boolean
+    /**
+     * Indicates if this attribute is editable
+     * in the entity editor
+     */
+    public editable?: boolean
+    /**
+     * Indicates if this attribute is hidden
+     * in the entity editor
+     */
+    public hidden?: boolean
+    /**
+     * Indicates if this attribute's value should 
+     * be stripped from the results
+     */
+    public private?: boolean
+    /**
+     * Indicates if this attribute is freezed
+     * in the entity attributes editor
+     */
+    public locked?: boolean
+    /**
+     * JSON meta fields (for extension)
+     */
+    public meta?: any
 }
 
 export type EntityMappedAttributes<T = any> = {
@@ -195,9 +230,20 @@ export type EntityAnyAttributes = {
 
 export type EntityAttributes<T = any> = EntityMappedAttributes<T> & EntityAnyAttributes
 
+/**
+ * Entity schema type
+ * fs: schema is present in the file system (project's api dir)
+ * inmemory: schema was loaded manually (by plugin or similar)
+ */
+export type EntitySchemaType = "fs" | "inmemory"
+
 export interface EntitySchema<T = any> {
     name: string,
     attributes?: EntityAttributes<T>
+    /**
+     * type of this entity schema
+     */
+    type?: EntitySchemaType
 }
 
 export interface CoreAttributesType {

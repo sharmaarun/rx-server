@@ -355,6 +355,9 @@ export class SQLEntity<T = any> extends Entity<T> {
 
             for (let attr of Object.values(this.schema.attributes || {})) {
                 if (attr.type === BaseAttributeType.relation) {
+                    let val = (update as any)?.[attr.name]
+                    if (!val) continue
+                    val = this.convertObjectToId(val)
                     const fnName = "set" + toPascalCase(attr.name);
                     const getFnName = "get" + toPascalCase(attr.name);
                     const removeFnName = "remove" + toPascalCase(attr.name);
@@ -363,7 +366,8 @@ export class SQLEntity<T = any> extends Entity<T> {
                         console.info(`Relational mixin ${fnName} not found for ${this.schema.name}`)
                         continue
                     }
-                    const val = (update as any)?.[attr.name]
+
+
                     if (!val) {
                         console.info(`Nothing to set with ${fnName} on ${this.schema.name}`)
                         continue
@@ -477,5 +481,21 @@ export class SQLEntity<T = any> extends Entity<T> {
                 await hook?.fn?.(opts, instance)
             }
         }
+    }
+
+    /**
+     * Extract the id or array of ids from the provided object or array of objects
+     * @param obj 
+     * @returns 
+     */
+    private convertObjectToId(obj: any): any {
+        const type = typeof obj;
+        if (["string", "number"].includes(type)) return obj;
+        if (Array.isArray(obj)) {
+            return obj.map(o => this.convertObjectToId(o))
+        }
+        const { id } = obj || {}
+        if (!id || id.length <= 0) throw new Error(`Invalid object id provided`)
+        return id;
     }
 }

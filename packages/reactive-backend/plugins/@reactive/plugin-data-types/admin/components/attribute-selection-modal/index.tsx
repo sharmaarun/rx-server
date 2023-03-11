@@ -7,7 +7,14 @@ export interface AttributeSelectionModalProps extends ModalProps {
 }
 
 export function AttributeSelectionModal({ children, onChange, ...props }: AttributeSelectionModalProps) {
-    const { attributes } = useAttributes()
+    const { attributes: attrs } = useAttributes()
+
+    const filterAttributes = (attributes: RegisteredAttribute[]) => {
+        return attributes.filter(attr => !attr.metadata.private!)
+    }
+
+    const attributes = filterAttributes(attrs as any)
+
     return (
         <Modal size="3xl" {...props}>
             <ModalOverlay />

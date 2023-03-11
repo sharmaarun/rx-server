@@ -45,9 +45,10 @@ export function LinkListItem({ isActive, ...props }: ListItemProps) {
 
 export interface ActionListItemProps extends ListItemProps {
     leftItem?: any
+    showIcons?: boolean
 }
 
-export function ActionListItem({ isActive, children, leftItem, ...props }: ActionListItemProps) {
+export function ActionListItem({ isActive, showIcons = false, children, leftItem, ...props }: ActionListItemProps) {
     return (
         <_ListItem
             borderRadius={8}
@@ -65,11 +66,11 @@ export function ActionListItem({ isActive, children, leftItem, ...props }: Actio
             spacing={4}
             flexDir="row"
             {...props} >
-            {leftItem ||
+            {showIcons ? <>{leftItem ||
                 <Icon color={isActive ? "purple.500" : "gray.50"} >
                     <RXICO_CHECKMARK />
                 </Icon>
-            }
+            }</> : ""}
             <Box pl={2} flex={1}>
                 {children}
             </Box>

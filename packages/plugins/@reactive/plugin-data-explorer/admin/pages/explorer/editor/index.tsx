@@ -170,32 +170,25 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
             </PageHeader>
 
 
-            <PageContent
-            >
-                {(isLoading || isGetting) && <PageBody p={12} alignItems="center">
-                    <Spinner />
-                </PageBody>
-                }
-                {!isLoading && !isGetting && <PageBody
+            {(isLoading || isGetting) && <PageBody p={12} alignItems="center">
+                <Spinner />
+            </PageBody>
+            }
+            {!isLoading && !isGetting &&
+                <PageContent
                     as={EntityEditor}
-                    // <EntityEditor
                     {...({
                         onSubmit: onSave,
                         errors: errors,
-                        data: obj.attributes || {},
+                        defaultValue: obj.attributes || {},
                         entityName: name,
-                        style: {
-                            flex: 1,
-                            overflowY: "auto",
-                            display: "flex",
-                            flexDirection: "column",
-                        }
                     })}
                 >
-                    <>
+                    <PageBody>
                         <HStack alignItems="flex-start">
                             <Card shadow="base" p={4} flex={1}>
-                                <EntityEditorFieldsRenderer />
+                                <EntityEditorFieldsRenderer entityName={name} />
+                                <ActionButton type="submit" hidden={true} />
                             </Card>
                             <Stack w="25%">
                                 <Card p={4} >
@@ -209,15 +202,12 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
                                 </Card>
                             </Stack>
                         </HStack>
-                        <ActionButton type="submit" hidden={true} />
-                    </>
-                </PageBody>
-                }
-                <PageFooter>
-                    <ActionButton isLoading={isSaving} isDisabled={isSaving} type="submit">Save</ActionButton>
-                </PageFooter>
-                {/* </EntityEditor> */}
-            </PageContent>
+                    </PageBody>
+                    <PageFooter>
+                        <ActionButton isLoading={isSaving} isDisabled={isSaving} type="submit">Save</ActionButton>
+                    </PageFooter>
+                </PageContent>
+            }
         </Page >
     )
 }

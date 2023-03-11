@@ -1,5 +1,5 @@
 
-import { BaseAttributeType, EntitySchema, Plugin } from "@reactive/commons"
+import { Attribute, BaseAttributeType, EntitySchema, NumberAttributeSubType, Plugin } from "@reactive/commons"
 import { Container } from "inversify"
 import { parse, stringify } from "qs"
 import { AttributesManager, RegisteredAttribute } from "../attributes"
@@ -175,6 +175,36 @@ export const getFirstAttributeByType = (schema: EntitySchema, type: BaseAttribut
     return Object.values(schema.attributes || {}).find(attr => attr.type === type)
 }
 
+/**
+ * Get registered attribute type
+ * @param attr 
+ * @returns 
+ */
+export const getRegisteredAttribute = (attr: Attribute) => {
+    let regAttr = attributes?.ctx?.attributes?.attributes?.find?.(rattr =>
+        rattr.attribute.customType === attr.customType
+    )
+    if (!regAttr) {
+        regAttr = attributes?.ctx?.attributes?.attributes?.find?.(rattr =>
+            rattr.attribute.customType === attr.type
+        )
+
+    }
+    return regAttr
+}
+
+/**
+ * Sort attributes by span
+ * @param attributes 
+ * @returns 
+ */
+export const sortAttributesBySpan = (attributes: Attribute[]) => {
+    return attributes?.sort((a, b) => {
+        const aspan = getRegisteredAttribute(a)?.metadata?.components?.valueEditor?.span ?? 0
+        const bspan = getRegisteredAttribute(b)?.metadata?.components?.valueEditor?.span ?? 0
+        return aspan - bspan
+    })
+}
 
 // Delete alert modal related
 // ==============================

@@ -12,42 +12,42 @@
           "value": 3
         }
       ],
-      "isRequired": true
+      "isRequired": true,
+      "locked": true
     },
     "email": {
       "type": "string",
       "customType": "email",
       "name": "email",
       "subType": "varchar",
-      "isRequired": true
+      "isRequired": true,
+      "locked": true
     },
     "password": {
       "type": "string",
       "customType": "password",
       "name": "password",
-      "subType": "varchar"
-    },
-    "description": {
-      "type": "string",
-      "customType": "rich-text",
-      "subType": "text",
-      "name": "description"
+      "subType": "varchar",
+      "locked": true
     },
     "isConfirmed": {
       "type": "boolean",
       "customType": "boolean",
-      "name": "isConfirmed"
+      "name": "isConfirmed",
+      "locked": true
     },
     "isBlocked": {
       "type": "boolean",
       "customType": "boolean",
-      "name": "isBlocked"
+      "name": "isBlocked",
+      "locked": true
     },
     "dob": {
       "type": "date",
       "customType": "date",
       "name": "dob",
-      "subType": "date"
+      "subType": "date",
+      "locked": true
     },
     "gender": {
       "type": "enum",
@@ -56,29 +56,23 @@
       "values": [
         "male",
         "female"
-      ]
+      ],
+      "locked": true
     },
     "roles": {
       "type": "relation",
+      "customType": "relation",
       "relationType": "m:m",
       "ref": "role",
       "foreignKey": "users",
       "name": "roles",
-      "customType": "relation"
+      "locked": true
     },
     "meta": {
       "type": "json",
       "customType": "json",
-      "name": "meta"
-    },
-    "posts": {
-      "type": "relation",
-      "ref": "post",
-      "name": "posts",
-      "relationType": "1:m",
-      "customType": "relation",
-      "foreignKey": "author",
-      "isTarget": false
+      "name": "meta",
+      "locked": true
     }
   },
   "default": {
@@ -95,37 +89,42 @@
             "value": 3
           }
         ],
-        "isRequired": true
+        "isRequired": true,
+        "locked": true
       },
       "email": {
         "type": "string",
         "customType": "email",
         "name": "email",
         "subType": "varchar",
-        "isRequired": true
+        "isRequired": true,
+        "locked": true
       },
       "password": {
         "type": "string",
         "customType": "password",
         "name": "password",
-        "subType": "varchar"
-      },
-      "description": {
-        "type": "string",
-        "customType": "rich-text",
-        "subType": "text",
-        "name": "description"
+        "subType": "varchar",
+        "locked": true
       },
       "isConfirmed": {
         "type": "boolean",
         "customType": "boolean",
-        "name": "isConfirmed"
+        "name": "isConfirmed",
+        "locked": true
+      },
+      "isBlocked": {
+        "type": "boolean",
+        "customType": "boolean",
+        "name": "isBlocked",
+        "locked": true
       },
       "dob": {
         "type": "date",
         "customType": "date",
         "name": "dob",
-        "subType": "date"
+        "subType": "date",
+        "locked": true
       },
       "gender": {
         "type": "enum",
@@ -134,19 +133,23 @@
         "values": [
           "male",
           "female"
-        ]
+        ],
+        "locked": true
       },
       "roles": {
         "type": "relation",
+        "customType": "relation",
         "relationType": "m:m",
         "ref": "role",
         "foreignKey": "users",
-        "name": "roles"
+        "name": "roles",
+        "locked": true
       },
       "meta": {
         "type": "json",
         "customType": "json",
-        "name": "meta"
+        "name": "meta",
+        "locked": true
       }
     }
   }

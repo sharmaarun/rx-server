@@ -1,6 +1,6 @@
 import { Obj, parseQueryString, stringifyQuery } from "@reactive/client"
 import { Query, toPascalCase } from "@reactive/commons"
-import { ActionListItem, Box, EntityListViewer, EntityListViewerAddNewButton, EntityListViewerBody, EntityListViewerDateRangeSelector, EntityListViewerDateRangeSelectorToggleButton, EntityListViewerFiltersEditor, EntityListViewerFiltersEditorToggleButton, EntityListViewerPageSizeSelector, EntityListViewerPagination, EntityListViewerSortMenu, Heading, HStack, Page, PageBody, PageFooter, PageHeader, PageToolbar, Spinner, StackProps, Text, useEntityListView } from "@reactive/ui"
+import { ActionListItem, Box, Card, EntityListViewer, EntityListViewerAddNewButton, EntityListViewerBody, EntityListViewerDateRangeSelector, EntityListViewerDateRangeSelectorToggleButton, EntityListViewerFiltersEditor, EntityListViewerFiltersEditorToggleButton, EntityListViewerPageSizeSelector, EntityListViewerPagination, EntityListViewerSortMenu, Heading, HStack, Page, PageBody, PageFooter, PageHeader, PageToolbar, Spinner, StackProps, Text, useEntityListView } from "@reactive/ui"
 import { useEffect, useState } from "react"
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
 
@@ -87,21 +87,21 @@ export function ListViewPage({ children, ...props }: ListViewPageProps) {
                             listItemRenderer={(item, ind) =>
                                 <ActionListItem
                                     role="group"
+                                    as={Link}
+                                    {...({ to: `/admin/explorer/${name}/${item?.id}` })}
                                     key={ind}
-                                    p={0}
-                                    pr={4}
+                                    bg="white"
                                 >
                                     <HStack>
                                         <HStack flex={1} >
                                             <Box flex={1}>
-                                                <Link to={`/admin/explorer/${name}/${item?.id}`}>
-                                                    <Text py={4}>
-                                                        {item.name || item.id}
-                                                    </Text>
-                                                </Link>
+                                                <Text>
+                                                    {item.name || item.id}
+                                                </Text>
                                             </Box>
                                         </HStack>
                                     </HStack>
+
                                 </ActionListItem>
                             }
                         >
@@ -115,7 +115,7 @@ export function ListViewPage({ children, ...props }: ListViewPageProps) {
                     <EntityListViewerPagination />
                 </PageFooter>
             </Page >
-        </EntityListViewer>
+        </EntityListViewer >
     )
 }
 

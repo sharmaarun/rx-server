@@ -9,12 +9,6 @@ export default createCoreRouter("", ctx => ([
         staticPath: resolve(process.cwd(), ".cache/admin")
     },
     {
-        path: "/",
-        method: "get",
-        handler: "test",
-        staticPath: resolve(process.cwd(), ".cache/admin")
-    },
-    {
         path: "/admin/",
         method: "get",
         handler: "test",

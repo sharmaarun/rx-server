@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { ActionButton, Button } from "../button"
-import { Form, FormContext } from "../form"
+import { Form, FormProps } from "../form"
 import { } from "../heading"
 import { Modal, ModalContent, ModalFooter, ModalOverlay, ModalProps } from "../modal"
 import { HStack } from "../stack"
 import { useDisclosure } from "../utils"
-export interface FormModalProps extends ModalProps, Omit<FormContext, "scrollBehavior" | "children"> {
+export interface FormModalProps extends ModalProps, Omit<FormProps, "scrollBehavior" | "children"> {
     onSubmit?: (value: any) => void
 }
 

@@ -1,6 +1,6 @@
 import { useMenusContext } from "@reactive/client"
 import { toPascalCase } from "@reactive/commons"
-import { HStack, Icon, List, ListProps, Stack, ListItem, Text } from "@reactive/ui"
+import { HStack, Icon, List, ListItem, ListProps, Stack, Text, Tooltip } from "@reactive/ui"
 import { Link, useLocation } from "react-router-dom"
 import { MainMenuMode } from "../main-menu"
 
@@ -20,6 +20,7 @@ export function ActionsMenu({ children, mode, ...props }: ActionsMenuProps) {
                         const isActive = r.link && pathname?.startsWith(r.link)
                         const Ico = r.icon || (() => <></>)
                         const item = <ListItem
+                            onClick={r.onClick}
                             cursor="pointer"
                             p={2}
                             borderRadius={4}
@@ -28,9 +29,11 @@ export function ActionsMenu({ children, mode, ...props }: ActionsMenuProps) {
                             _hover={{ bgColor: isActive ? "" : "gray.100" }}
                         >
                             <HStack textOverflow="ellipsis">
-                                <Icon>
-                                    {<Ico />}
-                                </Icon>
+                                <Tooltip label={r.title || toPascalCase(r.name)}>
+                                    <Icon>
+                                        {<Ico />}
+                                    </Icon>
+                                </Tooltip>
                                 {mode === "open" ? <Text whiteSpace="nowrap" >
                                     {r.title || toPascalCase(r.name)}
                                 </Text> : ""}

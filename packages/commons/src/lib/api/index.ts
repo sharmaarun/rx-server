@@ -19,6 +19,8 @@ export interface APIRequestContext<P = any, Q = any, B = any> {
     headers: any,
     endpoint: Endpoint
     route: APIRoute
+    user?: any
+    meta?: any
 }
 
 export type APIRouteMiddleware = {

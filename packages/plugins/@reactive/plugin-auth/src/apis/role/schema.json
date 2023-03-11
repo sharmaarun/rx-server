@@ -12,12 +12,14 @@
                     "value": 3
                 }
             ],
-            "isRequired": true
+            "isRequired": true,
+            "editable": false
         },
-        "endpoints": {
+        "apiPermissions": {
             "type": "json",
-            "customType": "json",
-            "name": "endpoints"
+            "customType": "api-permissions",
+            "name": "apiPermissions",
+            "isRequired": true
         },
         "users": {
             "type": "relation",
@@ -27,6 +29,11 @@
             "foreignKey": "roles",
             "name": "users",
             "isTarget": true
+        },
+        "isCore": {
+            "type": "boolean",
+            "name": "isCore",
+            "private": true
         }
     }
 }

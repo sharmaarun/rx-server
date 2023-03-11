@@ -1,8 +1,9 @@
-import { CoreAttributes, FindAndCountAllReturnType, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
+import { BaseError, CoreAttributes, FindAndCountAllReturnType, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
 import { useEffect, useState } from "react";
 import { container } from "../../container";
 import NetworkManager, { Method } from "../network";
 import { stringify } from "qs"
+import { ValidationError } from "class-validator";
 export interface ObjInitOpts {
     objectIdKey?: string
 }
@@ -89,6 +90,8 @@ export type UseEntityObjProps = {
 
 export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
     const [obj, setObj] = useState(new Obj<T>(name))
+    const [errors, setErrors] = useState<ValidationError[]>([])
+    const [errorObj, setErrorObj] = useState<BaseError>()
     const [entityName, setEntityName] = useState(name)
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [isGetting, setIsGetting] = useState<boolean>(false)
@@ -110,19 +113,27 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
 
     const get = async (id?: string | number, query?: Query<T>) => {
         setIsGetting(true)
+        setErrorObj(undefined)
         try {
             await obj.get(id, query)
         } catch (e: any) {
+            setErrorObj(e)
             throw e
         } finally {
             setIsGetting(false)
         }
     }
     const save = async (data?: T, opts?: SaveOpts) => {
-        setIsSaving(true)
+        setIsSaving(true);
+        setErrorObj(undefined)
+        setErrors([])
         try {
             await obj.save(data, opts)
         } catch (e: any) {
+            setErrorObj(e)
+            if (e.errors) {
+                setErrors(e.errors)
+            }
             throw e
         } finally {
             setIsSaving(false)
@@ -130,9 +141,11 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
     }
     const list = async (query?: any) => {
         setIsGetting(true)
+        setErrorObj(undefined)
         try {
             return obj.list(query)
         } catch (e: any) {
+            setErrorObj(e)
             throw e
         } finally {
             setIsGetting(false)
@@ -140,9 +153,11 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
     }
     const remove = async () => {
         setIsRemoving(true)
+        setErrorObj(undefined)
         try {
             return obj.delete()
         } catch (e: any) {
+            setErrorObj(e)
             throw e
         } finally {
             setIsRemoving(false)
@@ -158,7 +173,9 @@ export const useEntityObj = <T = any>({ name }: UseEntityObjProps) => {
         isLoading,
         isSaving,
         isRemoving,
-        isGetting
+        isGetting,
+        errors,
+        errorObj
     }
 
 }

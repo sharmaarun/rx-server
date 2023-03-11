@@ -38,6 +38,10 @@ export type AttributeComponents = {
 export type AttributeMetaData = {
     components?: AttributeComponents
     icon: any
+    /**
+     * make this attribute type private
+     */
+    private?: boolean
 }
 
 export class RegisteredAttribute {

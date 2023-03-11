@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"
-import { Box, EntityListViewer, EntityListViewerAddNewButton, EntityListViewerBody, Heading, Page, PageBody, PageHeader, PageProps, PageToolbar } from "@reactive/ui"
+import { ActionListItem, Box, EntityListViewer, EntityListViewerAddNewButton, EntityListViewerBody, Heading, HStack, Page, PageBody, PageHeader, PageProps, PageToolbar, Spinner } from "@reactive/ui"
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom"
 import { Obj, parseQueryString } from "@reactive/client"
 import { Query } from "@reactive/commons"
@@ -52,7 +52,25 @@ export function RolesPage({ children, ...props }: RolesPageProps) {
                     </Link>
                 </PageToolbar>
                 <PageBody>
-                    <EntityListViewerBody />
+                    <>
+                        {loading &&
+                            <HStack justifyContent="center">
+                                <Spinner />
+                            </HStack>
+                        }
+                        {!loading && <EntityListViewerBody
+                            listItemRenderer={(item, ind) =>
+                                <ActionListItem
+                                    bg="white"
+                                    key={ind}
+                                    as={Link}
+                                    {...({ to: "" + item.id })}
+                                >
+                                    {item.name}
+                                </ActionListItem>
+                            }
+                        />}
+                    </>
                 </PageBody>
             </Page>
         </EntityListViewer>

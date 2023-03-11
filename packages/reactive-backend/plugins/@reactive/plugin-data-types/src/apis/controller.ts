@@ -31,10 +31,12 @@ export default createCoreControllers("data-types", ctx => ({
             }
 
             // once migrated, define the new schema
-            await ctx.db.defineSchema(processedNewSchema)
+            await ctx.db.defineSchema(processedNewSchema, transaction)
 
             // once defined, save modified apis and generate the new API
-            res = await Promise.all(relatedSchemasToMigrate?.map(async s => await ctx.apiGen.saveEndpointSchema(s)) || [])
+            res = await Promise.all(relatedSchemasToMigrate.
+                filter(s => s.type === "fs")?.
+                map(async s => await ctx.apiGen.saveEndpointSchema(s)) || [])
             res = await ctx.apiGen.generateAPI(req.body)
             await transaction.commit()
 
@@ -70,7 +72,9 @@ export default createCoreControllers("data-types", ctx => ({
 
             // write out all the changes if successfully done
             await new Promise(res => setTimeout(res, 200))
-            const res = await Promise.all(relatedSchemasToMigrate?.map(async s => await ctx.apiGen.saveEndpointSchema(s)) || [])
+            const res = await Promise.all(relatedSchemasToMigrate?.
+                filter(s => s.type === "fs")?.
+                map(async s => await ctx.apiGen.saveEndpointSchema(s)) || [])
 
             // commit the transaction if all changes were done successfuly
             await transaction.commit()
@@ -96,7 +100,7 @@ export default createCoreControllers("data-types", ctx => ({
         try {
 
             //try to remove the db entity
-            await ctx.db.removeSchema(schema)
+            await ctx.db.removeSchema(schema, transaction)
 
             // If successfully removed, writeout the changes on the file system (remove from disk)
             await ctx.apiGen.removeEndpointSchema(schema)

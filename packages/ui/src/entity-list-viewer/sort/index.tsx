@@ -50,6 +50,7 @@ export const SortMenu = forwardRef(({ children, schema, onChange, value, default
                     <List maxH="300px" overflowY="auto" shadow="base" borderRadius={5}>
                         {sortList?.map((item, index) =>
                             <ActionListItem
+                                showIcons
                                 p={2}
                                 borderRadius={0}
                                 isActive={JSON.stringify(value ? value : defaultValue) === JSON.stringify(item)}

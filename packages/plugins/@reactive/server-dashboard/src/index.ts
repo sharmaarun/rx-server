@@ -12,6 +12,7 @@ export default class AdminDashboard extends PluginClass {
         // admin routes
         registerCoreEndpoint(ctx => ({
             name: "/",
+            title:"Dashboard",
             routes: adminRoutes(),
             controllers: adminController(),
             schema: adminSchema,

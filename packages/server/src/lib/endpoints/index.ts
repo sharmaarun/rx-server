@@ -36,7 +36,7 @@ export const createDefaultCRUDRouteHandlersMap = (ctx: ServerContext): APIRouteH
     },
     async delete(req: APIRequestContext) {
         if (!req?.endpoint?.schema?.name) throw new Error("Invalid API Endpoint")
-        const count = await ctx.query(req?.endpoint?.schema?.name)?.deleteMany(req.query)
+        const count = await ctx.query(req?.endpoint?.schema?.name)?.delete(req.query)
         if (count === 0) console.warn("No requested entries were deleted", req.query)
         return req.send({ count })
     },
@@ -193,7 +193,10 @@ export class EndpointManager extends PluginClass {
         if (existsSync(schemaFilePath)) {
             endpoint.schema = JSON.parse(readFileSync(schemaFilePath).toString())
             if (!endpoint.schema?.name) throw new Error("No name found in the endpoint's schema json")
+
             endpoint.name = endpoint.schema?.name
+            // ep loaded from the fs should have schema type `fs`
+            endpoint.schema.type = endpoint.schema.type ?? "fs"
         }
 
         // load route

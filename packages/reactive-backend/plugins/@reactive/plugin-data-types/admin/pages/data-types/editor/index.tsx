@@ -173,23 +173,25 @@ export function EditorPage({ children, ...props }: EditorPageProps) {
                                                         <Text flex={1}>
                                                             {attr.name}
                                                         </Text>
-                                                        <HStack>
-                                                            <IconButton onClick={() => {
-                                                                setMode("edit")
-                                                                onSelectAttribute(attr as any)
-                                                            }} variant="ghost" aria-label="">
-                                                                <Icon>
-                                                                    <RXICO_EDIT />
-                                                                </Icon>
-                                                            </IconButton>
-                                                            <IconButton onClick={() => {
-                                                                confirmDelete(() => deleteAttribute(attr))
-                                                            }} variant="ghost" aria-label="">
-                                                                <Icon>
-                                                                    <RXICO_TRASH />
-                                                                </Icon>
-                                                            </IconButton>
-                                                        </HStack>
+                                                        {!attr.locked &&
+                                                            <HStack>
+                                                                <IconButton onClick={() => {
+                                                                    setMode("edit")
+                                                                    onSelectAttribute(attr as any)
+                                                                }} variant="ghost" aria-label="">
+                                                                    <Icon>
+                                                                        <RXICO_EDIT />
+                                                                    </Icon>
+                                                                </IconButton>
+                                                                <IconButton onClick={() => {
+                                                                    confirmDelete(() => deleteAttribute(attr))
+                                                                }} variant="ghost" aria-label="">
+                                                                    <Icon>
+                                                                        <RXICO_TRASH />
+                                                                    </Icon>
+                                                                </IconButton>
+                                                            </HStack>
+                                                        }
                                                     </HStack>
                                                 </ActionListItem>
                                             })}

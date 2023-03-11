@@ -42,11 +42,14 @@ export function JSONInput({ children, defaultValue, onChange, ...props }: JSONIn
         if (ele && ele !== null) {
             const jar_ = CodeJar(ele as any, highlightJSON)
             if (jar_) {
-                jar_.onUpdate((code: string) => onChange?.(code))
+                jar_.onUpdate((code: string) => setVal(code))
             }
             setJar(jar_)
         }
     }, [])
+    useEffect(() => {
+        onChange?.(val as any)
+    }, [val])
     useEffect(() => {
         if (jar && defaultValue?.length && (!val || val.length <= 0)) {
             try {
@@ -70,7 +73,7 @@ export function JSONInput({ children, defaultValue, onChange, ...props }: JSONIn
                 borderColor: "gray.300"
             }}
             _focus={{
-                outline:"2px solid blue.500"
+                outline: "2px solid blue.500"
             }}
 
             id={id}
