@@ -17,6 +17,9 @@ export default {
                 hashRounds: 10,
                 jsonSecret: "abrakadabra"
             }
-        }
+        },
+        {
+            name: "@reactive/plugin-media",
+        },
     ]
 }

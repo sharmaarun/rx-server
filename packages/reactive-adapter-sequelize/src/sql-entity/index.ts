@@ -356,7 +356,7 @@ export class SQLEntity<T = any> extends Entity<T> {
             for (let attr of Object.values(this.schema.attributes || {})) {
                 if (attr.type === BaseAttributeType.relation) {
                     let val = (update as any)?.[attr.name]
-                    if (!val) continue
+                    if (val === undefined || typeof val === "undefined") continue
                     val = this.convertObjectToId(val)
                     const fnName = "set" + toPascalCase(attr.name);
                     const getFnName = "get" + toPascalCase(attr.name);
@@ -368,7 +368,7 @@ export class SQLEntity<T = any> extends Entity<T> {
                     }
 
 
-                    if (!val) {
+                    if (typeof val === undefined || val === undefined) {
                         console.info(`Nothing to set with ${fnName} on ${this.schema.name}`)
                         continue
                     }
@@ -489,6 +489,7 @@ export class SQLEntity<T = any> extends Entity<T> {
      * @returns 
      */
     private convertObjectToId(obj: any): any {
+        if (obj === null) return obj; // null id will be used to unset the relation
         const type = typeof obj;
         if (["string", "number"].includes(type)) return obj;
         if (Array.isArray(obj)) {

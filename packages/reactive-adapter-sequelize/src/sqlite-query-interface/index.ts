@@ -548,7 +548,7 @@ export class SQLiteQueryInterfaceAdapter extends QueryInterface {
             const { ref, foreignKey } = attribute || {}
             if (!ref || !foreignKey) throw new Error(`Invalid relational attribute : ${JSON.stringify(attribute)}`)
 
-            // create new column in the ref table
+            // remove column in the ref table
             res = await this.removeColumn(ref, foreignKey + "Id", { transaction: trx })
 
             if (!opts?.transaction) await trx.commit()

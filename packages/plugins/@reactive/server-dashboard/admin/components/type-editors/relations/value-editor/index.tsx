@@ -21,7 +21,7 @@ const singleRelationTypes = [
 ]
 
 const to = (val: string[], type: RelationType) => {
-    return (singleRelationTypes.includes(type) && Array.isArray(val)) ? val?.[0] : val
+    return (singleRelationTypes.includes(type) && Array.isArray(val)) ? (val?.[0] ?? null) : val
 }
 
 const from = (val: string | string[] | any[], type: RelationType) => {

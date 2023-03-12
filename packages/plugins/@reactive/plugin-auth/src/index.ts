@@ -84,7 +84,7 @@ export default class AuthManager extends PluginClass<AuthManagerOptions> {
             // create default roles
             await this.createDefaultRoles()
 
-        }, 300)
+        }, 500)
     }
     /**
      * Create default public and authenticated roles

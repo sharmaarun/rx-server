@@ -26,6 +26,12 @@
       "@reactive/plugin-data-explorer": [
         "packages/plugins/@reactive/plugin-data-explorer/src/index.ts"
       ],
+      "@reactive/plugin-auth": [
+        "packages/plugins/@reactive/plugin-auth/src/index.ts"
+      ],
+      "@reactive/plugin-media": [
+        "packages/plugins/@reactive/plugin-media/src/index.ts"
+      ],
       "@reactive/plugin-data-types": [
         "packages/reactive-backend/plugins/@reactive/plugin-data-types/src/index.ts"
       ],

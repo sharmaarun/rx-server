@@ -1,0 +1,19 @@
+{
+    "name": "file",
+    "attributes": {
+        "name": {
+            "type": "string",
+            "customType": "string",
+            "name": "name",
+            "subType": "varchar",
+            "validations": [
+                {
+                    "type": "minLen",
+                    "value": 3
+                }
+            ],
+            "isRequired": true,
+            "locked": true
+        }
+    }
+}
