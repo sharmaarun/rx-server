@@ -281,7 +281,11 @@ export type QueryGroup = string | string[]
 export type QueryIncludeOpts<T = any> = {
     association?: string
     attributes?: string[]
+    through?: any
+    model?: any
+    as?: string
     where?: WhereOptions<T>
+    order?: QueryOrder
 }
 
 export type Query<T = any> = {

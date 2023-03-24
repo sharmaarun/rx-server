@@ -74,17 +74,20 @@ export default class AuthManager extends PluginClass<AuthManagerOptions> {
         }
 
 
+
+    }
+
+    public override async start() {
         // initialize
-        setTimeout(async () => {
-            // add db hooks
-            await this.addPasswordHooks(ctx, userSchema.name)
-            await this.addPasswordHooks(ctx, superUserSchema.name)
-            await this.addMiddlewares(ctx)
+        // add db hooks
+        await this.addPasswordHooks(this.ctx, userSchema.name)
+        await this.addPasswordHooks(this.ctx, superUserSchema.name)
 
-            // create default roles
-            await this.createDefaultRoles()
+        await this.addMiddlewares(this.ctx)
 
-        }, 500)
+        // create default roles
+        await this.createDefaultRoles()
+
     }
     /**
      * Create default public and authenticated roles

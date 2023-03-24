@@ -7,9 +7,10 @@ import { HStack } from "../stack"
 import { useDisclosure } from "../utils"
 export interface FormModalProps extends ModalProps, Omit<FormProps, "scrollBehavior" | "children"> {
     onSubmit?: (value: any) => void
+    footer?: any
 }
 
-export function FormModal({ children, ...props }: FormModalProps) {
+export function FormModal({ children, footer, ...props }: FormModalProps) {
     return (
         <Modal {...props}>
             <ModalOverlay />
@@ -18,6 +19,7 @@ export function FormModal({ children, ...props }: FormModalProps) {
                     {children}
                     <ModalFooter>
                         <HStack>
+                            {footer}
                             <Button onClick={props?.onClose}>Cancel</Button>
                             <ActionButton type="submit" colorScheme="purple">OK</ActionButton>
                         </HStack>

@@ -12,5 +12,5 @@ export default {
   },
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory:
-    '../../../../coverage/packages/plugins/@reactive/plugin-data-explorer',
+    '../../../../coverage',
 };

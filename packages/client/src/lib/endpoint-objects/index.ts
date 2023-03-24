@@ -1,7 +1,7 @@
 import { BaseError, CoreAttributes, FindAndCountAllReturnType, PLUGINS_WEB_ROOT, Query } from "@reactive/commons";
 import { useEffect, useState } from "react";
 import { container } from "../../container";
-import NetworkManager, { Method } from "../network";
+import NetworkManager, { Method, NetworkManagerRequestOpts } from "../network";
 import { stringify } from "qs"
 import { ValidationError } from "class-validator";
 export interface ObjInitOpts {
@@ -69,8 +69,8 @@ export class Obj<T = any> implements ObjInitOpts {
         return res
     }
 
-    public async call(path: string, data?: any, method: Method = "get") {
-        return this.net?.[method]?.(this.name + "/" + path, data)
+    public async call(path: string, opts?: NetworkManagerRequestOpts) {
+        return this.net?.call?.(this.name + "/" + path, opts)
     }
 
     public get id() {

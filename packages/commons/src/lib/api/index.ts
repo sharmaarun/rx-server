@@ -1,3 +1,4 @@
+import { Request, Response } from "express"
 import { Query } from "../db"
 import { Endpoint } from "../endpoints"
 
@@ -10,7 +11,7 @@ export type APIRoute = {
     staticPath?: string
 }
 
-export interface APIRequestContext<P = any, Q = any, B = any> {
+export interface APIRequestContext<P = any, Q = any, B = any, R = Request, T = Response> {
     params: P
     query: Q extends Q ? Partial<Q> & Query<Q> : Query<Q>,
     body: B
@@ -19,6 +20,8 @@ export interface APIRequestContext<P = any, Q = any, B = any> {
     headers: any,
     endpoint: Endpoint
     route: APIRoute
+    req: R
+    res: T
     user?: any
     meta?: any
 }

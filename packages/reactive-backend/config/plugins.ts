@@ -19,7 +19,7 @@ export default {
             }
         },
         {
-            name: "@reactive/plugin-media",
+            name: "@reactive/plugin-media-adapter-local",
         },
     ]
 }

@@ -21,7 +21,7 @@ export function RegisterPage({ children, ...props }: RegisterPageProps) {
         try {
             setLoading(true)
             setErrors([])
-            const { token } = await auth.call("register", login, "post")
+            const { token } = await auth.call("register", { body: login, method: "post" })
             setAuthToken(token)
             navigate("/admin")
         } catch (e) {

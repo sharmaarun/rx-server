@@ -1,0 +1,89 @@
+{
+    "name": "file",
+    "attributes": {
+        "originalname": {
+            "type": "string",
+            "customType": "string",
+            "name": "originalname",
+            "subType": "varchar",
+            "validations": [
+                {
+                    "type": "minLen",
+                    "value": 3
+                }
+            ],
+            "isRequired": true,
+            "locked": true
+        },
+        "filename": {
+            "type": "string",
+            "customType": "string",
+            "name": "filename",
+            "subType": "varchar"
+        },
+        "url": {
+            "type": "string",
+            "customType": "string",
+            "name": "url",
+            "subType": "varchar"
+        },
+        "type": {
+            "type": "string",
+            "customType": "string",
+            "name": "type",
+            "subType": "varchar"
+        },
+        "size": {
+            "type": "number",
+            "customType": "number",
+            "name": "size",
+            "subType": "integer"
+        },
+        "imageformats": {
+            "type": "json",
+            "customType": "json",
+            "name": "imageformats"
+        },
+        "encoding": {
+            "type": "string",
+            "customType": "string",
+            "name": "encoding",
+            "subType": "varchar"
+        },
+        "mimetype": {
+            "type": "string",
+            "customType": "string",
+            "name": "mimetype",
+            "subType": "varchar"
+        },
+        "extension": {
+            "type": "string",
+            "customType": "string",
+            "name": "extension",
+            "subType": "varchar"
+        },
+        "destination": {
+            "type": "string",
+            "customType": "string",
+            "name": "destination",
+            "subType": "varchar"
+        },
+        "path": {
+            "type": "string",
+            "customType": "string",
+            "name": "path",
+            "subType": "varchar"
+        },
+        "parent": {
+            "type": "string",
+            "customType": "string",
+            "name": "parent",
+            "subType": "varchar"
+        },
+        "isDir": {
+            "type": "boolean",
+            "customType": "boolean",
+            "name": "isDir"
+        }
+    }
+}

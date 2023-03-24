@@ -1,0 +1,23 @@
+{
+  "name": "temp",
+  "attributes": {
+    "name": {
+      "type": "string",
+      "customType": "string",
+      "name": "name",
+      "subType": "varchar"
+    },
+    "dp": {
+      "type": "json",
+      "customType": "media",
+      "name": "dp"
+    },
+    "desc": {
+      "type": "string",
+      "customType": "rich-text",
+      "subType": "text",
+      "name": "desc"
+    }
+  },
+  "type": "fs"
+}

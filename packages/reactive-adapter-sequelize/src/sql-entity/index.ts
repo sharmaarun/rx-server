@@ -1,4 +1,4 @@
-import { BaseAttributeType, DefaultEntityAttributes, EntitySchema, FindAndCountAllReturnType, Query, toPascalCase } from "@reactive/commons";
+import { BaseAttributeType, DefaultEntityAttributes, EntitySchema, FindAndCountAllReturnType, Query, QueryIncludeOpts, toPascalCase } from "@reactive/commons";
 import { Entity, EntityHook, EntityHookFn, EntityHookFns, QueryOptions, ServerContext, UpdateReturnType, UpsertReturnType } from "@reactive/server";
 import { Model, ModelStatic, NonNullFindOptions, Sequelize, UpdateOptions } from "sequelize";
 import { SequelizeAdapter } from "../adapter";
@@ -420,6 +420,16 @@ export class SQLEntity<T = any> extends Entity<T> {
         return this.hooks.find(h => h.trigger !== trigger && h.name !== name)
     }
 
+    public populate(res: any[], entity: SQLEntity, filters?: Query<any>) {
+        for (let r of res) {
+            for (let attr of Object.values(entity.schema.attributes || {})){
+                if(attr.type===BaseAttributeType.relation){
+                    
+                }
+            }
+        }
+    }
+
 
     /**
      * Maps http query to db query
@@ -449,13 +459,25 @@ export class SQLEntity<T = any> extends Entity<T> {
             }
         }
 
+        // replace include model names with instances
+        if (filters?.include) {
+            console.log(this.adapter.models)
+            for (let inc of filters?.include as QueryIncludeOpts<any>[]) {
+                if (inc?.through?.model) {
+                    inc.through.model = Object.values(this.adapter.dataSource.models).find(_m => _m.tableName === inc?.through?.model)
+                }
+                if (inc?.model) {
+                    inc.model = Object.values(this.adapter.dataSource.models).find(_m => _m.tableName === inc?.model)
+                }
+            }
+        }
 
         const filters_: NonNullFindOptions<T> = {
             where,
             attributes,
             limit,
             offset,
-            include: filters?.include,
+            include: filters?.include as any,
             group: filters?.group,
             order: filters?.order as any,
             rejectOnEmpty: false

@@ -49,7 +49,7 @@ export class ExpressManager extends PluginClass {
             next(err)
         })
         this.app?.listen(port, host, () => {
-            this.ctx?.logger?.log(`Listening on http://${host}:${port}`)
+            this.ctx?.logger?.success(`Listening on http://${host}:${port}`)
         })
     }
 

@@ -3,6 +3,7 @@
 # compiled output
 dist
 tmp
+media
 /out-tsc
 *.tmp
 .cache

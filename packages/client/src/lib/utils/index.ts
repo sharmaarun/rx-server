@@ -3,7 +3,7 @@ import { Attribute, BaseAttributeType, EntitySchema, NumberAttributeSubType, Plu
 import { Container } from "inversify"
 import { parse, stringify } from "qs"
 import { AttributesManager, RegisteredAttribute } from "../attributes"
-import { ClientContext, UtilitiesContext } from "../contexts"
+import { ClientContext, useServerContext, UtilitiesContext } from "../contexts"
 import { Route } from "../contexts/routes"
 import { MenusManager, SettingsMenuItem } from "../menu"
 import { NetworkManager, NetworkRequestMiddleware, NetworkResponseMiddleware } from "../network"
@@ -19,7 +19,9 @@ const attributes = container.get<AttributesManager>("AttributesManager")
 const menus = container.get<MenusManager>("MenusManager")
 
 export type BootstrapOptions = {
-    serverUrl?: string
+    host?: string
+    port?: number
+    webRoot?: string
 }
 
 /**
@@ -29,11 +31,15 @@ export type BootstrapOptions = {
 export const bootstrap = async (opts?: BootstrapOptions) => {
 
     const {
-        serverUrl = "http://localhost:1338/api"
+        host = "localhost",
+        port = 1338,
+        webRoot = "api"
     } = opts || {}
 
     //create main context
-    ClientContext.server.serverUrl = serverUrl
+    ClientContext.server.host = host
+    ClientContext.server.port = port
+    ClientContext.server.webRoot = webRoot
 
     // attributes
     attributes.init(ClientContext)
@@ -228,4 +234,22 @@ export const parseQueryString = (str: string) => {
 }
 export const stringifyQuery = (query: any) => {
     return stringify(query)
+}
+
+/**
+ * Get complete server url
+ */
+export const useServerUrl = () => {
+    const { host, port } = useServerContext()
+    const url = window.location.protocol + "//" + host + ":" + port
+    return url
+}
+
+/**
+ * Get complete api server endpoint url
+ */
+export const getServerApiEndpoint = () => {
+    const { host, port, webRoot } = useServerContext()
+    const url = window.location.protocol + "//" + host + ":" + port + "/" + webRoot
+    return url
 }

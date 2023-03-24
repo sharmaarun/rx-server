@@ -1,5 +1,5 @@
 {
-  "name": "@reactive/plugin-media",
+  "name": "@reactive/plugin-media-adapter-local",
   "version": "0.0.1",
   "type": "commonjs",
   "main": "src/index"

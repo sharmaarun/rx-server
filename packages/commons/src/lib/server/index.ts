@@ -2,6 +2,7 @@
 import { APIConfig } from "../api";
 import { DBConfig } from "../db";
 import { LoggerConfig } from "../logger";
+import { MediaConfig } from "../media";
 import { PluginsConfig } from "../plugins";
 
 
@@ -21,5 +22,6 @@ export type Config = {
     server: ServerConfig,
     api: APIConfig
     logger: LoggerConfig
+    media: MediaConfig
 }
 

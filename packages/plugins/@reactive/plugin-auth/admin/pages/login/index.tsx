@@ -21,9 +21,9 @@ export function LoginPage({ children, ...props }: LoginPageProps) {
         try {
             setLoading(true)
             setErrors([])
-            const { token } = await auth.call("login", login, "post") || {}
+            const { token } = await auth.call("login", { body: login, method: "post" }) || {}
             setAuthToken(token)
-            window.location.href="/admin"
+            window.location.href = "/admin"
         } catch (e) {
             console.error(e)
             if (e.errors) {

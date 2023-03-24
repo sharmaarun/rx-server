@@ -8,7 +8,8 @@ import {
   fs,
   logger,
   plugins,
-  settings
+  settings,
+  media
 } from "../container"
 import { ServerContext } from "./context"
 import { query, restartServer } from "./utils"
@@ -39,6 +40,7 @@ export async function bootstrap(opts?: BootstrapOpts) {
     db: (await import(opts?.appDir + "/config/db"))?.default,
     plugins: (await import(opts?.appDir + "/config/plugins"))?.default,
     logger: (await import(opts?.appDir + "/config/logger"))?.default,
+    media: (await import(opts?.appDir + "/config/media"))?.default
   }
 
 
@@ -53,6 +55,7 @@ export async function bootstrap(opts?: BootstrapOpts) {
     db,
     apiGen,
     query,
+    media,
     utils: {
       restartServer
     }
@@ -75,6 +78,8 @@ export async function bootstrap(opts?: BootstrapOpts) {
   await apiGen.init(serverContext)
   // Load Plugins
   await plugins.init(serverContext)
+  // Load Media Manager
+  await media.init(serverContext)
 
 
   await new Promise(res => setTimeout(res, 200))
@@ -85,8 +90,10 @@ export async function bootstrap(opts?: BootstrapOpts) {
   // start db
   await db.start()
 
-  // Starting
+  // listen to endpoints
+  await plugins.start()
   await endpoints.start()
+
 
   // Start App
   await app.start()

@@ -156,6 +156,15 @@ describe('SQL Entity Model', () => {
         expect(existing).toBeNull()
     })
 
+    it("should find relational includes with custom order", async () => {
+        const m11 = await model.create({ name: "model" })
+        const m12 = await model.create({ name: "model" })
+        const m13 = await model.create({ name: "model" })
+        const m2 = await model2.create({ name: "model2", tester: [m13.id, m12.id, m11.id] })
+        const res = await model2.findAll({ include: [{ association: "tester", through: { model: "test2_tester_tester2", order: [["id", "desc"]] } }] })
+        console.log(JSON.stringify(res, null, 2))
+    })
+
 
     it("should findAll of the matching entries", async () => {
         await createEntry()

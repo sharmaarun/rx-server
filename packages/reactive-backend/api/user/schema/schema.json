@@ -73,6 +73,11 @@
       "customType": "json",
       "name": "meta",
       "locked": true
+    },
+    "avatar": {
+      "type": "json",
+      "customType": "media",
+      "name": "avatar"
     }
   },
   "default": {
@@ -152,5 +157,6 @@
         "locked": true
       }
     }
-  }
+  },
+  "type": "fs"
 }

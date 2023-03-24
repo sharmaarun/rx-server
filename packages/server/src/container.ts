@@ -5,6 +5,7 @@ import { ExpressManager } from './lib/express';
 import { LocalFS } from './lib/fs';
 import { APIGenerator } from './lib/generator/api';
 import { Logger } from './lib/logger';
+import { MediaManager } from './lib/media';
 import { PluginsManager } from './lib/plugin';
 import SettingsManager from './lib/settings';
 
@@ -18,6 +19,7 @@ container.bind<ExpressManager>(ExpressManager).to(ExpressManager).inSingletonSco
 container.bind<SettingsManager>(SettingsManager).to(SettingsManager).inSingletonScope()
 container.bind<LocalFS>(LocalFS).to(LocalFS).inSingletonScope()
 container.bind<APIGenerator>(APIGenerator).to(APIGenerator).inSingletonScope()
+container.bind<MediaManager>(MediaManager).to(MediaManager).inSingletonScope()
 
 
 // export main services
@@ -29,5 +31,6 @@ export const app = container.get<ExpressManager>(ExpressManager)
 export const settings = container.get<SettingsManager>(SettingsManager)
 export const fs = container.get<LocalFS>(LocalFS)
 export const apiGen = container.get<APIGenerator>(APIGenerator)
+export const media = container.get<MediaManager>(MediaManager)
 
 export default container

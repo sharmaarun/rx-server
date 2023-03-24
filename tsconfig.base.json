@@ -29,8 +29,8 @@
       "@reactive/plugin-auth": [
         "packages/plugins/@reactive/plugin-auth/src/index.ts"
       ],
-      "@reactive/plugin-media": [
-        "packages/plugins/@reactive/plugin-media/src/index.ts"
+      "@reactive/plugin-media-adapter-local": [
+        "packages/plugins/@reactive/plugin-media-adapter-local/src/index.ts"
       ],
       "@reactive/plugin-data-types": [
         "packages/reactive-backend/plugins/@reactive/plugin-data-types/src/index.ts"

@@ -221,7 +221,7 @@ export class EndpointManager extends PluginClass {
         if (!this.ctx) throw new ContextNotFoundError();
         const routes = cb?.(this.ctx) || []
         const defaultRoutes = createDefaultCRUDRoutes(this.ctx) || []
-        return [...defaultRoutes, ...routes]
+        return [...routes, ...defaultRoutes]
     }
 
     public createController = (name: string, cb?: (ctx: ServerContext) => APIRouteHandlersMap) => {
@@ -245,7 +245,7 @@ export class EndpointManager extends PluginClass {
 
 
     public prepareRequestContext = (endpoint: Endpoint, route: APIRoute, req: Request, res: Response) => {
-        const ctx: APIRequestContext = {
+        const ctx: APIRequestContext<any, any, any, Request, Response> = {
             params: req.params,
             query: req.query,
             body: req.body,
@@ -253,7 +253,9 @@ export class EndpointManager extends PluginClass {
             send: res.send.bind(res),
             endpoint,
             route,
-            headers: req.headers
+            headers: req.headers,
+            req,
+            res
         }
         return ctx;
     }
@@ -266,7 +268,6 @@ export class EndpointManager extends PluginClass {
             if (route.handler) {
                 // prepare the context
                 const ctx = this.prepareRequestContext(ep, route, req, res)
-
                 // process any middlewares here
                 const middlewares = this.middlewares.filter(m => {
                     const epName = typeof m.endpointName === "string" ? new RegExp(m.endpointName) : m.endpointName

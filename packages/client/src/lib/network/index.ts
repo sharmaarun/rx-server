@@ -3,10 +3,11 @@ import { injectable } from "inversify";
 import { ClientContext } from "../contexts";
 import { PluginClass } from "../plugins";
 
-export type Method = "get" | "post" | "put" | "delete"
+export type Method = "get" | "post" | "put" | "delete" | "call"
 
 export type NetworkManagerRequestOpts = RequestInit & {
-
+    format?: "json" | "text" | "binary"
+    noDefaultHeaders?: boolean
 }
 export type NetworkManagerResponseOpts = ResponseInit & {
 
@@ -25,61 +26,106 @@ export type NetworkResponseMiddleware = {
 @injectable()
 export class NetworkManager extends PluginClass {
     private serverURL!: string
-    private opts!: RequestInit
+    private opts!: NetworkManagerRequestOpts
     private middlewares: NetworkRequestMiddleware[] = []
     private responseMiddlewares: NetworkResponseMiddleware[] = []
     override async init(ctx: ClientContext) {
         super.ctx = ctx
-        this.serverURL = ctx.server.serverUrl || "http://localhost:1338/api"
+        this.serverURL = (window.location.protocol + "//") + (ctx.server.host ?? "localhost") + ":" + (ctx.server.port ?? 1338) + (ctx.server.webRoot ? ("/" + ctx.server.webRoot) : "")
         this.opts = {
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            format: "json"
         }
     }
 
     public async get(path: string, opts?: NetworkManagerRequestOpts) {
         this.processMiddlewares(path, this.opts)
-        const res = await fetch(this.serverURL + "/" + path, {
-            method: "get",
+        const finalOpts = {
             ...this.opts,
             ...opts
+        }
+        const res = await fetch(this.serverURL + "/" + path, {
+            method: "get",
+            ...finalOpts
         })
         return await this.processResponse(path, res)
     }
     public async post(path: string, data: any, opts?: NetworkManagerRequestOpts) {
         this.processMiddlewares(path, { ...this.opts, data })
+        const finalOpts = {
+            ...this.opts,
+            ...opts
+        }
         const res = await fetch(this.serverURL + "/" + path,
             {
-                body: JSON.stringify(data),
+                body: this.formatRequestData(data, finalOpts),
                 method: "post",
-                ...this.opts,
-                ...opts
+                ...finalOpts
             })
         return await this.processResponse(path, res)
 
     }
     public async put(path: string, data: any, opts?: NetworkManagerRequestOpts) {
         this.processMiddlewares(path, { ...this.opts, data })
+        const finalOpts = {
+            ...this.opts,
+            ...opts
+        }
         const res = await fetch(this.serverURL + "/" + path,
             {
-                body: JSON.stringify(data),
+                body: this.formatRequestData(data, finalOpts),
                 method: "put",
-                ...this.opts,
-                ...opts
+                ...finalOpts
             })
         return await this.processResponse(path, res)
     }
     public async delete(path: string, opts?: NetworkManagerRequestOpts) {
         this.processMiddlewares(path, this.opts)
+        const finalOpts = {
+            ...this.opts,
+            ...opts
+        }
         const res = await fetch(this.serverURL + "/" + path,
             {
                 method: "delete",
-                ...this.opts,
-                ...opts
+                ...finalOpts
             })
         return await this.processResponse(path, res)
     }
+
+    public async call(path: string, opts?: NetworkManagerRequestOpts) {
+        if (opts?.noDefaultHeaders) {
+            this.processMiddlewares(path, opts)
+        } else {
+            this.processMiddlewares(path, this.opts)
+        }
+        const finalOpts = opts?.noDefaultHeaders ? opts : {
+            ...this.opts,
+            ...opts,
+        }
+        const res = await fetch(this.serverURL + "/" + path, {
+            ...finalOpts,
+            body: this.formatRequestData(opts?.body, finalOpts),
+        })
+        return await this.processResponse(path, res)
+    }
+
+
+    private formatRequestData = (data: any, opts: NetworkManagerRequestOpts) => {
+        if (opts.format === "json") {
+            return JSON.stringify(data)
+        }
+        if (opts.format === "text") {
+            return data
+        }
+        if (opts.format === "binary") {
+            return data
+        }
+        return data
+    }
+
     private processResponse = async (path: string, res: Response) => {
         const { ok, status, statusText, text } = res
         const data = await this.processResponseData(res)

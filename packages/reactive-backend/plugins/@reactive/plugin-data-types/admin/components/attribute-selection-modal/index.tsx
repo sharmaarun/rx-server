@@ -43,7 +43,7 @@ export function AttributeSelectionModal({ children, onChange, ...props }: Attrib
                                                 py={2}
                                             >
                                                 <Card iconSpacing={2} onClick={e => { onChange?.(attribute as any) }} autoFocus={index === 0} flexDir="row" justifyContent="flex-start" leftIcon={
-                                                    <Icon>
+                                                    <Icon w="24px" h="24px">
                                                         {<Icon_ />}
                                                     </Icon>
                                                 } as={Button} py={6} px={4} w="full">

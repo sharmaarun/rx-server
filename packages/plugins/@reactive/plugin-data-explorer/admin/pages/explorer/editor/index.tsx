@@ -91,14 +91,16 @@ export function EditorPage({ children, mode = "update", ...props }: EditorPagePr
     useEffect(() => {
         if (!id || !currentSchema || !currentSchema.attributes) return
         setTimeout(async () => {
-            await get(id, {
-                include: Object.values(currentSchema?.attributes || {})
-                    ?.filter(attr => attr.type === BaseAttributeType.relation)
-                    ?.map(attr => ({
-                        association: attr.name,
-                        attributes: ["id"]
-                    }))
-            })
+            await get(id,
+                {
+                    include: Object.values(currentSchema?.attributes || {})
+                        ?.filter(attr => attr.type === BaseAttributeType.relation)
+                        ?.map(attr => ({
+                            association: attr.name,
+                            attributes: ["id"],
+                        } as any))
+                }
+            )
         }, 0)
     }, [id, currentSchema])
 

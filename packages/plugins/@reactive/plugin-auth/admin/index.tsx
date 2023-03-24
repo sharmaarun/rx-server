@@ -6,12 +6,11 @@ import { BaseAttributeType, getCookie, StringAttributeSubType } from "@reactive/
 import { Input, useToast } from "@reactive/ui"
 import { useEffect } from "react"
 import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import APiPermissionInput from "./components/api-permissions-input"
 import LoginPage from "./pages/login"
 import RegisterPage from "./pages/register"
 import RolesPage from "./pages/roles"
 import RolesEditorPage from "./pages/roles/editor"
-import { setAuthToken } from "./utils"
-import APiPermissionInput from "./components/api-permissions-input"
 
 
 
@@ -132,7 +131,6 @@ registerPlugin(() => (ctx: ClientContext) => {
         registerNetworkResponseMiddleware((ctx) => ({
             name: "PROCESS UNAUTHORIZED ERROR",
             fn(path, opts) {
-                console.log(path)
                 if (opts.status === 401 && opts?.statusText?.toLowerCase()?.includes("unauthorized")) {
                     // toast({ description: "Please login" })
                     navigate("/login")

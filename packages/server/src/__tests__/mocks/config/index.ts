@@ -22,5 +22,8 @@ export const dummyConfig: Config = {
         host: "0.0.0.0",
         port: 1338
     },
-    logger:{}
+    logger: {},
+    media: {
+        adapter: ""
+    }
 }

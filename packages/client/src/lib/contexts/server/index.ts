@@ -2,7 +2,9 @@ import { Endpoint } from "@reactive/commons"
 import { proxy, useSnapshot } from "valtio"
 
 export type ServerContext = {
-    serverUrl?: string
+    host?: string
+    port?: number
+    webRoot?: string
     endpoints?: Endpoint[]
 }
 
